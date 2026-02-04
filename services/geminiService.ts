@@ -173,6 +173,102 @@ export async function generateChangeOrder(
          * Safety harness/fall protection
        If any category applies, list it explicitly.
 
+    9. PRODUCT PRICING REFERENCE (USE THESE EXACT PRICES)
+       You MUST use the following verified MSRP pricing for all materials and equipment.
+       Search Google if a specific product is not listed below to find current pricing.
+       
+       === CCTV CAMERAS ===
+       Axis P3245-V (2MP Indoor Dome): $899.00 ea
+       Axis P3265-V (4K Indoor Dome): $1,199.00 ea
+       Axis P3255-LVE (2MP Outdoor Dome): $1,349.00 ea
+       Axis Q6135-LE (2MP PTZ 32x): $5,899.00 ea
+       Axis Q6225-LE (4MP PTZ 32x, IR): $7,199.00 ea
+       Axis M3115-LVE (2MP Mini Dome): $449.00 ea
+       Axis T91D61 Wall Mount: $125.00 ea
+       Axis T94K01L Recessed Mount: $89.00 ea
+       Axis T94K01D Pendant Kit: $105.00 ea
+       Axis T91A67 Pole Mount: $285.00 ea
+       Hikvision DS-2CD2143G2-IU (4MP Dome): $285.00 ea
+       Hikvision DS-2CD2T47G2-L (4MP ColorVu Bullet): $425.00 ea
+       Hikvision DS-2CD2547G2-LZS (4MP Mini Dome): $375.00 ea
+       
+       === NVR/RECORDING SYSTEMS ===
+       Axis S1116 (16ch NVR, 8TB): $4,299.00 ea
+       Axis S1148 (48ch NVR, 24TB): $8,995.00 ea
+       Hikvision DS-7616NXI-K2/16P (16ch NVR w/PoE): $649.00 ea
+       WD Purple Surveillance HDD 6TB: $155.00 ea
+       WD Purple Surveillance HDD 8TB: $185.00 ea
+       Seagate SkyHawk 8TB: $179.00 ea
+       APC SMT1500RM2U UPS: $895.00 ea
+       CyberPower CP850PFCLCD UPS: $159.00 ea
+       
+       === ACCESS CONTROL ===
+       HID Signo 40 Reader w/Keypad: $425.00 ea
+       HID Signo 20 Reader: $285.00 ea
+       HID iCLASS SE R40 Reader: $195.00 ea
+       Mercury LP1502 (2-door panel): $595.00 ea
+       Mercury LP1504 (4-door panel): $895.00 ea
+       HES 1006CLB Electric Strike: $195.00 ea
+       Securitron M62 Maglock (1200lb): $285.00 ea
+       Seco-Larm SD-995C-D1Q REX Sensor: $55.00 ea
+       Seco-Larm SM-226L-3Q Door Contact: $12.00 ea
+       Altronix AL600ULACM Power Supply: $285.00 ea
+       Power Sonic PS-1270 Battery: $25.00 ea
+       Z-Bracket Kit (maglock): $45.00 ea
+       Power Transfer Hinge: $125.00 ea
+       
+       === STRUCTURED CABLING ===
+       Panduit Cat6A Plenum Cable (PUP6AV04BU-UG): $0.85/ft
+       Belden 10GXS12 Cat6A F/UTP Plenum: $0.95/ft
+       Berk-Tek 10GXS12 Cat6A (Leviton warranty): $0.90/ft
+       Leviton 6A586-U24 Patch Panel 24-port: $533.99 ea
+       Leviton 6A586-U48 Patch Panel 48-port: $744.42 ea
+       Leviton eXtreme Cat6A Jack (6110G-RW6): $13.50 ea
+       Leviton QuickPort 2-port Faceplate: $3.25 ea
+       Low Voltage Mounting Bracket: $1.50 ea
+       Cat6A RJ45 Shielded Connector: $5.50 ea
+       Cat6A RJ45 UTP Connector: $3.50 ea
+       Cat6 RJ45 Connector: $1.50 ea
+       Patch Cable 1ft Cat6: $3.50 ea
+       Patch Cable 3ft Cat6A: $8.00 ea
+       Patch Cable 7ft Cat6A: $12.00 ea
+       
+       === PATHWAY & SUPPORTS ===
+       nVent CADDY CAT HP J-Hook 2" (CAT21HP): $3.85 ea
+       nVent CADDY CAT HP J-Hook 4" (CAT41HP): $5.25 ea
+       B-Line Bridle Ring 2": $1.85 ea
+       Beam Clamp for J-Hook: $2.50 ea
+       Threaded Rod 1/4" x 10ft: $8.00 ea
+       Horizontal Cable Manager 1U: $45.00 ea
+       Horizontal Cable Manager 2U: $65.00 ea
+       
+       === CONSUMABLES (INCLUDE ON EVERY JOB) ===
+       Cable Ties 8" Black (100 pack): $8.50/pack
+       Velcro Cable Straps 6" (25 pack): $15.00/pack
+       Cable Labels (100 roll): $12.00/roll
+       Tapcon Anchors 1/4x1-3/4 (box 100): $35.00/box
+       Drywall Anchors Assorted Kit: $18.00/kit
+       Wire Nuts Assorted (bag 50): $8.00/bag
+       Electrical Tape 3-pack: $12.00/pack
+       Silicone Sealant Clear (tube): $8.50/tube
+       Heat Shrink Assortment Kit: $22.00/kit
+       Weatherproof Junction Box: $45.00 ea
+       Single Gang Junction Box: $4.50 ea
+       
+       === LIFT EQUIPMENT (REQUIRED FOR HIGH WORK) ===
+       Scissor Lift Rental (daily): $250.00/day
+       Boom Lift Rental (daily): $450.00/day
+       Fall Protection Harness (rental): $35.00/day
+       
+       === INSTALLATION MATERIAL FORMULAS ===
+       J-HOOKS: 1 per every 5 feet of horizontal cable run (mandatory TIA-569)
+       CABLE TIES: 1 per every 2 feet of cable (bundling at J-hooks)
+       LABELS: 2 per cable run (both ends)
+       JACKS: 1 per camera (patch panel only); 2 per data drop (wall + panel)
+       CABLE WASTE: Add 15% to stated footage for terminations and routing
+       OUTDOOR CAMERAS: Include weatherproof junction box + silicone sealant
+       PTZ CAMERAS: Include larger junction box, stainless mounting hardware
+
     3a. QUANTITY CALCULATION RULES (MANDATORY - Follow Precisely)
        CABLE QUANTITY:
        - Use the EXACT footage stated by the user
