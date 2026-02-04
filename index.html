@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3DTSI Intelligence™ | Service Change Order AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000;
+            color: #fff;
+        }
+
+        .gold-gradient {
+            background: linear-gradient(135deg, #B8860B 0%, #D4AF37 50%, #FFD700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gold-bg-gradient {
+            background: linear-gradient(135deg, #B8860B 0%, #D4AF37 50%, #FFD700 100%);
+        }
+
+        .gold-border {
+            border-image: linear-gradient(to bottom, #D4AF37, #B8860B) 1;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #D4AF37;
+            border-radius: 4px;
+        }
+
+        /* Print Styles for Letter Size Paper - PROFESSIONAL MULTI-PAGE */
+        @media print {
+            @page {
+                size: letter;
+                margin: 0.4in 0.5in;
+            }
+
+            @page: first {
+                margin-top: 0.3in;
+            }
+
+            * {
+                box-sizing: border-box !important;
+            }
+
+            html,
+            body {
+                width: 100% !important;
+                height: auto !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background-color: white !important;
+                color: black !important;
+                font-size: 9pt !important;
+                line-height: 1.4 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* Hide header and action buttons when printing */
+            header,
+            footer,
+            .print-hide {
+                display: none !important;
+            }
+
+            /* Reset containers - FULL WIDTH CENTERED */
+            #root,
+            #root>div,
+            main {
+                background: white !important;
+                min-height: auto !important;
+                padding: 0 !important;
+                margin: 0 auto !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            /* Change order document - FULL WIDTH CENTERED */
+            .bg-white.text-black {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 auto !important;
+                box-shadow: none !important;
+                border: none !important;
+            }
+
+            /* Logo sizing */
+            .bg-white.text-black img {
+                max-width: 200px !important;
+                height: auto !important;
+            }
+
+            /* Hide print buttons section */
+            .bg-gray-100.border-t-4 {
+                display: none !important;
+            }
+
+            /* Page break controls for professional layout */
+            .grid.grid-cols-12 {
+                page-break-inside: avoid;
+            }
+
+            /* Keep authorization section together */
+            .bg-white.text-black>div:last-of-type {
+                page-break-inside: avoid;
+            }
+
+            /* Allow natural page breaks between major sections */
+            .border-t-4.border-black {
+                page-break-before: auto;
+            }
+
+            /* Table headers repeat on new pages (browser support varies) */
+            .bg-gray-200 {
+                display: table-header-group;
+            }
+
+            /* PROPOSAL PRINT STYLES */
+            .proposal-page {
+                page-break-after: always !important;
+                page-break-inside: avoid !important;
+                margin-top: 0 !important;
+            }
+
+            .proposal-page:last-child {
+                page-break-after: auto !important;
+            }
+
+            /* Ensure proposal colors print correctly */
+            .proposal-page .bg-black {
+                background-color: #000 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .proposal-page .bg-gradient-to-r {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .proposal-page .text-\[\#D4AF37\] {
+                color: #D4AF37 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+    <script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://esm.sh/@google/genai@^1.35.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3"
+  }
+}
+</script>
+</head>
+
+<body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+</body>
+
+</html>

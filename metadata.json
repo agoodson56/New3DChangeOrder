@@ -1,0 +1,8 @@
+{
+  "name": "3DTSI Systems Intelligence Engine™",
+  "description": "Master-level service change order estimator powered by 3DTSI Engineering Intelligence. multimodal reasoning for low-voltage, life-safety, and AV system modifications.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
