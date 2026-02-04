@@ -587,6 +587,15 @@ export async function generateChangeOrder(
        
        RULE: Before adding ANY component, verify it belongs to the system being quoted.
        If a component doesn't match the system type, DO NOT include it.
+       
+       EXCEPTION - MULTI-SYSTEM COMPONENTS (these are valid across multiple systems):
+       - Cat5e/Cat6/Cat6A cable: Valid for Structured Cabling, IP CCTV, IP Access Control, AV/IP devices
+       - PoE Switches: Valid for CCTV, Access Control (IP readers), AV, Structured Cabling
+       - Conduit/Pathway: Valid for ALL systems
+       - J-Hooks/Cable Tray: Valid for ALL systems
+       - Junction Boxes: Valid for ALL systems (use appropriate type)
+       - Power Supplies: Valid for Access Control, CCTV, Intrusion (system-specific models)
+       - Patch Cords: Valid for Structured Cabling, CCTV, AV, IP-based systems
     </instructions>
 
     <format>
