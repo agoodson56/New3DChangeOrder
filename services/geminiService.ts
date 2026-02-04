@@ -558,6 +558,35 @@ export async function generateChangeOrder(
        - "What would the field call back asking for?"
        - "What small item would delay completion if missing?"
        If the answer exists — include it.
+
+    9. SYSTEM COMPONENT COHERENCE (CRITICAL)
+       ALL materials and equipment MUST be appropriate for the system type being quoted:
+       
+       - FIRE ALARM Change Order → ONLY fire alarm components:
+         * Smoke detectors, heat detectors, pull stations, horns, strobes
+         * Fire alarm panels, annunciators, power supplies
+         * Fire alarm cable (FPLP/FPLR), junction boxes, conduit
+         * NO structured cabling, NO network switches, NO cameras
+       
+       - ACCESS CONTROL Change Order → ONLY access control components:
+         * Card readers, keypads, biometric readers
+         * Electric strikes, maglocks, door contacts, REX sensors
+         * Access control panels, power supplies, credentials
+         * Access control cable (22/4, 18/4), NOT Cat6 unless IP readers
+       
+       - CCTV Change Order → ONLY CCTV components:
+         * Cameras, NVRs/DVRs, monitors, encoders
+         * PoE switches, camera mounts, housings
+         * Cat6 for IP cameras, coax for analog
+         * NO fire alarm devices, NO access readers
+       
+       - STRUCTURED CABLING Change Order → ONLY data/voice components:
+         * Cable (Cat5e/Cat6/Cat6A), jacks, patch panels
+         * Faceplates, patch cords, cable management
+         * NO security devices, NO fire alarm components
+       
+       RULE: Before adding ANY component, verify it belongs to the system being quoted.
+       If a component doesn't match the system type, DO NOT include it.
     </instructions>
 
     <format>
