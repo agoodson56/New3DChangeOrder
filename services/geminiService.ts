@@ -525,6 +525,32 @@ export async function generateChangeOrder(
        or if the customer explicitly specifies a different brand for a particular item.
        If mixing is required, document it in 'professionalNotes' with justification.
 
+    7a. SYSTEM-SPECIFIC CABLE TYPES (CRITICAL - Never mix cable types!)
+       Each system requires its OWN cable type. NEVER substitute structured cabling for specialty cables:
+       
+       - FIRE ALARM: Use ONLY fire alarm rated cable (FPLP, FPLR, FPL)
+         * 2-conductor shielded for initiating devices (smoke, heat, pull stations)
+         * 4-conductor for NAC circuits (horns, strobes)
+         * NEVER use Cat5e/Cat6 for fire alarm - code violation!
+       
+       - ACCESS CONTROL: Use access control cable (22/4, 22/6, 18/4)
+         * 22AWG for readers and door contacts
+         * 18AWG for electric locks (higher current)
+         * Cat5e/Cat6 acceptable ONLY for IP-based readers
+       
+       - INTRUSION/BURGLAR ALARM: Use alarm cable (22/4, 22/6)
+         * Shielded for long runs or noisy environments
+       
+       - CCTV (Analog): Use RG59 or RG6 coax with Siamese power
+         * IP cameras use Cat5e/Cat6/Cat6A structured cabling
+       
+       - STRUCTURED CABLING: Cat5e/Cat6/Cat6A for data/voice/IP devices ONLY
+         * Use Leviton/Berk-Tek per priority rule
+       
+       - AUDIO/INTERCOM: Use speaker wire (16AWG, 14AWG) or shielded audio cable
+       
+       RULE: Always match cable type to system type. If unsure, default to the specialty cable.
+
     8. VALIDATION PASS (Required)
        Before finalizing output, perform a completeness audit:
        Ask yourself:
