@@ -133,7 +133,7 @@ const App: React.FC = () => {
           {status === AppStatus.IDLE && (
             <div className="space-y-16 animate-in fade-in zoom-in-95 duration-1000">
               <div className="text-center max-w-3xl mx-auto space-y-6">
-                <h2 className="text-5xl md:text-6xl font-black uppercase tracking-tighter leading-tight">Change Order <span className="gold-gradient">Requests</span></h2>
+                <h2 className="text-5xl md:text-6xl font-serif-elegant font-medium tracking-wide leading-tight">Change Order <span className="gold-gradient italic">Requests</span></h2>
                 <div className="h-1.5 w-32 bg-[#D4AF37] mx-auto"></div>
                 <p className="text-gray-400 text-lg font-medium leading-relaxed tracking-wide">
                   Submit coordinator intent with attached project collateral. Our multimodal reasoning engine will synthesize a defensible Change Order with deterministic labor units and infrastructure requirements.
