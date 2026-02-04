@@ -275,13 +275,14 @@ export async function generateChangeOrder(
        Patch Cable 7ft Cat6A: $12.00 ea
        
        OSP (OUTSIDE PLANT) / DIRECT BURIAL CABLE:
-       REQUIRED for: Underground runs, under-slab installations, outdoor exposed runs, outdoor buried conduit
+       REQUIRED for: Underground runs, under-slab installations, outdoor EXPOSED runs
+       NOT REQUIRED if: Outdoor but protected from elements (in conduit/raceway) - use standard Plenum/PVC
        Belden Cat6 OSP Direct Burial (7934A): $0.75/ft
        Belden Cat6A OSP Direct Burial (10GXW11): $1.25/ft
        Superior Essex Cat6 OSP Gel-Filled (18-599-36): $0.85/ft
        Superior Essex Cat6A OSP Gel-Filled: $1.35/ft
        CommScope Cat6 OSP (2091B): $0.80/ft
-       NOTE: OSP cable MUST be used for any cable running underground, under concrete slab, or outdoors
+       NOTE: OSP cable for underground, under-slab, or outdoor EXPOSED only. Protected outdoor (conduit) = regular cable OK
        
        CAT5E PRODUCTS (legacy):
        Cat5e Plenum Cable: $0.30/ft
