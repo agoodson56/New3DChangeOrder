@@ -266,14 +266,32 @@ export async function generateChangeOrder(
        Boom Lift Rental (daily, high exterior): $450.00/day
        Fall Protection Harness (rental, 6ft+ elevated): $35.00/day
        
-       === INSTALLATION MATERIAL FORMULAS ===
-       J-HOOKS: 1 per every 5 feet of horizontal cable run (mandatory TIA-569)
-       CABLE TIES: 1 per every 2 feet of cable (bundling at J-hooks)
-       LABELS: 2 per cable run (both ends)
-       JACKS: 1 per camera (patch panel only); 2 per data drop (wall + panel)
-       CABLE WASTE: Add 15% to stated footage for terminations and routing
-       OUTDOOR CAMERAS: Include weatherproof junction box + silicone sealant
-       PTZ CAMERAS: Include larger junction box, stainless mounting hardware
+       === INSTALLATION MATERIAL FORMULAS (VERIFIED STANDARDS) ===
+       
+       CAMERA CABLE RUN MATERIALS (per camera):
+       - RJ45 JACKS/CONNECTORS: 2 per camera (1 at camera end + 1 at patch panel)
+       - PATCH CORD 7ft: 1 per camera (switch to patch panel)
+       - PATCH CORD 2ft: 1 per camera (patch panel daisy-chain/short run)
+       - J-HOOKS: 1 per every 5 feet of horizontal cable run (TIA-569 compliant)
+       - TIE WRAPS/VELCRO: 10 per cable run (bundling at J-hooks)
+       - LABELS: 2 per cable run (both ends)
+       - CABLE WASTE: Add 15% to stated footage for terminations and routing
+       
+       DATA DROP MATERIALS (per wall outlet):
+       - RJ45 JACKS: 2 per drop (1 wall jack + 1 patch panel jack)
+       - FACEPLATE: 1 per drop
+       - LOW VOLTAGE BRACKET: 1 per drop
+       - PATCH CORD 7ft: 1 per drop
+       
+       OUTDOOR CAMERA ADDITIONS:
+       - WEATHERPROOF JUNCTION BOX: 1 per outdoor camera
+       - SILICONE SEALANT: 1/4 tube per outdoor camera
+       - STAINLESS STEEL MOUNTING HARDWARE
+       
+       PTZ CAMERA ADDITIONS:
+       - LARGER JUNCTION BOX: 1 per PTZ
+       - STAINLESS MOUNTING KIT: 1 per PTZ
+       - POLE/PARAPET MOUNT: As needed
 
     3a. QUANTITY CALCULATION RULES (MANDATORY - Follow Precisely)
        CABLE QUANTITY:
