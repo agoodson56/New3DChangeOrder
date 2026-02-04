@@ -166,11 +166,12 @@ export async function generateChangeOrder(
        - Disposal materials and labor
        - RJ45/Keystone jacks (see calculation rule below)
        - Patch panels for rack terminations
-       - LIFT/EQUIPMENT RENTAL (MANDATORY if working above 10ft):
-         * Scissor lift rental (daily rate)
-         * Boom lift rental (daily rate)
-         * Ladder rental if required
-         * Safety harness/fall protection
+       - LIFT/EQUIPMENT RENTAL (HEIGHT-BASED - READ CAREFULLY):
+          * UNDER 12 FEET: Use ladder only - NO LIFT REQUIRED
+          * OVER 12 FEET: Scissor lift or boom lift REQUIRED
+          * Scissor lift rental (daily rate) - for indoor work over 12ft
+          * Boom lift rental (daily rate) - for outdoor/high exterior work
+          * Safety harness/fall protection - required at 6ft+ elevated work
        If any category applies, list it explicitly.
 
     9. PRODUCT PRICING REFERENCE (USE THESE EXACT PRICES)
@@ -255,10 +256,15 @@ export async function generateChangeOrder(
        Weatherproof Junction Box: $45.00 ea
        Single Gang Junction Box: $4.50 ea
        
-       === LIFT EQUIPMENT (REQUIRED FOR HIGH WORK) ===
-       Scissor Lift Rental (daily): $250.00/day
-       Boom Lift Rental (daily): $450.00/day
-       Fall Protection Harness (rental): $35.00/day
+       === LIFT EQUIPMENT (HEIGHT-BASED REQUIREMENTS) ===
+       UNDER 12 FEET: Ladder only (no lift required)
+       OVER 12 FEET: Scissor/Boom lift required
+       
+       A-Frame Ladder 8ft: $0 (technician-supplied)
+       Extension Ladder 12ft: $0 (technician-supplied)
+       Scissor Lift Rental (daily, 12ft+ work): $250.00/day
+       Boom Lift Rental (daily, high exterior): $450.00/day
+       Fall Protection Harness (rental, 6ft+ elevated): $35.00/day
        
        === INSTALLATION MATERIAL FORMULAS ===
        J-HOOKS: 1 per every 5 feet of horizontal cable run (mandatory TIA-569)
