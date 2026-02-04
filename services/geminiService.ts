@@ -410,20 +410,70 @@ export async function generateChangeOrder(
        - Customer Coordination and Sign-off
        Even brief tasks must be included if they exist.
 
-    5a. LABOR HOUR ESTIMATION (Follow These Guidelines)
-       Base labor on the ACTUAL device count and cable footage, not inflated quantities.
+    5a. LABOR HOUR ESTIMATION - INDUSTRY STANDARD FORMULAS (MANDATORY)
+       Calculate labor using these PER-DEVICE and PER-UNIT formulas. These are industry-standard times.
        
-       SINGLE CAMERA INSTALLATION (typical):
-       - Site Survey and Preparation: 1 hour
-       - Installation / Mounting: 2 hours (includes lift time if applicable)
-       - Cabling and Pathways: 4 hours per 400ft of cable run
-       - Termination and Connections: 2 hours
-       - Programming and Configuration: 1 hour
-       - Testing and Verification: 1 hour
-       - Documentation and Labeling: 0.5 hours
-       - Customer Coordination and Sign-off: 0.5 hours
+       === CCTV CAMERA INSTALLATION (per camera) ===
+       MOUNTING TIME (per camera):
+       - Indoor Fixed Dome (standard ceiling <12ft): 0.5 hours
+       - Indoor Fixed Dome (high ceiling >12ft with lift): 0.75 hours
+       - Outdoor Fixed Dome/Bullet: 0.75 hours
+       - Indoor PTZ: 1.0 hours
+       - Outdoor PTZ: 1.25 hours
+       - Pole/Parapet Mount (any camera): add 0.5 hours
        
-       Scale proportionally for multiple devices. Do NOT double labor just because materials seem high.
+       OTHER CAMERA LABOR (per camera):
+       - Cable Termination (RJ45 crimp + test): 0.25 hours per cable end
+       - Camera Configuration (IP, stream settings): 0.5 hours
+       - Camera Aiming/Focus/Optimization: 0.25 hours
+       - Labeling (both ends): 0.1 hours
+       
+       EXAMPLE: 6 indoor dome cameras at standard height:
+       - Installation/Mounting: 6 x 0.5 = 3.0 hours
+       - Termination: 6 x 0.25 = 1.5 hours
+       - Configuration: 6 x 0.5 = 3.0 hours
+       - Aiming/Focus: 6 x 0.25 = 1.5 hours
+       - Labeling: 6 x 0.1 = 0.6 hours
+       
+       === CABLING LABOR (per cable run) ===
+       - Cable Pull (horizontal, open ceiling): 0.5 hours per 100ft
+       - Cable Pull (horizontal, tight space/retrofit): 0.75 hours per 100ft
+       - Cable Pull (vertical riser): 0.3 hours per 50ft
+       - J-Hook Installation: 0.05 hours per J-hook (1 per 5ft)
+       - Conduit Installation (if required): 0.25 hours per 10ft
+       
+       === ACCESS CONTROL (per door) ===
+       - Reader Installation (surface mount): 0.5 hours
+       - Reader Installation (mullion/narrow): 0.75 hours  
+       - Electric Strike Installation: 1.5 hours
+       - Maglock Installation (with Z-bracket): 1.0 hours
+       - Door Contact Installation: 0.25 hours
+       - REX Sensor Installation: 0.25 hours
+       - Power Supply Installation: 0.5 hours
+       - Panel Programming (per door): 0.5 hours
+       - Credential Enrollment (per 10 users): 0.25 hours
+       
+       === DATA DROPS (per drop) ===
+       - Wall Outlet Installation (new construction): 0.5 hours
+       - Wall Outlet Installation (retrofit/fishing): 1.0 hours
+       - Patch Panel Termination (per port): 0.15 hours
+       - Cable Testing (Fluke certification per cable): 0.1 hours
+       
+       === FIXED OVERHEAD TASKS (per project) ===
+       - Site Survey and Preparation: 1-2 hours (scale with project size)
+       - Documentation and As-Builts: 0.5 hours per 5 devices
+       - Customer Walkthrough and Sign-off: 0.5 hours
+       - Cleanup and Debris Removal: 0.25 hours per 4 hours worked
+       
+       === COMPLEXITY MULTIPLIERS (apply when conditions exist) ===
+       - Lift/Scaffold Required (>12ft): multiply mounting time by 1.5
+       - Outdoor/Weatherproofing: multiply mounting time by 1.25
+       - Retrofit/Existing Building: multiply cabling time by 1.5
+       - Historic/Sensitive Environment: multiply all times by 1.25
+       - After-Hours Work: no time multiplier (rate multiplier handled separately)
+       
+       CALCULATION REQUIREMENT: You MUST calculate labor by multiplying the per-device time by the device count.
+       Do NOT use flat times regardless of quantity. 6 cameras = 6x the per-camera time.
 
     6. NO ASSUMED INFRASTRUCTURE RULE
        Never assume:
