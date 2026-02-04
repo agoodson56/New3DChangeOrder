@@ -26,6 +26,14 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
     onDataChange({ ...data, [field]: value });
   };
 
+  // Helper to normalize admin field values - show "NA" for empty/inferred values
+  const normalizeAdminValue = (value: string | undefined): string => {
+    if (!value || value.trim() === '' || value.toLowerCase().includes('infer')) {
+      return 'NA';
+    }
+    return value;
+  };
+
   // Add product from search
   const handleAddProduct = (item: MaterialItem) => {
     const newMaterials = [...data.materials, item];
@@ -264,8 +272,8 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
               <span className="font-black w-40 text-right pr-4 uppercase tracking-tighter">3DTSI Project #:</span>
               <input
                 type="text"
-                value={data.projectNumber}
-                onChange={(e) => updateField('projectNumber', e.target.value)}
+                value={normalizeAdminValue(data.projectNumber)}
+                onChange={(e) => updateField('projectNumber', e.target.value === 'NA' ? '' : e.target.value)}
                 className={`${editableTextClass} flex-1 font-bold text-gray-800`}
               />
             </div>
@@ -273,20 +281,18 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
               <span className="font-black w-40 text-right pr-4 uppercase tracking-tighter">RFI#:</span>
               <input
                 type="text"
-                value={data.rfiNumber || ''}
-                onChange={(e) => updateField('rfiNumber', e.target.value)}
+                value={normalizeAdminValue(data.rfiNumber)}
+                onChange={(e) => updateField('rfiNumber', e.target.value === 'NA' ? '' : e.target.value)}
                 className={`${editableTextClass} flex-1 font-bold text-gray-800`}
-                placeholder="-"
               />
             </div>
             <div className="flex items-end border-b border-black h-6">
               <span className="font-black w-40 text-right pr-4 uppercase tracking-tighter">PCO#:</span>
               <input
                 type="text"
-                value={data.pcoNumber || ''}
-                onChange={(e) => updateField('pcoNumber', e.target.value)}
+                value={normalizeAdminValue(data.pcoNumber)}
+                onChange={(e) => updateField('pcoNumber', e.target.value === 'NA' ? '' : e.target.value)}
                 className={`${editableTextClass} flex-1 font-bold text-gray-800`}
-                placeholder="-"
               />
             </div>
             <div className="flex items-end border-b border-black h-6">
