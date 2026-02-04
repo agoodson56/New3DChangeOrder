@@ -321,7 +321,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
       {/* Tables & Financials */}
       <div className="border-t-4 border-black">
         <div className="grid grid-cols-12 bg-gray-200 text-[10px] font-black border-b-2 border-black uppercase tracking-[0.15em]">
-          <div className="col-span-1 border-r border-black px-2 py-1 text-center">Units</div>
+          <div className="col-span-1 border-r border-black px-2 py-1 text-center">HR. UNITS</div>
           <div className="col-span-7 border-r border-black px-2 py-1">System Components & Implementation Tasks</div>
           <div className="col-span-2 border-r border-black px-2 py-1 text-right">Unit Value</div>
           <div className="col-span-2 px-2 py-1 text-right">Extension</div>
