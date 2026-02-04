@@ -410,70 +410,93 @@ export async function generateChangeOrder(
        - Customer Coordination and Sign-off
        Even brief tasks must be included if they exist.
 
-    5a. LABOR HOUR ESTIMATION - INDUSTRY STANDARD FORMULAS (MANDATORY)
-       Calculate labor using these PER-DEVICE and PER-UNIT formulas. These are industry-standard times.
+    5a. LABOR HOUR ESTIMATION - NECA MANUAL OF LABOR UNITS (MLU) ALIGNED
+       These labor units are aligned with NECA MLU standards. Use "Normal" for ideal conditions,
+       "Difficult" for challenging access/retrofit, "Very Difficult" for complex environments.
        
-       === CCTV CAMERA INSTALLATION (per camera) ===
-       MOUNTING TIME (per camera):
-       - Indoor Fixed Dome (standard ceiling <12ft): 0.5 hours
-       - Indoor Fixed Dome (high ceiling >12ft with lift): 0.75 hours
-       - Outdoor Fixed Dome/Bullet: 0.75 hours
-       - Indoor PTZ: 1.0 hours
-       - Outdoor PTZ: 1.25 hours
-       - Pole/Parapet Mount (any camera): add 0.5 hours
+       === CCTV CAMERA INSTALLATION (per camera, NECA MLU aligned) ===
+       Camera with Enclosure (includes mounting, wiring, basic config):
+       - Fixed Dome/Bullet Camera:
+         * Normal: 1.50 hours
+         * Difficult: 2.00 hours
+         * Very Difficult: 2.50 hours
+       - PTZ Camera:
+         * Normal: 2.00 hours
+         * Difficult: 2.50 hours
+         * Very Difficult: 3.00 hours
+       - Specialty Mount (pole, parapet, corner): add 0.50 hours
        
-       OTHER CAMERA LABOR (per camera):
-       - Cable Termination (RJ45 crimp + test): 0.25 hours per cable end
-       - Camera Configuration (IP, stream settings): 0.5 hours
+       Additional Camera Labor (per camera):
+       - Camera Configuration/Programming: 0.50 hours
        - Camera Aiming/Focus/Optimization: 0.25 hours
-       - Labeling (both ends): 0.1 hours
+       - Labeling (both ends): 0.10 hours
        
-       EXAMPLE: 6 indoor dome cameras at standard height:
-       - Installation/Mounting: 6 x 0.5 = 3.0 hours
-       - Termination: 6 x 0.25 = 1.5 hours
-       - Configuration: 6 x 0.5 = 3.0 hours
+       EXAMPLE: 6 indoor dome cameras (Normal conditions):
+       - Installation/Mounting: 6 x 1.50 = 9.0 hours
+       - Configuration: 6 x 0.50 = 3.0 hours
        - Aiming/Focus: 6 x 0.25 = 1.5 hours
-       - Labeling: 6 x 0.1 = 0.6 hours
+       - Labeling: 6 x 0.10 = 0.6 hours
+       - TOTAL: 14.1 hours (not 2 hours!)
        
-       === CABLING LABOR (per cable run) ===
-       - Cable Pull (horizontal, open ceiling): 0.5 hours per 100ft
-       - Cable Pull (horizontal, tight space/retrofit): 0.75 hours per 100ft
-       - Cable Pull (vertical riser): 0.3 hours per 50ft
-       - J-Hook Installation: 0.05 hours per J-hook (1 per 5ft)
-       - Conduit Installation (if required): 0.25 hours per 10ft
+       === STRUCTURED CABLING (NECA MLU aligned) ===
+       Cable Installation (per 100ft horizontal):
+       - Normal (open ceiling): 0.50 hours
+       - Difficult (tight space): 0.75 hours
+       - Very Difficult (existing walls): 1.00 hours
        
-       === ACCESS CONTROL (per door) ===
-       - Reader Installation (surface mount): 0.5 hours
-       - Reader Installation (mullion/narrow): 0.75 hours  
-       - Electric Strike Installation: 1.5 hours
-       - Maglock Installation (with Z-bracket): 1.0 hours
-       - Door Contact Installation: 0.25 hours
-       - REX Sensor Installation: 0.25 hours
-       - Power Supply Installation: 0.5 hours
-       - Panel Programming (per door): 0.5 hours
-       - Credential Enrollment (per 10 users): 0.25 hours
+       J-Hook Installation: 0.05 hours per hook (1 per 5ft)
        
-       === DATA DROPS (per drop) ===
-       - Wall Outlet Installation (new construction): 0.5 hours
-       - Wall Outlet Installation (retrofit/fishing): 1.0 hours
-       - Patch Panel Termination (per port): 0.15 hours
-       - Cable Testing (Fluke certification per cable): 0.1 hours
+       Data Drop/Outlet (complete with terminations):
+       - Normal: 1.50 hours per drop
+       - Difficult: 1.90 hours per drop
+       - Very Difficult: 2.25 hours per drop
+       
+       Patch Panel Termination: 0.15 hours per port
+       Cable Testing (Fluke): 0.10 hours per cable
+       
+       === ACCESS CONTROL (NECA MLU aligned, per device) ===
+       Card Reader, Wall Mounted:
+       - Normal: 0.80 hours
+       - Difficult: 1.00 hours
+       - Very Difficult: 1.20 hours
+       
+       Card Reader, Post Mounted:
+       - Normal: 1.00 hours
+       - Difficult: 1.25 hours
+       - Very Difficult: 1.50 hours
+       
+       Electric Door Strike, New Installation:
+       - Normal: 2.00 hours
+       - Difficult: 3.00 hours
+       - Very Difficult: 4.00 hours
+       
+       Electric Door Strike, Retrofit:
+       - Normal: 2.50 hours
+       - Difficult: 3.00 hours
+       - Very Difficult: 4.50 hours
+       
+       Magnetic Lock (with Z-bracket):
+       - Normal: 1.50 hours
+       - Difficult: 2.00 hours
+       - Very Difficult: 2.50 hours
+       
+       Door Contact: 0.25 hours
+       REX Sensor: 0.25 hours
+       Power Supply: 0.50 hours
+       Panel Programming: 0.50 hours per door
        
        === FIXED OVERHEAD TASKS (per project) ===
-       - Site Survey and Preparation: 1-2 hours (scale with project size)
-       - Documentation and As-Builts: 0.5 hours per 5 devices
-       - Customer Walkthrough and Sign-off: 0.5 hours
-       - Cleanup and Debris Removal: 0.25 hours per 4 hours worked
+       - Site Survey and Preparation: 1-2 hours
+       - Documentation and As-Builts: 0.50 hours per 5 devices
+       - Customer Walkthrough/Sign-off: 0.50 hours
+       - Cleanup/Debris Removal: 0.25 hours per 4 hours worked
        
-       === COMPLEXITY MULTIPLIERS (apply when conditions exist) ===
-       - Lift/Scaffold Required (>12ft): multiply mounting time by 1.5
-       - Outdoor/Weatherproofing: multiply mounting time by 1.25
-       - Retrofit/Existing Building: multiply cabling time by 1.5
-       - Historic/Sensitive Environment: multiply all times by 1.25
-       - After-Hours Work: no time multiplier (rate multiplier handled separately)
+       === CONDITION SELECTION RULES ===
+       Use NORMAL when: New construction, open ceilings, easy access, standard height (<12ft)
+       Use DIFFICULT when: Retrofit, limited access, height >12ft, occupied space
+       Use VERY DIFFICULT when: Historic buildings, concrete/masonry, extreme heights, hazardous areas
        
-       CALCULATION REQUIREMENT: You MUST calculate labor by multiplying the per-device time by the device count.
-       Do NOT use flat times regardless of quantity. 6 cameras = 6x the per-camera time.
+       CALCULATION REQUIREMENT: Multiply per-device time by device count. Do NOT use flat times.
 
     6. NO ASSUMED INFRASTRUCTURE RULE
        Never assume:
