@@ -174,7 +174,18 @@ export async function generateChangeOrder(
           * Safety harness/fall protection - required at 6ft+ elevated work
        If any category applies, list it explicitly.
 
-    9. PRODUCT PRICING REFERENCE (USE THESE EXACT PRICES)
+    10. NO SUBSTITUTION RULE (CRITICAL - MUST FOLLOW)
+        You MUST use EXACTLY what the customer specifies. DO NOT:
+        - Substitute Cat6A when customer asks for Cat6
+        - Substitute Cat6 when customer asks for Cat5e
+        - Upgrade to "better" products without explicit customer request
+        - Change cable types, jack types, or patch panel types from what was specified
+        
+        If customer says "Cat6 cable", use Cat6 cable, Cat6 jacks, Cat6 patch panels, Cat6 patch cords.
+        If customer says "Cat6A cable", use Cat6A cable, Cat6A jacks, Cat6A patch panels, Cat6A patch cords.
+        Match ALL related components to the specified cable category.
+
+    11. PRODUCT PRICING REFERENCE (USE THESE EXACT PRICES)
        You MUST use the following verified MSRP pricing for all materials and equipment.
        Search Google if a specific product is not listed below to find current pricing.
        
@@ -219,20 +230,39 @@ export async function generateChangeOrder(
        Power Transfer Hinge: $125.00 ea
        
        === STRUCTURED CABLING ===
+       CRITICAL: Use EXACTLY what the customer specifies (Cat5e, Cat6, or Cat6A). Do NOT substitute or upgrade!
+       
+       CAT6 PRODUCTS:
+       Panduit Cat6 Plenum Cable (PUP6004BU-UG): $0.45/ft
+       Belden Cat6 Plenum Cable (2412): $0.50/ft
+       Leviton Cat6 24-port Patch Panel (69586-U24): $189.00 ea
+       Leviton Cat6 48-port Patch Panel (69586-U48): $325.00 ea
+       Leviton eXtreme Cat6 Jack (61110-RW6): $8.50 ea
+       Cat6 RJ45 Connector: $1.50 ea
+       Patch Cable 3ft Cat6: $5.00 ea
+       Patch Cable 7ft Cat6: $7.00 ea
+       
+       CAT6A PRODUCTS:
        Panduit Cat6A Plenum Cable (PUP6AV04BU-UG): $0.85/ft
        Belden 10GXS12 Cat6A F/UTP Plenum: $0.95/ft
        Berk-Tek 10GXS12 Cat6A (Leviton warranty): $0.90/ft
-       Leviton 6A586-U24 Patch Panel 24-port: $533.99 ea
-       Leviton 6A586-U48 Patch Panel 48-port: $744.42 ea
+       Leviton Cat6A 24-port Patch Panel (6A586-U24): $533.99 ea
+       Leviton Cat6A 48-port Patch Panel (6A586-U48): $744.42 ea
        Leviton eXtreme Cat6A Jack (6110G-RW6): $13.50 ea
-       Leviton QuickPort 2-port Faceplate: $3.25 ea
-       Low Voltage Mounting Bracket: $1.50 ea
        Cat6A RJ45 Shielded Connector: $5.50 ea
        Cat6A RJ45 UTP Connector: $3.50 ea
-       Cat6 RJ45 Connector: $1.50 ea
-       Patch Cable 1ft Cat6: $3.50 ea
        Patch Cable 3ft Cat6A: $8.00 ea
        Patch Cable 7ft Cat6A: $12.00 ea
+       
+       CAT5E PRODUCTS (legacy):
+       Cat5e Plenum Cable: $0.30/ft
+       Cat5e RJ45 Connector: $0.75 ea
+       Cat5e Patch Panel 24-port: $65.00 ea
+       Patch Cable 7ft Cat5e: $4.00 ea
+       
+       COMMON ACCESSORIES:
+       Leviton QuickPort 2-port Faceplate: $3.25 ea
+       Low Voltage Mounting Bracket: $1.50 ea
        
        === PATHWAY & SUPPORTS ===
        nVent CADDY CAT HP J-Hook 2" (CAT21HP): $3.85 ea
