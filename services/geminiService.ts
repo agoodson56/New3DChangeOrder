@@ -509,7 +509,10 @@ export async function generateChangeOrder(
 
     7. MANUFACTURER CONSISTENCY RULE (Required)
        Within each system category, use components from a SINGLE manufacturer:
-       - Structured Cabling: Use ALL Panduit OR ALL Leviton OR ALL CommScope (do NOT mix)
+       - Structured Cabling PRIORITY (ALWAYS use this order):
+          * 1ST CHOICE: Leviton jacks/panels with Berk-Tek cable (WARRANTY REQUIRED)
+          * 2ND CHOICE: Berk-Tek cable with Leviton connectivity
+          * 3RD CHOICE: Panduit or CommScope (only if Leviton/Berk-Tek unavailable)
          * Jacks, patch panels, faceplates must all be same brand
          * LEVITON WARRANTY REQUIREMENT: When using Leviton jacks/panels, MUST use Berk-Tek cable for warranty compliance
          * Panduit or CommScope systems can use their respective branded cable
