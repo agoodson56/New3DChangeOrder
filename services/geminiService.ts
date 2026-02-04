@@ -174,18 +174,33 @@ export async function generateChangeOrder(
           * Safety harness/fall protection - required at 6ft+ elevated work
        If any category applies, list it explicitly.
 
-    10. NO SUBSTITUTION RULE (CRITICAL - MUST FOLLOW)
-        You MUST use EXACTLY what the customer specifies. DO NOT:
-        - Substitute Cat6A when customer asks for Cat6
-        - Substitute Cat6 when customer asks for Cat5e
-        - Upgrade to "better" products without explicit customer request
-        - Change cable types, jack types, or patch panel types from what was specified
+    10. CABLE CATEGORY VERIFICATION (CRITICAL - PRODUCT SPECS OVERRIDE)
+        ALWAYS verify what the product REQUIRES for cable category based on manufacturer specifications.
+        DO NOT blindly trust the requestor's cable category - verify against product requirements.
         
-        If customer says "Cat6 cable", use Cat6 cable, Cat6 jacks, Cat6 patch panels, Cat6 patch cords.
-        If customer says "Cat6A cable", use Cat6A cable, Cat6A jacks, Cat6A patch panels, Cat6A patch cords.
-        Match ALL related components to the specified cable category.
+        VERIFICATION RULES:
+        - If product requires Cat6 for PoE+ but requestor says Cat5e → USE CAT6 (note in professionalNotes)
+        - If product requires Cat6A for 10Gbps but requestor says Cat6 → USE CAT6A (note in professionalNotes)
+        - If product supports Cat5e and requestor says Cat5e → USE CAT5E (acceptable)
+        
+        COMMON REQUIREMENTS:
+        - PoE (802.3af, 15W): Cat5e minimum
+        - PoE+ (802.3at, 30W): Cat5e minimum, Cat6 recommended for long runs
+        - PoE++ (802.3bt, 60-90W): Cat6 minimum required
+        - 10Gbps devices: Cat6A required
+        - 1Gbps devices: Cat5e minimum
+        
+        When overriding requestor's cable choice due to product requirements:
+        - Document the reason in 'professionalNotes'
+        - List it as an assumption: "Cable upgraded to [Cat6/Cat6A] per manufacturer specs for [product]"
+        
+    11. MATCH COMPONENTS TO CABLE CATEGORY
+        Once cable category is determined (verified per Rule 10):
+        - Use matching jacks, patch panels, and patch cords for that category
+        - If Cat6 cable → Cat6 jacks, Cat6 patch panels, Cat6 patch cords
+        - If Cat6A cable → Cat6A jacks, Cat6A patch panels, Cat6A patch cords
 
-    11. PRODUCT PRICING REFERENCE (USE THESE EXACT PRICES)
+    12. PRODUCT PRICING REFERENCE (USE THESE EXACT PRICES)
        You MUST use the following verified MSRP pricing for all materials and equipment.
        Search Google if a specific product is not listed below to find current pricing.
        
