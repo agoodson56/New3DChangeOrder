@@ -269,7 +269,7 @@ export async function generateChangeOrder(
        === INSTALLATION MATERIAL FORMULAS (VERIFIED STANDARDS) ===
        
        CAMERA CABLE RUN MATERIALS (per camera):
-       - RJ45 JACKS/CONNECTORS: 2 per camera (1 at camera end + 1 at patch panel)
+       - RJ45 CONNECTOR: 1 per camera (at camera end only - closet end punches down to patch panel)
        - PATCH CORD 7ft: 1 per camera (switch to patch panel)
        - PATCH CORD 2ft: 1 per camera (patch panel daisy-chain/short run)
        - J-HOOKS: 1 per every 5 feet of horizontal cable run (TIA-569 compliant)
