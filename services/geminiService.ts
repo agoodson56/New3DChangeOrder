@@ -231,6 +231,7 @@ export async function generateChangeOrder(
        
        === STRUCTURED CABLING ===
        CRITICAL: Use EXACTLY what the customer specifies (Cat5e, Cat6, or Cat6A). Do NOT substitute or upgrade!
+       DEFAULT: If cable jacket type is NOT specified, ALWAYS use PLENUM cable (not PVC/Riser).
        
        CAT6 PRODUCTS:
        Panduit Cat6 Plenum Cable (PUP6004BU-UG): $0.45/ft
