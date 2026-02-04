@@ -235,6 +235,8 @@ export async function generateChangeOrder(
        CAT6 PRODUCTS:
        Panduit Cat6 Plenum Cable (PUP6004BU-UG): $0.45/ft
        Belden Cat6 Plenum Cable (2412): $0.50/ft
+       Panduit Cat6 PVC/Riser Cable (PUR6004BU-UG): $0.25/ft
+       Belden Cat6 PVC Cable (2413): $0.28/ft
        Leviton Cat6 24-port Patch Panel (69586-U24): $189.00 ea
        Leviton Cat6 48-port Patch Panel (69586-U48): $325.00 ea
        Leviton eXtreme Cat6 Jack (61110-RW6): $8.50 ea
@@ -246,6 +248,8 @@ export async function generateChangeOrder(
        Panduit Cat6A Plenum Cable (PUP6AV04BU-UG): $0.85/ft
        Belden 10GXS12 Cat6A F/UTP Plenum: $0.95/ft
        Berk-Tek 10GXS12 Cat6A (Leviton warranty): $0.90/ft
+       Panduit Cat6A PVC/Riser Cable (PUR6AV04BU-UG): $0.55/ft
+       Belden Cat6A PVC Cable (10GXE01): $0.60/ft
        Leviton Cat6A 24-port Patch Panel (6A586-U24): $533.99 ea
        Leviton Cat6A 48-port Patch Panel (6A586-U48): $744.42 ea
        Leviton eXtreme Cat6A Jack (6110G-RW6): $13.50 ea
