@@ -12,6 +12,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
   const [intent, setIntent] = useState('');
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState<string[]>([]);
+  const [isListening, setIsListening] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Administrative Fields
@@ -128,12 +129,8 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
               recognition.interimResults = true;
               recognition.lang = 'en-US';
 
-              // Visual feedback
-              const btn = document.getElementById('voiceBtn');
-              if (btn) {
-                btn.classList.add('animate-pulse', 'bg-red-600');
-                btn.innerHTML = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg> Listening...';
-              }
+              // Visual feedback via React state
+              setIsListening(true);
 
               let finalTranscript = '';
 
@@ -154,17 +151,11 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
 
               recognition.onerror = (event: any) => {
                 console.error('Speech recognition error:', event.error);
-                if (btn) {
-                  btn.classList.remove('animate-pulse', 'bg-red-600');
-                  btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg> Voice Input';
-                }
+                setIsListening(false);
               };
 
               recognition.onend = () => {
-                if (btn) {
-                  btn.classList.remove('animate-pulse', 'bg-red-600');
-                  btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg> Voice Input';
-                }
+                setIsListening(false);
               };
 
               recognition.start();
@@ -174,13 +165,21 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
                 recognition.stop();
               }, 30000);
             }}
-            id="voiceBtn"
-            className="flex items-center gap-2 px-4 py-2 bg-[#D4AF37] text-black font-bold text-xs uppercase tracking-wider hover:bg-[#FFD700] transition-all"
+            className={`flex items-center gap-2 px-4 py-2 font-bold text-xs uppercase tracking-wider transition-all ${isListening ? 'animate-pulse bg-red-600 text-white' : 'bg-[#D4AF37] text-black hover:bg-[#FFD700]'}`}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-            </svg>
-            Voice Input
+            {isListening ? (
+              <>
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" /></svg>
+                Listening...
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+                Voice Input
+              </>
+            )}
           </button>
         </div>
         <textarea

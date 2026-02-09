@@ -1,6 +1,7 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { ChangeOrderData, ProposalData, LaborRates } from "../types";
+import { ChangeOrderData, ProposalData, LaborRates, AdminData, Financials } from "../types";
+import { buildProductReference } from "../utils/productReference";
 
 const CO_SCHEMA = {
   type: Type.OBJECT,
@@ -69,10 +70,9 @@ const CO_SCHEMA = {
 export async function generateChangeOrder(
   intent: string,
   images: string[] = [],
-  adminData: any = {}
+  adminData: AdminData = { customer: '', contact: '', projectName: '', address: '', phone: '', projectNumber: '', rfiNumber: '', pcoNumber: '' }
 ): Promise<ChangeOrderData> {
-  // Use VITE_ prefix for Cloudflare/Vite environment variables
-  const apiKey = (import.meta as any).env?.VITE_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY;
+  const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY;
   const ai = new GoogleGenAI({ apiKey });
   const model = 'gemini-2.0-flash';
 
@@ -200,131 +200,16 @@ export async function generateChangeOrder(
         - If Cat6 cable → Cat6 jacks, Cat6 patch panels, Cat6 patch cords
         - If Cat6A cable → Cat6A jacks, Cat6A patch panels, Cat6A patch cords
 
-    12. PRODUCT PRICING REFERENCE (USE THESE EXACT PRICES)
-       You MUST use the following verified MSRP pricing for all materials and equipment.
-       Search Google if a specific product is not listed below to find current pricing.
-       
-       === CCTV CAMERAS ===
-       Axis P3245-V (2MP Indoor Dome): $899.00 ea
-       Axis P3265-V (4K Indoor Dome): $1,199.00 ea
-       Axis P3255-LVE (2MP Outdoor Dome): $1,349.00 ea
-       Axis Q6135-LE (2MP PTZ 32x): $5,899.00 ea
-       Axis Q6225-LE (4MP PTZ 32x, IR): $7,199.00 ea
-       Axis M3115-LVE (2MP Mini Dome): $449.00 ea
-       Axis T91D61 Wall Mount: $125.00 ea
-       Axis T94K01L Recessed Mount: $89.00 ea
-       Axis T94K01D Pendant Kit: $105.00 ea
-       Axis T91A67 Pole Mount: $285.00 ea
-       Hikvision DS-2CD2143G2-IU (4MP Dome): $285.00 ea
-       Hikvision DS-2CD2T47G2-L (4MP ColorVu Bullet): $425.00 ea
-       Hikvision DS-2CD2547G2-LZS (4MP Mini Dome): $375.00 ea
-       
-       === NVR/RECORDING SYSTEMS ===
-       Axis S1116 (16ch NVR, 8TB): $4,299.00 ea
-       Axis S1148 (48ch NVR, 24TB): $8,995.00 ea
-       Hikvision DS-7616NXI-K2/16P (16ch NVR w/PoE): $649.00 ea
-       WD Purple Surveillance HDD 6TB: $155.00 ea
-       WD Purple Surveillance HDD 8TB: $185.00 ea
-       Seagate SkyHawk 8TB: $179.00 ea
-       APC SMT1500RM2U UPS: $895.00 ea
-       CyberPower CP850PFCLCD UPS: $159.00 ea
-       
-       === ACCESS CONTROL ===
-       HID Signo 40 Reader w/Keypad: $425.00 ea
-       HID Signo 20 Reader: $285.00 ea
-       HID iCLASS SE R40 Reader: $195.00 ea
-       Mercury LP1502 (2-door panel): $595.00 ea
-       Mercury LP1504 (4-door panel): $895.00 ea
-       HES 1006CLB Electric Strike: $195.00 ea
-       Securitron M62 Maglock (1200lb): $285.00 ea
-       Seco-Larm SD-995C-D1Q REX Sensor: $55.00 ea
-       Seco-Larm SM-226L-3Q Door Contact: $12.00 ea
-       Altronix AL600ULACM Power Supply: $285.00 ea
-       Power Sonic PS-1270 Battery: $25.00 ea
-       Z-Bracket Kit (maglock): $45.00 ea
-       Power Transfer Hinge: $125.00 ea
-       
-       === STRUCTURED CABLING ===
-       CRITICAL: Use EXACTLY what the customer specifies (Cat5e, Cat6, or Cat6A). Do NOT substitute or upgrade!
-       DEFAULT: If cable jacket type is NOT specified, ALWAYS use PLENUM cable (not PVC/Riser).
-       
-       CAT6 PRODUCTS:
-       Panduit Cat6 Plenum Cable (PUP6004BU-UG): $0.45/ft
-       Belden Cat6 Plenum Cable (2412): $0.50/ft
-       Panduit Cat6 PVC/Riser Cable (PUR6004BU-UG): $0.25/ft
-       Belden Cat6 PVC Cable (2413): $0.28/ft
-       Leviton Cat6 24-port Patch Panel (69586-U24): $189.00 ea
-       Leviton Cat6 48-port Patch Panel (69586-U48): $325.00 ea
-       Leviton eXtreme Cat6 Jack (61110-RW6): $8.50 ea
-       Cat6 RJ45 Connector: $1.50 ea
-       Patch Cable 3ft Cat6: $5.00 ea
-       Patch Cable 7ft Cat6: $7.00 ea
-       
-       CAT6A PRODUCTS:
-       Panduit Cat6A Plenum Cable (PUP6AV04BU-UG): $0.85/ft
-       Belden 10GXS12 Cat6A F/UTP Plenum: $0.95/ft
-       Berk-Tek 10GXS12 Cat6A (Leviton warranty): $0.90/ft
-       Panduit Cat6A PVC/Riser Cable (PUR6AV04BU-UG): $0.55/ft
-       Belden Cat6A PVC Cable (10GXE01): $0.60/ft
-       Leviton Cat6A 24-port Patch Panel (6A586-U24): $533.99 ea
-       Leviton Cat6A 48-port Patch Panel (6A586-U48): $744.42 ea
-       Leviton eXtreme Cat6A Jack (6110G-RW6): $13.50 ea
-       Cat6A RJ45 Shielded Connector: $5.50 ea
-       Cat6A RJ45 UTP Connector: $3.50 ea
-       Patch Cable 3ft Cat6A: $8.00 ea
-       Patch Cable 7ft Cat6A: $12.00 ea
-       
-       OSP (OUTSIDE PLANT) / DIRECT BURIAL CABLE:
-       REQUIRED for: Underground runs, under-slab installations, outdoor EXPOSED runs
-       NOT REQUIRED if: Outdoor but protected from elements (in conduit/raceway) - use standard Plenum/PVC
-       Belden Cat6 OSP Direct Burial (7934A): $0.75/ft
-       Belden Cat6A OSP Direct Burial (10GXW11): $1.25/ft
-       Superior Essex Cat6 OSP Gel-Filled (18-599-36): $0.85/ft
-       Superior Essex Cat6A OSP Gel-Filled: $1.35/ft
-       CommScope Cat6 OSP (2091B): $0.80/ft
-       NOTE: OSP cable for underground, under-slab, or outdoor EXPOSED only. Protected outdoor (conduit) = regular cable OK
-       
-       CAT5E PRODUCTS (legacy):
-       Cat5e Plenum Cable: $0.30/ft
-       Cat5e RJ45 Connector: $0.75 ea
-       Cat5e Patch Panel 24-port: $65.00 ea
-       Patch Cable 7ft Cat5e: $4.00 ea
-       
-       COMMON ACCESSORIES:
-       Leviton QuickPort 2-port Faceplate: $3.25 ea
-       Low Voltage Mounting Bracket: $1.50 ea
-       
-       === PATHWAY & SUPPORTS ===
-       nVent CADDY CAT HP J-Hook 2" (CAT21HP): $3.85 ea
-       nVent CADDY CAT HP J-Hook 4" (CAT41HP): $5.25 ea
-       B-Line Bridle Ring 2": $1.85 ea
-       Beam Clamp for J-Hook: $2.50 ea
-       Threaded Rod 1/4" x 10ft: $8.00 ea
-       Horizontal Cable Manager 1U: $45.00 ea
-       Horizontal Cable Manager 2U: $65.00 ea
-       
-       === CONSUMABLES (INCLUDE ON EVERY JOB) ===
-       Cable Ties 8" Black (100 pack): $8.50/pack
-       Velcro Cable Straps 6" (25 pack): $15.00/pack
-       Cable Labels (100 roll): $12.00/roll
-       Tapcon Anchors 1/4x1-3/4 (box 100): $35.00/box
-       Drywall Anchors Assorted Kit: $18.00/kit
-       Wire Nuts Assorted (bag 50): $8.00/bag
-       Electrical Tape 3-pack: $12.00/pack
-       Silicone Sealant Clear (tube): $8.50/tube
-       Heat Shrink Assortment Kit: $22.00/kit
-       Weatherproof Junction Box: $45.00 ea
-       Single Gang Junction Box: $4.50 ea
-       
-       === LIFT EQUIPMENT (HEIGHT-BASED REQUIREMENTS) ===
-       UNDER 12 FEET: Ladder only (no lift required)
-       OVER 12 FEET: Scissor/Boom lift required
-       
-       A-Frame Ladder 8ft: $0 (technician-supplied)
-       Extension Ladder 12ft: $0 (technician-supplied)
-       Scissor Lift Rental (daily, 12ft+ work): $250.00/day
-       Boom Lift Rental (daily, high exterior): $450.00/day
-       Fall Protection Harness (rental, 6ft+ elevated): $35.00/day
+${buildProductReference()}
+
+        ADDITIONAL PRICING (not in product database - search Google for current MSRP):
+        If a product is NOT found in the above database, search for current pricing online.
+        For common accessories not listed, use these guidelines:
+        - Standard junction boxes: $4.50 ea
+        - Weatherproof junction boxes: $45.00 ea
+        - Cable labels (roll 100): $12.00/roll
+        - Beam clamps: $2.50 ea
+
        
        === INSTALLATION MATERIAL FORMULAS (VERIFIED STANDARDS) ===
        
@@ -688,14 +573,9 @@ const PROPOSAL_SCHEMA = {
 export async function generateProposal(
   coData: ChangeOrderData,
   rates: LaborRates,
-  financials: {
-    laborTotal: number;
-    materialsTotal: number;
-    taxTotal: number;
-    grandTotal: number;
-  }
+  financials: Financials
 ): Promise<ProposalData> {
-  const apiKey = (import.meta as any).env?.VITE_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY;
+  const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY;
   const ai = new GoogleGenAI({ apiKey });
   const model = 'gemini-2.0-flash';
 

@@ -10,9 +10,9 @@ export const COLORS = {
 
 export const Icons = {
   Logo: ({ className = "" }: { className?: string }) => (
-    <img 
-      src="/logo.png" 
-      alt="3D Technology Services" 
+    <img
+      src="/logo.png"
+      alt="3D Technology Services"
       className={className}
       style={{ objectFit: 'contain' }}
     />
@@ -34,5 +34,6 @@ export const SYSTEMS = [
   'Structured Cabling',
   'CCTV',
   'Access Control',
-  'Fire Alarm'
+  'Fire Alarm',
+  'Intrusion'
 ];

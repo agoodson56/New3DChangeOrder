@@ -80,15 +80,21 @@ export enum AppStatus {
   PROPOSAL = 'PROPOSAL'
 }
 
-export interface ProductSearchResult {
-  manufacturer: string;
-  model: string;
-  partNumber: string;
-  msrp: number;
-  description: string;
-  category: 'Material' | 'Equipment';
-  unitOfMeasure: string;
-  sourceUrl?: string;
-  confidence: 'high' | 'medium' | 'low';
+export interface AdminData {
+  customer: string;
+  contact: string;
+  projectName: string;
+  address: string;
+  phone: string;
+  projectNumber: string;
+  rfiNumber: string;
+  pcoNumber: string;
+}
+
+export interface Financials {
+  laborTotal: number;
+  materialsTotal: number;
+  taxTotal: number;
+  grandTotal: number;
 }
 

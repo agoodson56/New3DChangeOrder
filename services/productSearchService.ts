@@ -44,7 +44,7 @@ const PRODUCT_SEARCH_SCHEMA = {
  * Returns real product data including part numbers and MSRP pricing
  */
 export async function searchProducts(query: string): Promise<ProductSearchResult[]> {
-  const apiKey = (import.meta as any).env?.VITE_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY;
+  const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY;
   const ai = new GoogleGenAI({ apiKey });
   const model = 'gemini-2.0-flash';
 
@@ -129,7 +129,7 @@ export async function lookupMSRP(manufacturer: string, model: string): Promise<P
  */
 export async function batchSearchProducts(items: { manufacturer: string; model: string }[]): Promise<Map<string, ProductSearchResult>> {
   const results = new Map<string, ProductSearchResult>();
-  
+
   // Process in parallel with a limit
   const searchPromises = items.map(async (item) => {
     try {

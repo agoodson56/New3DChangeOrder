@@ -6,6 +6,7 @@ import { COGenerator } from './components/COGenerator';
 import { ChangeOrderView } from './components/ChangeOrderView';
 import { ProposalView } from './components/ProposalView';
 import { generateProposal } from './services/geminiService';
+import { calculateFinancials } from './utils/financials';
 import { Icons } from './constants';
 
 const App: React.FC = () => {
@@ -42,38 +43,14 @@ const App: React.FC = () => {
     setCoData(newData);
   };
 
-  // Calculate financials for proposal generation
-  const calculateFinancials = () => {
-    if (!coData || !rates) return { laborTotal: 0, materialsTotal: 0, taxTotal: 0, grandTotal: 0 };
 
-    const laborSubtotal = coData.labor.reduce((acc, task) => {
-      const rate = rates[task.rateType as keyof LaborRates] || rates.base;
-      return acc + (task.hours * rate);
-    }, 0);
-    const laborMarkup = laborSubtotal * 0.15;
-    const laborTotal = laborSubtotal + laborMarkup;
-
-    const materialSubtotal = coData.materials.filter(m => m.category === 'Material')
-      .reduce((acc, item) => acc + (item.msrp * item.quantity), 0);
-    const equipmentSubtotal = coData.materials.filter(m => m.category === 'Equipment')
-      .reduce((acc, item) => acc + (item.msrp * item.quantity), 0);
-    const assetMarkup = (materialSubtotal + equipmentSubtotal) * 0.15;
-    const materialsTotal = materialSubtotal + equipmentSubtotal + assetMarkup;
-
-    const salesTaxRate = 0.0825;
-    const taxTotal = (materialSubtotal + equipmentSubtotal) * salesTaxRate;
-
-    const grandTotal = laborTotal + materialsTotal + taxTotal;
-
-    return { laborTotal, materialsTotal, taxTotal, grandTotal };
-  };
 
   const handleGenerateProposal = async () => {
     if (!coData || !rates) return;
 
     setIsGeneratingProposal(true);
     try {
-      const financials = calculateFinancials();
+      const financials = calculateFinancials(coData, rates);
       const proposal = await generateProposal(coData, rates, financials);
       setProposalData(proposal);
       setStatus(AppStatus.PROPOSAL);
@@ -169,7 +146,7 @@ const App: React.FC = () => {
       </div>
 
       {/* Cinematic Background Ambience */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden print:hidden">
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_0%,_rgba(212,175,55,0.08)_0%,_transparent_50%)]"></div>
         <div className="absolute top-1/4 left-1/4 w-[800px] h-[800px] bg-[#D4AF37]/5 blur-[160px] rounded-full animate-pulse"></div>
         <div className="absolute bottom-1/4 right-1/4 w-[1000px] h-[1000px] bg-[#008a8a]/5 blur-[200px] rounded-full"></div>

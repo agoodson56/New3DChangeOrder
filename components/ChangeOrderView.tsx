@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ChangeOrderData, LaborRates, MaterialItem, LaborTask } from '../types';
 import { GoldButton } from './GoldButton';
 import { Icons } from '../constants';
 import { ProductSearchModal } from './ProductSearchModal';
 import { lookupMSRP } from '../services/productSearchService';
+import { calculateFinancials } from '../utils/financials';
 
 interface ChangeOrderViewProps {
   data: ChangeOrderData;
@@ -79,31 +80,21 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
     onDataChange({ ...data, materials: newMaterials });
   };
 
-  // Financial Calculations - these automatically update when data changes
-  const laborSubtotal = data.labor.reduce((acc, task) => {
-    const rate = rates[task.rateType as keyof LaborRates] || rates.base;
-    return acc + (task.hours * rate);
-  }, 0);
-  const laborMarkup = laborSubtotal * 0.15;
-  const totalLabor = laborSubtotal + laborMarkup;
+  // Financial Calculations - memoized to avoid recalculating on unrelated re-renders
+  const financials = useMemo(() => calculateFinancials(data, rates), [data, rates]);
+  const {
+    laborSubtotal, laborMarkup, laborTotal: totalLabor,
+    materialSubtotal, materialMarkup,
+    equipmentSubtotal, equipmentMarkup,
+    salesTax, taxBase, grandTotal
+  } = financials;
 
   const materialItems = data.materials.filter(m => m.category === 'Material');
   const equipmentItems = data.materials.filter(m => m.category === 'Equipment');
   const allItems = [...materialItems, ...equipmentItems];
 
-  const materialSubtotal = materialItems.reduce((acc, item) => acc + (item.msrp * item.quantity), 0);
-  const materialMarkup = materialSubtotal * 0.15;
   const totalMaterials = materialSubtotal + materialMarkup;
-
-  const equipmentSubtotal = equipmentItems.reduce((acc, item) => acc + (item.msrp * item.quantity), 0);
-  const equipmentMarkup = equipmentSubtotal * 0.15;
   const totalEquipment = equipmentSubtotal + equipmentMarkup;
-
-  const salesTaxRate = 0.0825; // 8.25% as per Rancho Cordova
-  const taxBase = materialSubtotal + equipmentSubtotal;
-  const salesTax = taxBase * salesTaxRate;
-
-  const grandTotal = totalLabor + totalMaterials + totalEquipment + salesTax;
 
   const currentDate = new Date().toLocaleDateString();
 
@@ -112,10 +103,14 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
   const editableNumberClass = "bg-transparent hover:bg-yellow-50 focus:bg-yellow-50 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] text-right w-full rounded transition-colors print:hover:bg-transparent print:focus:bg-transparent print:focus:ring-0";
 
   const renderMaterialRow = (item: MaterialItem, displayIndex: number) => {
-    // Find the actual index in data.materials
-    const actualIndex = data.materials.findIndex(m => m === item);
+    // Use the item's original index in data.materials (stable, not reference-dependent)
+    const actualIndex = data.materials.indexOf(item);
+    // Fallback: find by matching properties if reference was broken by spread
+    const safeIndex = actualIndex >= 0 ? actualIndex : data.materials.findIndex(
+      m => m.manufacturer === item.manufacturer && m.model === item.model && m.quantity === item.quantity
+    );
     const isCable = item.unitOfMeasure === 'ft';
-    const isLoading = lookupLoadingIndex === actualIndex;
+    const isLoading = lookupLoadingIndex === safeIndex;
 
     return (
       <div key={displayIndex} className="grid grid-cols-12 text-[9px] border-b border-gray-300 group">
@@ -123,7 +118,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
           <input
             type="number"
             value={item.quantity}
-            onChange={(e) => updateMaterial(actualIndex, { quantity: parseFloat(e.target.value) || 0 })}
+            onChange={(e) => updateMaterial(safeIndex, { quantity: parseFloat(e.target.value) || 0 })}
             className={`${editableNumberClass} w-12 text-center font-bold`}
             min="0"
             step="1"
@@ -134,7 +129,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
           <span className="flex-1">{item.manufacturer} {item.model} {isCable ? '(PER FT)' : ''}</span>
           {/* Lookup MSRP button - hidden on print */}
           <button
-            onClick={() => handleLookupMSRP(actualIndex, item.manufacturer, item.model)}
+            onClick={() => handleLookupMSRP(safeIndex, item.manufacturer, item.model)}
             className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity text-[#D4AF37] hover:text-[#FFD700] print:hidden"
             title="Look up current MSRP"
             disabled={isLoading}
@@ -159,7 +154,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
           <input
             type="number"
             value={item.msrp}
-            onChange={(e) => updateMaterial(actualIndex, { msrp: parseFloat(e.target.value) || 0 })}
+            onChange={(e) => updateMaterial(safeIndex, { msrp: parseFloat(e.target.value) || 0 })}
             className={`${editableNumberClass} font-mono font-bold`}
             min="0"
             step="0.01"
