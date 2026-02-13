@@ -6,8 +6,10 @@ export default defineConfig(({ mode }) => {
   // Load from .env files (local development)
   const envFile = loadEnv(mode, process.cwd(), '');
 
-  // Get API key from .env file OR from Cloudflare's process.env
-  const apiKey = envFile.GEMINI_API_KEY || process.env.GEMINI_API_KEY || '';
+  // Get API key — check ALL possible names from both .env and Cloudflare process.env
+  const apiKey = envFile.VITE_GEMINI_API_KEY || envFile.GEMINI_API_KEY
+    || process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY
+    || process.env.API_KEY || '';
 
   return {
     server: {
