@@ -162,7 +162,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
           />
         </div>
         <div className="col-span-2 px-2 py-px text-right font-mono font-bold">
-          $ {(item.quantity * item.msrp).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          $ {(item.quantity * item.msrp).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </div>
       </div>
     );
@@ -429,7 +429,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
               />
             </div>
             <div className="col-span-2 border-r border-black px-2 py-px text-right font-mono font-bold">$ {(rates[task.rateType as keyof LaborRates] || rates.base).toFixed(2)}</div>
-            <div className="col-span-2 px-2 py-px text-right font-mono font-black">$ {(task.hours * (rates[task.rateType as keyof LaborRates] || rates.base)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+            <div className="col-span-2 px-2 py-px text-right font-mono font-black">$ {(task.hours * (rates[task.rateType as keyof LaborRates] || rates.base)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
           </div>
         ))}
 
@@ -440,18 +440,18 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
           </div>
           <div className="col-span-7 border-r border-black px-2 py-1 uppercase tracking-wider text-right">Total Labor Hours:</div>
           <div className="col-span-2 border-r border-black px-2 py-1 text-right"></div>
-          <div className="col-span-2 px-2 py-1 text-right font-mono font-black">$ {data.labor.reduce((sum, t) => sum + (t.hours * (rates[t.rateType as keyof LaborRates] || rates.base)), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+          <div className="col-span-2 px-2 py-1 text-right font-mono font-black">$ {data.labor.reduce((sum, t) => sum + (t.hours * (rates[t.rateType as keyof LaborRates] || rates.base)), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
         </div>
 
         <div className="bg-white">
           <div className="grid grid-cols-12 text-[10px] font-bold border-b border-black">
             <div className="col-span-8 border-r border-black px-2 py-1 uppercase text-right tracking-wider">Labor Markup & Management:</div>
             <div className="col-span-2 border-r border-black px-2 py-1 text-right">15.00%</div>
-            <div className="col-span-2 px-2 py-1 text-right font-mono font-bold text-[#008a8a]">$ {laborMarkup.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+            <div className="col-span-2 px-2 py-1 text-right font-mono font-bold text-[#008a8a]">$ {laborMarkup.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
           </div>
           <div className="grid grid-cols-12 text-[11px] font-black bg-gray-50 border-b-4 border-black">
             <div className="col-span-10 border-r border-black px-2 py-1.5 text-right uppercase italic tracking-[0.2em]">Subtotal Labor Component:</div>
-            <div className="col-span-2 px-2 py-1.5 text-right font-mono text-base">$ {totalLabor.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+            <div className="col-span-2 px-2 py-1.5 text-right font-mono text-base">$ {totalLabor.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
           </div>
         </div>
 
@@ -482,16 +482,16 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
           <div className="grid grid-cols-12 text-[9px] border-b border-black font-bold">
             <div className="col-span-8 border-r border-black px-2 py-0.5 text-right uppercase tracking-wider">Asset Inventory Markup:</div>
             <div className="col-span-2 border-r border-black px-2 py-0.5 text-right">15.00%</div>
-            <div className="col-span-2 px-2 py-0.5 text-right font-mono font-bold text-[#008a8a]">$ {(materialMarkup + equipmentMarkup).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+            <div className="col-span-2 px-2 py-0.5 text-right font-mono font-bold text-[#008a8a]">$ {(materialMarkup + equipmentMarkup).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
           </div>
           <div className="grid grid-cols-12 text-[9px] border-b border-black font-bold">
             <div className="col-span-8 border-r border-black px-2 py-0.5 text-right uppercase tracking-wider">State & Local Sales Tax (Rancho Cordova):</div>
             <div className="col-span-2 border-r border-black px-2 py-0.5 text-right">8.25%</div>
-            <div className="col-span-2 px-2 py-0.5 text-right font-mono font-bold text-[#d4af37]">$ {salesTax.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+            <div className="col-span-2 px-2 py-0.5 text-right font-mono font-bold text-[#d4af37]">$ {salesTax.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
           </div>
           <div className="grid grid-cols-12 text-sm font-black bg-gray-100 py-1 border-b-4 border-black shadow-[inset_0_4px_6px_rgba(0,0,0,0.05)]">
             <div className="col-span-8 text-right px-2 uppercase italic tracking-[0.15em] self-center drop-shadow-sm">Grand Total Service Amount:</div>
-            <div className="col-span-4 text-right px-2 self-center font-mono text-base font-black text-black">$ {grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+            <div className="col-span-4 text-right px-2 self-center font-mono text-base font-black text-black">$ {grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
           </div>
         </div>
       </div>
