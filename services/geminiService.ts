@@ -1,7 +1,10 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { ChangeOrderData, ProposalData, LaborRates, AdminData, Financials } from "../types";
+import { ChangeOrderData, ProposalData, LaborRates, AdminData, Financials, ValidationResult } from "../types";
 import { buildProductReference } from "../utils/productReference";
+import { validateChangeOrder } from "../utils/coValidator";
+import { validatePricing } from "./pricingValidator";
+import { auditChangeOrder } from "./qaAuditor";
 
 const CO_SCHEMA = {
   type: Type.OBJECT,
@@ -686,3 +689,107 @@ export async function generateProposal(
     })
   } as ProposalData;
 }
+
+/**
+ * 3-Brain Pipeline: Generate a validated, customer-ready Change Order.
+ * 
+ * Pipeline: Brain 1 (Estimator) → Code Validator → Brain 2 (Pricing) → Brain 3 (QA)
+ * 
+ * @param onProgress - Callback for progress updates during the pipeline
+ */
+export async function generateValidatedChangeOrder(
+  intent: string,
+  images: string[] = [],
+  adminData: AdminData = { customer: '', contact: '', projectName: '', address: '', phone: '', projectNumber: '', rfiNumber: '', pcoNumber: '' },
+  onProgress?: (stage: string, percent: number) => void
+): Promise<ChangeOrderData> {
+
+  // ===== BRAIN 1: Generate initial Change Order =====
+  onProgress?.('🧠 Brain 1: Generating Change Order...', 10);
+  const coData = await generateChangeOrder(intent, images, adminData);
+  onProgress?.('✅ Change Order generated', 30);
+
+  // ===== CODE VALIDATOR: Deterministic rule checks =====
+  onProgress?.('⚙️ Running code validation (9 rules)...', 40);
+  const codeValidation = validateChangeOrder(coData);
+  onProgress?.(`⚙️ Code validation: ${codeValidation.score}/100`, 50);
+
+  // ===== BRAIN 2: Pricing Validation =====
+  onProgress?.('🧠 Brain 2: Verifying pricing...', 55);
+  let pricingValidations;
+  try {
+    pricingValidations = await validatePricing(coData);
+    onProgress?.('✅ Pricing verified', 70);
+  } catch (error) {
+    console.error('Pricing validation failed, continuing:', error);
+    pricingValidations = [];
+    onProgress?.('⚠️ Pricing validation skipped', 70);
+  }
+
+  // ===== BRAIN 3: QA Audit =====
+  onProgress?.('🧠 Brain 3: QA Audit...', 75);
+  let qaResult;
+  try {
+    qaResult = await auditChangeOrder(coData);
+    onProgress?.(`✅ QA Score: ${qaResult.overallScore}/100`, 90);
+  } catch (error) {
+    console.error('QA audit failed, continuing:', error);
+    qaResult = {
+      overallScore: 60,
+      issues: ['QA audit failed'],
+      recommendations: [],
+      missingItems: [],
+      brandingIssues: [],
+      complianceNotes: []
+    };
+    onProgress?.('⚠️ QA audit skipped', 90);
+  }
+
+  // ===== Aggregate Results =====
+  onProgress?.('📊 Compiling validation results...', 95);
+
+  // Calculate overall confidence
+  const codeScore = codeValidation.score;
+  const pricingConfidence = pricingValidations.length > 0
+    ? pricingValidations.reduce((sum, v) => sum + v.confidence, 0) / pricingValidations.length
+    : 70;
+  const qaScore = qaResult.overallScore;
+
+  // Weighted: Code 30%, Pricing 30%, QA 40%
+  const overallConfidence = Math.round(
+    codeScore * 0.3 + pricingConfidence * 0.3 + qaScore * 0.4
+  );
+
+  // Determine status
+  let status: 'customer_ready' | 'review_recommended' | 'manual_review_required';
+  if (overallConfidence >= 95) {
+    status = 'customer_ready';
+  } else if (overallConfidence >= 80) {
+    status = 'review_recommended';
+  } else {
+    status = 'manual_review_required';
+  }
+
+  const validationResult: ValidationResult = {
+    overallConfidence,
+    status,
+    warnings: codeValidation.warnings,
+    pricingValidations,
+    autoCorrections: codeValidation.autoCorrections,
+    qaIssues: [
+      ...qaResult.issues,
+      ...qaResult.missingItems.map(m => `Missing: ${m}`),
+      ...qaResult.brandingIssues.map(b => `Branding: ${b}`),
+      ...qaResult.complianceNotes.map(c => `Compliance: ${c}`),
+    ],
+    timestamp: new Date().toISOString(),
+  };
+
+  onProgress?.('✅ Validation complete', 100);
+
+  return {
+    ...coData,
+    validationResult,
+  };
+}
+

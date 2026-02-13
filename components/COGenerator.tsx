@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { GoldButton } from './GoldButton';
-import { generateChangeOrder } from '../services/geminiService';
+import { generateValidatedChangeOrder } from '../services/geminiService';
 import { ChangeOrderData } from '../types';
 
 interface COGeneratorProps {
@@ -13,6 +13,8 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState<string[]>([]);
   const [isListening, setIsListening] = useState(false);
+  const [pipelineStatus, setPipelineStatus] = useState('');
+  const [pipelinePercent, setPipelinePercent] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Administrative Fields
@@ -50,14 +52,26 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
   const handleSubmit = async () => {
     if (!intent.trim()) return;
     setLoading(true);
+    setPipelineStatus('🧠 Initializing 3-Brain Pipeline...');
+    setPipelinePercent(5);
     try {
-      const result = await generateChangeOrder(intent, images, adminData);
+      const result = await generateValidatedChangeOrder(
+        intent,
+        images,
+        adminData,
+        (stage, percent) => {
+          setPipelineStatus(stage);
+          setPipelinePercent(percent);
+        }
+      );
       onResult(result);
     } catch (error) {
       console.error(error);
       alert("Error generating Change Order. Please try again.");
     } finally {
       setLoading(false);
+      setPipelineStatus('');
+      setPipelinePercent(0);
     }
   };
 
@@ -215,14 +229,33 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
         </div>
       </div>
 
-      <div className="flex justify-end pt-8 border-t border-gray-900">
-        <GoldButton
-          onClick={handleSubmit}
-          loading={loading}
-          className="w-full md:w-auto"
-        >
-          Generate Service Change Order
-        </GoldButton>
+      <div className="space-y-4 pt-8 border-t border-gray-900">
+        {loading && pipelineStatus && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-[#D4AF37] font-bold">{pipelineStatus}</span>
+              <span className="text-xs text-gray-500 font-mono">{pipelinePercent}%</span>
+            </div>
+            <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-[#D4AF37] to-[#FFD700] transition-all duration-500 ease-out rounded-full"
+                style={{ width: `${pipelinePercent}%` }}
+              />
+            </div>
+            <p className="text-[10px] text-gray-600 uppercase tracking-widest">
+              3-Brain Validation Pipeline: Estimator → Code Check → Pricing → QA Audit
+            </p>
+          </div>
+        )}
+        <div className="flex justify-end">
+          <GoldButton
+            onClick={handleSubmit}
+            loading={loading}
+            className="w-full md:w-auto"
+          >
+            Generate Validated Change Order
+          </GoldButton>
+        </div>
       </div>
     </div>
   );

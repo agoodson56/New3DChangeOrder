@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { ChangeOrderData, LaborRates, MaterialItem, LaborTask } from '../types';
+import { ChangeOrderData, LaborRates, MaterialItem, LaborTask, ValidationResult } from '../types';
 import { GoldButton } from './GoldButton';
 import { Icons } from '../constants';
 import { ProductSearchModal } from './ProductSearchModal';
@@ -21,6 +21,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [searchInitialQuery, setSearchInitialQuery] = useState('');
   const [lookupLoadingIndex, setLookupLoadingIndex] = useState<number | null>(null);
+  const [showValidationDetails, setShowValidationDetails] = useState(false);
 
   // Helper to update a field and trigger recalculation
   const updateField = <K extends keyof ChangeOrderData>(field: K, value: ChangeOrderData[K]) => {
@@ -177,6 +178,84 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
         <span className="font-bold text-sm uppercase tracking-wider">Edit Mode Active</span>
         <span className="text-xs opacity-75">• Click any highlighted field to edit • Totals recalculate automatically</span>
       </div>
+
+      {/* Validation Status Bar */}
+      {data.validationResult && (
+        <div className="print:hidden">
+          <div
+            className={`px-4 py-2 flex items-center justify-between cursor-pointer ${data.validationResult.status === 'customer_ready'
+                ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white'
+                : data.validationResult.status === 'review_recommended'
+                  ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-black'
+                  : 'bg-gradient-to-r from-red-600 to-red-500 text-white'
+              }`}
+            onClick={() => setShowValidationDetails(!showValidationDetails)}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-lg">
+                {data.validationResult.status === 'customer_ready' ? '✅' : data.validationResult.status === 'review_recommended' ? '⚠️' : '🔴'}
+              </span>
+              <div>
+                <span className="font-bold text-sm uppercase tracking-wider">
+                  {data.validationResult.status === 'customer_ready'
+                    ? 'Customer Ready'
+                    : data.validationResult.status === 'review_recommended'
+                      ? 'Review Recommended'
+                      : 'Manual Review Required'}
+                </span>
+                <span className="ml-3 font-mono text-xs opacity-90">
+                  Confidence: {data.validationResult.overallConfidence}%
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] uppercase tracking-wider opacity-75">
+                {data.validationResult.warnings.length} warnings · {data.validationResult.qaIssues.length} QA notes
+              </span>
+              <svg className={`w-4 h-4 transition-transform ${showValidationDetails ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+          {showValidationDetails && (
+            <div className="bg-gray-900 text-gray-200 p-4 text-[10px] space-y-3 max-h-64 overflow-y-auto">
+              {data.validationResult.autoCorrections.length > 0 && (
+                <div>
+                  <h4 className="text-emerald-400 font-bold uppercase tracking-wider mb-1">🔧 Auto-Corrections Applied</h4>
+                  {data.validationResult.autoCorrections.map((c, i) => <p key={i} className="text-gray-400">• {c}</p>)}
+                </div>
+              )}
+              {data.validationResult.warnings.length > 0 && (
+                <div>
+                  <h4 className="text-amber-400 font-bold uppercase tracking-wider mb-1">⚠️ Code Validation Warnings</h4>
+                  {data.validationResult.warnings.map((w, i) => (
+                    <p key={i} className={`${w.severity === 'error' ? 'text-red-400' : w.severity === 'warning' ? 'text-amber-300' : 'text-gray-500'
+                      }`}>• [{w.type}] {w.message}</p>
+                  ))}
+                </div>
+              )}
+              {data.validationResult.pricingValidations.filter(p => p.source !== 'Verified Product Database').length > 0 && (
+                <div>
+                  <h4 className="text-blue-400 font-bold uppercase tracking-wider mb-1">💰 Pricing Verifications (Non-DB)</h4>
+                  {data.validationResult.pricingValidations
+                    .filter(p => p.source !== 'Verified Product Database')
+                    .map((p, i) => (
+                      <p key={i} className={p.delta > 15 ? 'text-red-400' : 'text-gray-400'}>
+                        • {p.manufacturer} {p.model}: ${p.originalMsrp.toFixed(2)} → ${p.validatedMsrp.toFixed(2)} ({p.source}, {p.confidence}% conf, Δ{p.delta}%)
+                      </p>
+                    ))}
+                </div>
+              )}
+              {data.validationResult.qaIssues.length > 0 && (
+                <div>
+                  <h4 className="text-purple-400 font-bold uppercase tracking-wider mb-1">🔍 QA Audit Notes</h4>
+                  {data.validationResult.qaIssues.map((issue, i) => <p key={i} className="text-gray-400">• {issue}</p>)}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Header Area */}
       <div className="p-4 pb-2">

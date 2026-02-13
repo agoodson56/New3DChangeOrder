@@ -24,6 +24,36 @@ export interface LaborTask {
   notes?: string;
 }
 
+// Validation types for multi-brain pipeline
+export interface ValidationWarning {
+  type: 'pricing' | 'labor' | 'material' | 'cable' | 'manufacturer' | 'schema';
+  severity: 'info' | 'warning' | 'error';
+  message: string;
+  itemIndex?: number; // index in materials or labor array
+  autoCorrection?: string; // description of auto-applied fix
+}
+
+export interface PricingValidation {
+  itemIndex: number;
+  manufacturer: string;
+  model: string;
+  originalMsrp: number;
+  validatedMsrp: number;
+  source: string;
+  confidence: number; // 0-100
+  delta: number; // percentage difference
+}
+
+export interface ValidationResult {
+  overallConfidence: number; // 0-100
+  status: 'customer_ready' | 'review_recommended' | 'manual_review_required';
+  warnings: ValidationWarning[];
+  pricingValidations: PricingValidation[];
+  autoCorrections: string[];
+  qaIssues: string[];
+  timestamp: string;
+}
+
 export interface ChangeOrderData {
   customer: string;
   contact: string;
@@ -48,6 +78,7 @@ export interface ChangeOrderData {
   professionalNotes: string;
   confidenceScore: number;
   nextSteps: string[];
+  validationResult?: ValidationResult;
 }
 
 export interface ProposalData {

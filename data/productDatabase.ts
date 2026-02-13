@@ -603,7 +603,7 @@ export const CABLE_STANDARDS: CableCalculation = {
     perDropFeet: 100,      // Average cable run per network drop
     jHookSpacingFeet: 5,   // J-hooks every 5 feet per TIA-569
     pullBoxIntervalFeet: 100, // Pull box every 100 feet for long runs
-    wasteFactorPercent: 15 // 15% waste factor for terminations and pulls
+    wasteFactorPercent: 10 // 10% waste factor for terminations and pulls (matches prompt rule)
 };
 
 // =============================================================================
@@ -636,8 +636,701 @@ export const LABOR_STANDARDS = {
     // Pathway
     jHookInstall: 0.1,       // Per J-hook
     ladderRackPer10Ft: 0.5,  // Per 10 feet of ladder rack
-    conduitPer10Ft: 0.75     // Per 10 feet of conduit
+    conduitPer10Ft: 0.75,    // Per 10 feet of conduit
+
+    // AV Systems
+    displayMount: 2.0,       // Per display (wall mount)
+    dspInstall: 2.5,         // Per DSP unit
+    amplifierInstall: 1.5,   // Per amplifier
+    speakerInstall: 1.0,     // Per speaker (ceiling)
+    encoderDecoder: 1.5,     // Per encoder/decoder
+    controlProcessor: 3.0,   // Per control processor
+    microphoneInstall: 0.75, // Per microphone
+
+    // Intrusion Detection
+    motionDetector: 0.5,     // Per detector
+    glassBreak: 0.5,         // Per glass break sensor
+    intrusionPanel: 3.0,     // Per panel
+    keypad: 1.0,             // Per keypad
+    siren: 0.75,             // Per siren
+
+    // Fire Alarm
+    smokeDetector: 0.5,      // Per detector
+    heatDetector: 0.5,       // Per detector
+    pullStation: 0.75,       // Per station
+    hornStrobe: 0.75,        // Per notification appliance
+    firePanel: 4.0,          // Per FACP
 };
+
+// =============================================================================
+// AV SYSTEM PRODUCTS
+// =============================================================================
+
+export const AV_PRODUCTS: ProductDefinition[] = [
+    {
+        manufacturer: 'Crestron',
+        model: 'DM-NVX-363',
+        partNumber: 'DM-NVX-363',
+        category: 'Equipment',
+        subcategory: 'AV over IP - Encoder/Decoder',
+        msrp: 2495.00,
+        unitOfMeasure: 'ea',
+        description: '4K60 4:4:4 HDR encoder/decoder with Dante audio',
+        installationRequirements: [
+            { type: 'consumable', name: 'Cat6A Cable', quantityPerUnit: 100, msrp: 0.45 },
+            { type: 'consumable', name: 'HDMI 2.0 Cable 6ft', quantityPerUnit: 1, msrp: 15.00 },
+            { type: 'consumable', name: 'Rack Ears', quantityPerUnit: 1, msrp: 25.00 },
+            { type: 'consumable', name: 'Cage Nuts', quantityPerUnit: 4, msrp: 0.50 }
+        ],
+        accessories: [
+            { type: 'required', name: 'PoE Switch Port', manufacturer: 'Network', partNumber: 'N/A', msrp: 0, reason: 'Requires PoE+ switch port' }
+        ],
+        laborHours: 1.5,
+        complexity: 'Medium'
+    },
+    {
+        manufacturer: 'Crestron',
+        model: 'DM-NVX-E30',
+        partNumber: 'DM-NVX-E30',
+        category: 'Equipment',
+        subcategory: 'AV over IP - Encoder',
+        msrp: 1295.00,
+        unitOfMeasure: 'ea',
+        description: '4K60 4:2:0 encoder with USB routing',
+        installationRequirements: [
+            { type: 'consumable', name: 'Cat6A Cable', quantityPerUnit: 100, msrp: 0.45 },
+            { type: 'consumable', name: 'HDMI Cable 6ft', quantityPerUnit: 1, msrp: 12.00 },
+            { type: 'consumable', name: 'Rack Ears', quantityPerUnit: 1, msrp: 25.00 }
+        ],
+        accessories: [],
+        laborHours: 1.5,
+        complexity: 'Medium'
+    },
+    {
+        manufacturer: 'Crestron',
+        model: 'CP4-R',
+        partNumber: 'CP4-R',
+        category: 'Equipment',
+        subcategory: 'AV Control Processor',
+        msrp: 3995.00,
+        unitOfMeasure: 'ea',
+        description: '4-Series rack mount control system processor',
+        installationRequirements: [
+            { type: 'consumable', name: 'Cat6A Cable', quantityPerUnit: 50, msrp: 0.45 },
+            { type: 'consumable', name: 'Cage Nuts and Screws', quantityPerUnit: 4, msrp: 0.50 }
+        ],
+        accessories: [],
+        laborHours: 3.0,
+        complexity: 'High'
+    },
+    {
+        manufacturer: 'Biamp',
+        model: 'TesiraFORTÉ AI',
+        partNumber: 'TESIRA-FORTE-AI',
+        category: 'Equipment',
+        subcategory: 'DSP - Audio Processor',
+        msrp: 4695.00,
+        unitOfMeasure: 'ea',
+        description: '12-input DSP with AEC and Dante, 1U rack mount',
+        installationRequirements: [
+            { type: 'consumable', name: 'Cat6A Cable', quantityPerUnit: 50, msrp: 0.45 },
+            { type: 'consumable', name: 'XLR Cable 25ft', quantityPerUnit: 4, msrp: 18.00 },
+            { type: 'consumable', name: 'Cage Nuts and Screws', quantityPerUnit: 4, msrp: 0.50 }
+        ],
+        accessories: [],
+        laborHours: 2.5,
+        complexity: 'High'
+    },
+    {
+        manufacturer: 'Biamp',
+        model: 'TesiraFORTÉ DAN',
+        partNumber: 'TESIRA-FORTE-DAN',
+        category: 'Equipment',
+        subcategory: 'DSP - Dante Audio Processor',
+        msrp: 3295.00,
+        unitOfMeasure: 'ea',
+        description: 'Dante-enabled DSP, 1U rack mount',
+        installationRequirements: [
+            { type: 'consumable', name: 'Cat6A Cable', quantityPerUnit: 50, msrp: 0.45 },
+            { type: 'consumable', name: 'Cage Nuts', quantityPerUnit: 4, msrp: 0.50 }
+        ],
+        accessories: [],
+        laborHours: 2.5,
+        complexity: 'High'
+    },
+    {
+        manufacturer: 'Samsung',
+        model: 'QM55C',
+        partNumber: 'LH55QMCEBGCXGO',
+        category: 'Equipment',
+        subcategory: 'Commercial Display - 55"',
+        msrp: 1299.00,
+        unitOfMeasure: 'ea',
+        description: '55" 4K UHD commercial display, 500 nit, 24/7 rated',
+        installationRequirements: [
+            { type: 'consumable', name: 'Tilting Wall Mount', quantityPerUnit: 1, msrp: 85.00 },
+            { type: 'consumable', name: 'HDMI Cable 15ft', quantityPerUnit: 1, msrp: 18.00 },
+            { type: 'consumable', name: 'Toggle Bolts 1/4x3', quantityPerUnit: 4, msrp: 1.25 },
+            { type: 'consumable', name: 'Power Cord 10ft', quantityPerUnit: 1, msrp: 8.00 }
+        ],
+        accessories: [
+            { type: 'recommended', name: 'Media Player', manufacturer: 'Samsung', partNumber: 'SBB-SS08', msrp: 295.00, reason: 'Signage content playback' }
+        ],
+        laborHours: 2.0,
+        complexity: 'Medium'
+    },
+    {
+        manufacturer: 'Samsung',
+        model: 'QM75C',
+        partNumber: 'LH75QMCEBGCXGO',
+        category: 'Equipment',
+        subcategory: 'Commercial Display - 75"',
+        msrp: 2199.00,
+        unitOfMeasure: 'ea',
+        description: '75" 4K UHD commercial display, 500 nit, 24/7 rated',
+        installationRequirements: [
+            { type: 'consumable', name: 'Heavy Duty Wall Mount', quantityPerUnit: 1, msrp: 145.00 },
+            { type: 'consumable', name: 'HDMI Cable 15ft', quantityPerUnit: 1, msrp: 18.00 },
+            { type: 'consumable', name: 'Structural Toggle Bolts', quantityPerUnit: 6, msrp: 2.50 },
+            { type: 'consumable', name: 'Power Cord 10ft', quantityPerUnit: 1, msrp: 8.00 }
+        ],
+        accessories: [],
+        laborHours: 2.5,
+        complexity: 'Medium'
+    },
+    {
+        manufacturer: 'Atlas Sound',
+        model: 'FAP63T-W',
+        partNumber: 'FAP63T-W',
+        category: 'Equipment',
+        subcategory: 'Ceiling Speaker - 70V',
+        msrp: 189.00,
+        unitOfMeasure: 'ea',
+        description: '6" 2-way ceiling speaker, 70V/100V, white',
+        installationRequirements: [
+            { type: 'consumable', name: '16/2 Plenum Speaker Wire', quantityPerUnit: 75, msrp: 0.35, notes: 'Per foot' },
+            { type: 'consumable', name: 'Speaker Wire Nuts', quantityPerUnit: 2, msrp: 0.50 },
+            { type: 'consumable', name: 'Ceiling Support Rails', quantityPerUnit: 1, msrp: 8.00 }
+        ],
+        accessories: [],
+        laborHours: 1.0,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: 'Atlas Sound',
+        model: 'AA240PHD',
+        partNumber: 'AA240PHD',
+        category: 'Equipment',
+        subcategory: 'Amplifier - 240W',
+        msrp: 895.00,
+        unitOfMeasure: 'ea',
+        description: '240W 70V/100V mixer amplifier with PHD',
+        installationRequirements: [
+            { type: 'consumable', name: 'Rack Ears', quantityPerUnit: 1, msrp: 25.00 },
+            { type: 'consumable', name: 'Power Cord', quantityPerUnit: 1, msrp: 8.00 },
+            { type: 'consumable', name: 'Speaker Wire 16/2', quantityPerUnit: 100, msrp: 0.35 }
+        ],
+        accessories: [],
+        laborHours: 1.5,
+        complexity: 'Medium'
+    },
+    {
+        manufacturer: 'Shure',
+        model: 'MXA920-S',
+        partNumber: 'MXA920AL-S',
+        category: 'Equipment',
+        subcategory: 'Ceiling Microphone Array',
+        msrp: 3199.00,
+        unitOfMeasure: 'ea',
+        description: 'Ceiling array microphone, IntelliMix, Dante',
+        installationRequirements: [
+            { type: 'consumable', name: 'Cat6A Cable', quantityPerUnit: 75, msrp: 0.45 },
+            { type: 'consumable', name: 'Ceiling Tile Rail Kit', quantityPerUnit: 1, msrp: 35.00 },
+            { type: 'consumable', name: 'Safety Wire', quantityPerUnit: 1, msrp: 5.00 }
+        ],
+        accessories: [
+            { type: 'required', name: 'PoE Injector', manufacturer: 'Shure', partNumber: 'ANIUSB-MATRIX', msrp: 125.00, reason: 'Required PoE power' }
+        ],
+        laborHours: 1.5,
+        complexity: 'Medium'
+    }
+];
+
+// =============================================================================
+// INTRUSION DETECTION PRODUCTS
+// =============================================================================
+
+export const INTRUSION_PANELS: ProductDefinition[] = [
+    {
+        manufacturer: 'Bosch',
+        model: 'B5512',
+        partNumber: 'B5512-CP-930',
+        category: 'Equipment',
+        subcategory: 'Intrusion Panel - 48 Point',
+        msrp: 495.00,
+        unitOfMeasure: 'ea',
+        description: '48-point IP alarm panel with Ethernet',
+        installationRequirements: [
+            { type: 'consumable', name: 'Metal Enclosure', quantityPerUnit: 1, msrp: 65.00 },
+            { type: 'consumable', name: '22/4 Alarm Cable', quantityPerUnit: 200, msrp: 0.20, notes: 'Per foot' },
+            { type: 'consumable', name: 'Cat6 Cable to Network', quantityPerUnit: 50, msrp: 0.35 },
+            { type: 'consumable', name: 'Terminal Strips', quantityPerUnit: 4, msrp: 3.50 }
+        ],
+        accessories: [
+            { type: 'required', name: 'Transformer 16.5VAC', manufacturer: 'Altronix', partNumber: 'T1656', msrp: 24.00, reason: 'Panel power' },
+            { type: 'required', name: 'Battery 12V 7Ah', manufacturer: 'Power Sonic', partNumber: 'PS-1270', msrp: 25.00, reason: 'Backup power' }
+        ],
+        laborHours: 3.0,
+        complexity: 'High'
+    },
+    {
+        manufacturer: 'Bosch',
+        model: 'B9512G',
+        partNumber: 'B9512G-E',
+        category: 'Equipment',
+        subcategory: 'Intrusion Panel - 599 Point',
+        msrp: 1295.00,
+        unitOfMeasure: 'ea',
+        description: '599-point enterprise alarm panel, 32 areas',
+        installationRequirements: [
+            { type: 'consumable', name: 'Large Metal Enclosure', quantityPerUnit: 1, msrp: 95.00 },
+            { type: 'consumable', name: '22/4 Alarm Cable', quantityPerUnit: 500, msrp: 0.20 },
+            { type: 'consumable', name: 'Cat6 Cable', quantityPerUnit: 75, msrp: 0.35 },
+            { type: 'consumable', name: 'Terminal Strips', quantityPerUnit: 8, msrp: 3.50 }
+        ],
+        accessories: [
+            { type: 'required', name: 'Transformer 16.5VAC 40VA', manufacturer: 'Altronix', partNumber: 'T2428', msrp: 32.00, reason: 'Panel power' },
+            { type: 'required', name: 'Battery 12V 12Ah', manufacturer: 'Power Sonic', partNumber: 'PS-12120', msrp: 38.00, reason: 'Backup power' }
+        ],
+        laborHours: 5.0,
+        complexity: 'High'
+    },
+    {
+        manufacturer: 'DSC',
+        model: 'PowerSeries Neo HS2064',
+        partNumber: 'HS2064NKCP01',
+        category: 'Equipment',
+        subcategory: 'Intrusion Panel - 64 Zone',
+        msrp: 285.00,
+        unitOfMeasure: 'ea',
+        description: '64-zone hybrid panel with IP communicator',
+        installationRequirements: [
+            { type: 'consumable', name: 'Metal Cabinet', quantityPerUnit: 1, msrp: 45.00 },
+            { type: 'consumable', name: '22/4 Alarm Cable', quantityPerUnit: 200, msrp: 0.20 },
+            { type: 'consumable', name: 'Cat6 Cable', quantityPerUnit: 50, msrp: 0.35 }
+        ],
+        accessories: [
+            { type: 'required', name: 'Transformer 16.5VAC', manufacturer: 'DSC', partNumber: 'PTD1640U', msrp: 18.00, reason: 'Panel power' },
+            { type: 'required', name: 'Battery 12V 7Ah', manufacturer: 'Power Sonic', partNumber: 'PS-1270', msrp: 25.00, reason: 'Backup power' }
+        ],
+        laborHours: 3.0,
+        complexity: 'High'
+    }
+];
+
+export const INTRUSION_SENSORS: ProductDefinition[] = [
+    {
+        manufacturer: 'Bosch',
+        model: 'ISC-BPR2-W12',
+        partNumber: 'ISC-BPR2-W12',
+        category: 'Equipment',
+        subcategory: 'PIR Motion Detector',
+        msrp: 65.00,
+        unitOfMeasure: 'ea',
+        description: 'Commercial PIR motion detector, 40ft range',
+        installationRequirements: [
+            { type: 'consumable', name: '22/4 Alarm Cable', quantityPerUnit: 50, msrp: 0.20 },
+            { type: 'consumable', name: 'Wire Staples', quantityPerUnit: 10, msrp: 0.05 },
+            { type: 'consumable', name: 'Drywall Anchors', quantityPerUnit: 2, msrp: 0.20 }
+        ],
+        accessories: [],
+        laborHours: 0.5,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: 'Bosch',
+        model: 'DS778Z',
+        partNumber: 'DS778Z',
+        category: 'Equipment',
+        subcategory: 'Dual-Tech Motion Detector',
+        msrp: 125.00,
+        unitOfMeasure: 'ea',
+        description: 'PIR + microwave dual-tech, commercial grade',
+        installationRequirements: [
+            { type: 'consumable', name: '22/4 Alarm Cable', quantityPerUnit: 50, msrp: 0.20 },
+            { type: 'consumable', name: 'Wire Staples', quantityPerUnit: 10, msrp: 0.05 },
+            { type: 'consumable', name: 'Drywall Anchors', quantityPerUnit: 2, msrp: 0.20 }
+        ],
+        accessories: [],
+        laborHours: 0.75,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: 'Honeywell',
+        model: 'FG-1625',
+        partNumber: 'FG-1625',
+        category: 'Equipment',
+        subcategory: 'Glass Break Detector',
+        msrp: 75.00,
+        unitOfMeasure: 'ea',
+        description: 'FlexGuard glass break sensor, 25ft range',
+        installationRequirements: [
+            { type: 'consumable', name: '22/2 Alarm Cable', quantityPerUnit: 50, msrp: 0.18 },
+            { type: 'consumable', name: 'Drywall Anchors', quantityPerUnit: 2, msrp: 0.20 }
+        ],
+        accessories: [],
+        laborHours: 0.5,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: 'Honeywell',
+        model: '997',
+        partNumber: '997',
+        category: 'Equipment',
+        subcategory: 'Surface Door Contact',
+        msrp: 8.50,
+        unitOfMeasure: 'ea',
+        description: 'Surface mount door contact, N/C, brown',
+        installationRequirements: [
+            { type: 'consumable', name: '22/2 Alarm Cable', quantityPerUnit: 25, msrp: 0.18 },
+            { type: 'consumable', name: 'Wire Staples', quantityPerUnit: 8, msrp: 0.05 }
+        ],
+        accessories: [],
+        laborHours: 0.35,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: 'DSC',
+        model: 'HS2TCHPRO',
+        partNumber: 'HS2TCHPRO',
+        category: 'Equipment',
+        subcategory: 'Alarm Keypad - Touchscreen',
+        msrp: 245.00,
+        unitOfMeasure: 'ea',
+        description: '7" touchscreen alarm keypad with Prox reader',
+        installationRequirements: [
+            { type: 'consumable', name: '22/4 Alarm Cable', quantityPerUnit: 50, msrp: 0.20 },
+            { type: 'consumable', name: 'Low Voltage Bracket', quantityPerUnit: 1, msrp: 1.50 },
+            { type: 'consumable', name: 'Drywall Anchors', quantityPerUnit: 4, msrp: 0.20 }
+        ],
+        accessories: [],
+        laborHours: 1.0,
+        complexity: 'Medium'
+    },
+    {
+        manufacturer: 'Wheelock',
+        model: 'STR',
+        partNumber: 'STR-W',
+        category: 'Equipment',
+        subcategory: 'Alarm Siren/Strobe',
+        msrp: 85.00,
+        unitOfMeasure: 'ea',
+        description: 'Indoor siren/strobe, 12/24VDC, wall mount',
+        installationRequirements: [
+            { type: 'consumable', name: '18/2 Cable', quantityPerUnit: 50, msrp: 0.35 },
+            { type: 'consumable', name: 'Junction Box', quantityPerUnit: 1, msrp: 4.50 },
+            { type: 'consumable', name: 'Drywall Anchors', quantityPerUnit: 2, msrp: 0.20 }
+        ],
+        accessories: [],
+        laborHours: 0.75,
+        complexity: 'Low'
+    }
+];
+
+// =============================================================================
+// FIRE ALARM PRODUCTS
+// =============================================================================
+
+export const FIRE_ALARM_PRODUCTS: ProductDefinition[] = [
+    {
+        manufacturer: 'Notifier',
+        model: 'NFS2-3030',
+        partNumber: 'NFS2-3030',
+        category: 'Equipment',
+        subcategory: 'Fire Alarm Control Panel',
+        msrp: 5895.00,
+        unitOfMeasure: 'ea',
+        description: 'Intelligent fire alarm control panel, expandable',
+        installationRequirements: [
+            { type: 'consumable', name: 'FPLP 2-Conductor 14AWG', quantityPerUnit: 500, msrp: 0.65, notes: 'Per foot' },
+            { type: 'consumable', name: 'FPLP 4-Conductor 14AWG', quantityPerUnit: 300, msrp: 0.85, notes: 'Per foot - NAC circuits' },
+            { type: 'consumable', name: 'Red Junction Box', quantityPerUnit: 10, msrp: 6.50 },
+            { type: 'consumable', name: 'Red EMT 3/4"', quantityPerUnit: 100, msrp: 1.25, notes: 'Per foot' }
+        ],
+        accessories: [
+            { type: 'required', name: 'Battery Set 12V 18Ah', manufacturer: 'Power Sonic', partNumber: 'PS-12180', msrp: 65.00, reason: 'Backup power (2 required)' },
+            { type: 'required', name: 'Remote Annunciator', manufacturer: 'Notifier', partNumber: 'FDU-80', msrp: 895.00, reason: 'Fire command center' }
+        ],
+        laborHours: 8.0,
+        complexity: 'High'
+    },
+    {
+        manufacturer: 'System Sensor',
+        model: 'SPSCW',
+        partNumber: 'SPSCW',
+        category: 'Equipment',
+        subcategory: 'Smoke Detector - Addressable',
+        msrp: 95.00,
+        unitOfMeasure: 'ea',
+        description: 'Addressable photoelectric smoke detector, white',
+        installationRequirements: [
+            { type: 'consumable', name: 'FPLP 2-Conductor Shielded', quantityPerUnit: 75, msrp: 0.65 },
+            { type: 'consumable', name: 'Detector Base', quantityPerUnit: 1, msrp: 12.00 },
+            { type: 'consumable', name: 'Red Junction Box 4"', quantityPerUnit: 1, msrp: 6.50 }
+        ],
+        accessories: [],
+        laborHours: 0.5,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: 'System Sensor',
+        model: '5251H',
+        partNumber: '5251H',
+        category: 'Equipment',
+        subcategory: 'Heat Detector - Rate of Rise',
+        msrp: 55.00,
+        unitOfMeasure: 'ea',
+        description: 'Rate of rise/fixed heat detector, 135°F',
+        installationRequirements: [
+            { type: 'consumable', name: 'FPLP 2-Conductor', quantityPerUnit: 75, msrp: 0.55 },
+            { type: 'consumable', name: 'Detector Base', quantityPerUnit: 1, msrp: 8.00 },
+            { type: 'consumable', name: 'Red Junction Box 4"', quantityPerUnit: 1, msrp: 6.50 }
+        ],
+        accessories: [],
+        laborHours: 0.5,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: 'Notifier',
+        model: 'NBG-12LX',
+        partNumber: 'NBG-12LX',
+        category: 'Equipment',
+        subcategory: 'Pull Station - Addressable',
+        msrp: 145.00,
+        unitOfMeasure: 'ea',
+        description: 'Addressable manual pull station, dual action',
+        installationRequirements: [
+            { type: 'consumable', name: 'FPLP 2-Conductor', quantityPerUnit: 75, msrp: 0.55 },
+            { type: 'consumable', name: 'Red Surface Backbox', quantityPerUnit: 1, msrp: 15.00 },
+            { type: 'consumable', name: 'Conduit 3/4" EMT', quantityPerUnit: 10, msrp: 1.25 }
+        ],
+        accessories: [],
+        laborHours: 0.75,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: 'Gentex',
+        model: 'GCS24CW',
+        partNumber: 'GCS24CW',
+        category: 'Equipment',
+        subcategory: 'Horn/Strobe - Ceiling Mount',
+        msrp: 85.00,
+        unitOfMeasure: 'ea',
+        description: 'Ceiling mount horn/strobe, 24VDC, 15/75cd, white',
+        installationRequirements: [
+            { type: 'consumable', name: 'FPLP 4-Conductor 14AWG', quantityPerUnit: 75, msrp: 0.85 },
+            { type: 'consumable', name: 'Red Junction Box 4-11/16"', quantityPerUnit: 1, msrp: 8.50 },
+            { type: 'consumable', name: 'Red Conduit 3/4" EMT', quantityPerUnit: 10, msrp: 1.25 }
+        ],
+        accessories: [],
+        laborHours: 0.75,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: 'Gentex',
+        model: 'GES24CW',
+        partNumber: 'GES24CW',
+        category: 'Equipment',
+        subcategory: 'Strobe - Wall Mount',
+        msrp: 65.00,
+        unitOfMeasure: 'ea',
+        description: 'Wall mount strobe, 24VDC, 15/75cd, white',
+        installationRequirements: [
+            { type: 'consumable', name: 'FPLP 4-Conductor 14AWG', quantityPerUnit: 75, msrp: 0.85 },
+            { type: 'consumable', name: 'Red Backbox', quantityPerUnit: 1, msrp: 8.00 }
+        ],
+        accessories: [],
+        laborHours: 0.5,
+        complexity: 'Low'
+    }
+];
+
+// =============================================================================
+// FIRE ALARM CABLE
+// =============================================================================
+
+export const FIRE_ALARM_CABLE: ProductDefinition[] = [
+    {
+        manufacturer: 'Genesis',
+        model: '4502 FPLP 2C 14AWG',
+        partNumber: '4502',
+        category: 'Material',
+        subcategory: 'Fire Alarm Cable - 2 Conductor',
+        msrp: 0.55,
+        unitOfMeasure: 'ft',
+        description: '2-conductor 14AWG shielded plenum fire alarm cable, red',
+        installationRequirements: [
+            { type: 'consumable', name: 'Fire Alarm Cable Labels (red)', quantityPerUnit: 0.01, msrp: 0.25 },
+            { type: 'consumable', name: 'Red EMT 3/4" (per ft)', quantityPerUnit: 0.2, msrp: 1.25, notes: 'Required in some jurisdictions' }
+        ],
+        accessories: [],
+        laborHours: 0.015,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: 'Genesis',
+        model: '4504 FPLP 4C 14AWG',
+        partNumber: '4504',
+        category: 'Material',
+        subcategory: 'Fire Alarm Cable - 4 Conductor',
+        msrp: 0.85,
+        unitOfMeasure: 'ft',
+        description: '4-conductor 14AWG shielded plenum fire alarm cable, red',
+        installationRequirements: [
+            { type: 'consumable', name: 'Fire Alarm Cable Labels (red)', quantityPerUnit: 0.01, msrp: 0.25 }
+        ],
+        accessories: [],
+        laborHours: 0.015,
+        complexity: 'Low'
+    }
+];
+
+// =============================================================================
+// ADDITIONAL CCTV CAMERAS (VERKADA)
+// =============================================================================
+
+export const VERKADA_CAMERAS: ProductDefinition[] = [
+    {
+        manufacturer: 'Verkada',
+        model: 'CD52-E',
+        partNumber: 'CD52-E',
+        category: 'Equipment',
+        subcategory: 'IP Camera - Outdoor Dome (Cloud)',
+        msrp: 1299.00,
+        unitOfMeasure: 'ea',
+        description: '5MP outdoor dome with cloud management, edge storage',
+        installationRequirements: [
+            { type: 'consumable', name: 'Cat6A Outdoor Cable', quantityPerUnit: 200, msrp: 0.55 },
+            { type: 'consumable', name: 'RJ45 Cat6A Connector', quantityPerUnit: 2, msrp: 3.50 },
+            { type: 'consumable', name: 'Weatherproof Junction Box', quantityPerUnit: 1, msrp: 45.00 },
+            { type: 'consumable', name: 'Silicone Sealant', quantityPerUnit: 0.25, msrp: 8.00 }
+        ],
+        accessories: [
+            { type: 'required', name: 'Verkada License (annual)', manufacturer: 'Verkada', partNumber: 'LIC-CD52', msrp: 199.00, reason: 'Cloud management license required' }
+        ],
+        laborHours: 2.0,
+        complexity: 'Medium'
+    },
+    {
+        manufacturer: 'Verkada',
+        model: 'CD42',
+        partNumber: 'CD42',
+        category: 'Equipment',
+        subcategory: 'IP Camera - Indoor Dome (Cloud)',
+        msrp: 899.00,
+        unitOfMeasure: 'ea',
+        description: '5MP indoor dome with cloud management, AI analytics',
+        installationRequirements: [
+            { type: 'consumable', name: 'Cat6A Cable', quantityPerUnit: 150, msrp: 0.45 },
+            { type: 'consumable', name: 'RJ45 Cat6A Connector', quantityPerUnit: 2, msrp: 3.50 },
+            { type: 'consumable', name: 'Cable Labels', quantityPerUnit: 2, msrp: 0.15 }
+        ],
+        accessories: [
+            { type: 'required', name: 'Verkada License (annual)', manufacturer: 'Verkada', partNumber: 'LIC-CD42', msrp: 199.00, reason: 'Cloud management license required' }
+        ],
+        laborHours: 1.5,
+        complexity: 'Low'
+    }
+];
+
+// =============================================================================
+// BERK-TEK CABLE (Referenced in rules but was absent from DB)
+// =============================================================================
+
+export const BERKTEK_CABLE: ProductDefinition[] = [
+    {
+        manufacturer: 'Berk-Tek',
+        model: 'LANmark-10G2',
+        partNumber: '11074918',
+        category: 'Material',
+        subcategory: 'Cat6A Cable - Plenum (Leviton Warranty)',
+        msrp: 0.78,
+        unitOfMeasure: 'ft',
+        description: 'Cat6A UTP plenum cable - REQUIRED for Leviton warranty compliance',
+        installationRequirements: [
+            { type: 'consumable', name: 'J-Hook 2" CAT-HP (every 5ft)', quantityPerUnit: 0.2, msrp: 3.50 },
+            { type: 'consumable', name: 'Velcro Strap (every 3ft)', quantityPerUnit: 0.33, msrp: 0.25 },
+            { type: 'consumable', name: 'Cable Labels', quantityPerUnit: 0.01, msrp: 0.15 }
+        ],
+        accessories: [],
+        laborHours: 0.02,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: 'Berk-Tek',
+        model: 'LANmark-6',
+        partNumber: '10032106',
+        category: 'Material',
+        subcategory: 'Cat6 Cable - Plenum (Leviton Warranty)',
+        msrp: 0.42,
+        unitOfMeasure: 'ft',
+        description: 'Cat6 UTP plenum cable - Leviton warranty compliant',
+        installationRequirements: [
+            { type: 'consumable', name: 'J-Hook 2" (every 5ft)', quantityPerUnit: 0.2, msrp: 3.25 },
+            { type: 'consumable', name: 'Velcro Strap (every 3ft)', quantityPerUnit: 0.33, msrp: 0.25 }
+        ],
+        accessories: [],
+        laborHours: 0.018,
+        complexity: 'Low'
+    }
+];
+
+// =============================================================================
+// POE SWITCHES
+// =============================================================================
+
+export const POE_SWITCHES: ProductDefinition[] = [
+    {
+        manufacturer: 'Cisco',
+        model: 'CBS350-24FP-4G',
+        partNumber: 'CBS350-24FP-4G-NA',
+        category: 'Equipment',
+        subcategory: 'PoE Switch - 24 Port',
+        msrp: 1095.00,
+        unitOfMeasure: 'ea',
+        description: '24-port PoE+ managed switch, 370W budget, 4x SFP',
+        installationRequirements: [
+            { type: 'consumable', name: 'Cat6A Patch Cable 3ft', quantityPerUnit: 24, msrp: 8.00 },
+            { type: 'consumable', name: 'Cage Nuts and Screws', quantityPerUnit: 4, msrp: 0.50 },
+            { type: 'consumable', name: 'Cable Management 1U', quantityPerUnit: 1, msrp: 35.00 }
+        ],
+        accessories: [
+            { type: 'recommended', name: 'UPS 1500VA Rack', manufacturer: 'APC', partNumber: 'SMT1500RM2U', msrp: 895.00, reason: 'Power protection' }
+        ],
+        laborHours: 2.0,
+        complexity: 'Medium'
+    },
+    {
+        manufacturer: 'Cisco',
+        model: 'CBS350-48FP-4G',
+        partNumber: 'CBS350-48FP-4G-NA',
+        category: 'Equipment',
+        subcategory: 'PoE Switch - 48 Port',
+        msrp: 1995.00,
+        unitOfMeasure: 'ea',
+        description: '48-port PoE+ managed switch, 740W budget, 4x SFP',
+        installationRequirements: [
+            { type: 'consumable', name: 'Cat6A Patch Cable 3ft', quantityPerUnit: 48, msrp: 8.00 },
+            { type: 'consumable', name: 'Cage Nuts and Screws', quantityPerUnit: 4, msrp: 0.50 },
+            { type: 'consumable', name: 'Cable Management 2U', quantityPerUnit: 1, msrp: 45.00 }
+        ],
+        accessories: [
+            { type: 'recommended', name: 'UPS 2200VA Rack', manufacturer: 'APC', partNumber: 'SMT2200RM2U', msrp: 1295.00, reason: 'Power protection' }
+        ],
+        laborHours: 2.5,
+        complexity: 'Medium'
+    }
+];
 
 // =============================================================================
 // CALCULATION FUNCTIONS

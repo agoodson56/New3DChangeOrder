@@ -17,6 +17,14 @@ import {
     STANDARD_CONSUMABLES,
     CABLE_STANDARDS,
     LABOR_STANDARDS,
+    AV_PRODUCTS,
+    INTRUSION_PANELS,
+    INTRUSION_SENSORS,
+    FIRE_ALARM_PRODUCTS,
+    FIRE_ALARM_CABLE,
+    VERKADA_CAMERAS,
+    BERKTEK_CABLE,
+    POE_SWITCHES,
     type ProductDefinition
 } from '../data/productDatabase';
 
@@ -71,13 +79,30 @@ export function buildProductReference(): string {
         You MUST include these items on the change order. This is the Zero-Omission rule in action.
 `;
 
-    ref += formatSection('CCTV CAMERAS', CCTV_CAMERAS);
+    // CCTV
+    ref += formatSection('CCTV CAMERAS', [...CCTV_CAMERAS, ...VERKADA_CAMERAS]);
     ref += formatSection('NVR / RECORDING SYSTEMS', NVR_SYSTEMS);
+
+    // Access Control
     ref += formatSection('ACCESS CONTROL - READERS', ACCESS_READERS);
     ref += formatSection('ACCESS CONTROL - DOOR HARDWARE', DOOR_HARDWARE);
     ref += formatSection('ACCESS CONTROL - PANELS', ACCESS_PANELS);
-    ref += formatSection('STRUCTURED CABLING', CABLING_PRODUCTS);
+
+    // AV Systems
+    ref += formatSection('AV SYSTEMS - DISPLAYS, DSPs, ENCODERS, SPEAKERS', AV_PRODUCTS);
+
+    // Intrusion Detection
+    ref += formatSection('INTRUSION - PANELS', INTRUSION_PANELS);
+    ref += formatSection('INTRUSION - SENSORS & DEVICES', INTRUSION_SENSORS);
+
+    // Fire Alarm
+    ref += formatSection('FIRE ALARM - PANELS & DEVICES', FIRE_ALARM_PRODUCTS);
+    ref += formatSection('FIRE ALARM - CABLE', FIRE_ALARM_CABLE);
+
+    // Cabling & Pathway
+    ref += formatSection('STRUCTURED CABLING', [...CABLING_PRODUCTS, ...BERKTEK_CABLE]);
     ref += formatSection('PATHWAY & SUPPORTS', PATHWAY_PRODUCTS);
+    ref += formatSection('POE SWITCHES', POE_SWITCHES);
 
     // Standard consumables
     ref += `\n
@@ -100,14 +125,18 @@ export function buildProductReference(): string {
        Waste factor: ${CABLE_STANDARDS.wasteFactorPercent}% for terminations and pulls
 `;
 
-    // Labor standards
+    // Labor standards (all 6 systems)
     ref += `
        === LABOR HOUR STANDARDS (per unit) ===
        CCTV: Indoor Dome ${LABOR_STANDARDS.indoorDomeCamera}hrs | Outdoor Dome ${LABOR_STANDARDS.outdoorDomeCamera}hrs | PTZ ${LABOR_STANDARDS.ptzCamera}hrs | Bullet ${LABOR_STANDARDS.bulletCamera}hrs | NVR Rack ${LABOR_STANDARDS.nvrRackMount}hrs | NVR Desktop ${LABOR_STANDARDS.nvrDesktop}hrs
        Access Control: Reader ${LABOR_STANDARDS.readerInstall}hrs | Electric Strike ${LABOR_STANDARDS.electricStrike}hrs | Mag Lock ${LABOR_STANDARDS.magLock}hrs | Panel ${LABOR_STANDARDS.controlPanel}hrs | Door Contact ${LABOR_STANDARDS.doorContact}hrs | REX ${LABOR_STANDARDS.rexSensor}hrs
+       AV Systems: Display Mount ${LABOR_STANDARDS.displayMount}hrs | DSP ${LABOR_STANDARDS.dspInstall}hrs | Amplifier ${LABOR_STANDARDS.amplifierInstall}hrs | Speaker ${LABOR_STANDARDS.speakerInstall}hrs | Encoder/Decoder ${LABOR_STANDARDS.encoderDecoder}hrs | Control Processor ${LABOR_STANDARDS.controlProcessor}hrs | Microphone ${LABOR_STANDARDS.microphoneInstall}hrs
+       Intrusion: Motion Detector ${LABOR_STANDARDS.motionDetector}hrs | Glass Break ${LABOR_STANDARDS.glassBreak}hrs | Panel ${LABOR_STANDARDS.intrusionPanel}hrs | Keypad ${LABOR_STANDARDS.keypad}hrs | Siren ${LABOR_STANDARDS.siren}hrs
+       Fire Alarm: Smoke Detector ${LABOR_STANDARDS.smokeDetector}hrs | Heat Detector ${LABOR_STANDARDS.heatDetector}hrs | Pull Station ${LABOR_STANDARDS.pullStation}hrs | Horn/Strobe ${LABOR_STANDARDS.hornStrobe}hrs | FACP ${LABOR_STANDARDS.firePanel}hrs
        Cabling: Per run ${LABOR_STANDARDS.cablePullPerRun}hrs + ${LABOR_STANDARDS.cablePullPer50Ft}hrs/50ft | Termination ${LABOR_STANDARDS.terminationPerEnd}hrs/end | 24-port panel ${LABOR_STANDARDS.patchPanelPer24}hrs
        Pathway: J-hook ${LABOR_STANDARDS.jHookInstall}hrs | Ladder rack ${LABOR_STANDARDS.ladderRackPer10Ft}hrs/10ft | Conduit ${LABOR_STANDARDS.conduitPer10Ft}hrs/10ft
 `;
 
     return ref;
 }
+
