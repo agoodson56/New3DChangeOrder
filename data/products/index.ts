@@ -8,53 +8,85 @@
 export { type CompactProduct, toProductDefinition, toProductDefinitions } from './types';
 
 import { type CompactProduct } from './types';
+// ── Base files ──
 import { CATALOG_CCTV_CAMERAS } from './cctvCameras';
-import { CATALOG_CCTV_CAMERAS_EXT } from './cctvCamerasExt';
 import { CATALOG_CCTV_RECORDING } from './cctvRecording';
 import { CATALOG_CCTV_ACCESSORIES } from './cctvAccessories';
 import { CATALOG_ACCESS_CONTROL } from './accessControl';
-import { CATALOG_ACCESS_CONTROL_EXT } from './accessControlExt';
 import { CATALOG_AV_SYSTEMS } from './avSystems';
-import { CATALOG_AV_EXT } from './avSystemsExt';
 import { CATALOG_INTRUSION } from './intrusionSystems';
 import { CATALOG_FIRE_ALARM } from './fireAlarm';
 import { CATALOG_CABLING } from './cabling';
-import { CATALOG_CABLING_EXT } from './cablingExt';
 import { CATALOG_NETWORKING } from './networking';
 import { CATALOG_PATHWAY } from './pathway';
+// ── Extension files ──
+import { CATALOG_CCTV_CAMERAS_EXT } from './cctvCamerasExt';
+import { CATALOG_ACCESS_CONTROL_EXT } from './accessControlExt';
+import { CATALOG_AV_EXT } from './avSystemsExt';
+import { CATALOG_CABLING_EXT } from './cablingExt';
+// ── Batch expansion files ──
+import { CATALOG_CCTV_BATCH2 } from './cctvBatch2';
+import { CATALOG_INTRUSION_FIRE_BATCH2 } from './intrusionFireBatch2';
+import { CATALOG_NETWORKING_BATCH2 } from './networkingBatch2';
+// ── New category files ──
+import { CATALOG_WIRELESS } from './wireless';
+import { CATALOG_INTERCOM_PAGING } from './intercomPaging';
+import { CATALOG_POWER_UPS } from './powerUps';
+// ── Bulk expansion files ──
+import { CATALOG_BULK_EXPANSION_A } from './bulkExpansionA';
+import { CATALOG_BULK_EXPANSION_B } from './bulkExpansionB';
+import { CATALOG_BULK_EXPANSION_C } from './bulkExpansionC';
+import { CATALOG_BULK_EXPANSION_D } from './bulkExpansionD';
 
 /**
  * Full product catalog — all compact product entries across all categories.
  */
 export const FULL_CATALOG: CompactProduct[] = [
+    // Base
     ...CATALOG_CCTV_CAMERAS,
-    ...CATALOG_CCTV_CAMERAS_EXT,
     ...CATALOG_CCTV_RECORDING,
     ...CATALOG_CCTV_ACCESSORIES,
     ...CATALOG_ACCESS_CONTROL,
-    ...CATALOG_ACCESS_CONTROL_EXT,
     ...CATALOG_AV_SYSTEMS,
-    ...CATALOG_AV_EXT,
     ...CATALOG_INTRUSION,
     ...CATALOG_FIRE_ALARM,
     ...CATALOG_CABLING,
-    ...CATALOG_CABLING_EXT,
     ...CATALOG_NETWORKING,
     ...CATALOG_PATHWAY,
+    // Extensions
+    ...CATALOG_CCTV_CAMERAS_EXT,
+    ...CATALOG_ACCESS_CONTROL_EXT,
+    ...CATALOG_AV_EXT,
+    ...CATALOG_CABLING_EXT,
+    // Batch expansions
+    ...CATALOG_CCTV_BATCH2,
+    ...CATALOG_INTRUSION_FIRE_BATCH2,
+    ...CATALOG_NETWORKING_BATCH2,
+    // New categories
+    ...CATALOG_WIRELESS,
+    ...CATALOG_INTERCOM_PAGING,
+    ...CATALOG_POWER_UPS,
+    // Bulk expansions
+    ...CATALOG_BULK_EXPANSION_A,
+    ...CATALOG_BULK_EXPANSION_B,
+    ...CATALOG_BULK_EXPANSION_C,
+    ...CATALOG_BULK_EXPANSION_D,
 ];
 
 // Re-export individual catalogs for category-specific access
 export {
-    CATALOG_CCTV_CAMERAS,
-    CATALOG_CCTV_RECORDING,
-    CATALOG_CCTV_ACCESSORIES,
-    CATALOG_ACCESS_CONTROL,
-    CATALOG_AV_SYSTEMS,
-    CATALOG_INTRUSION,
+    CATALOG_CCTV_CAMERAS, CATALOG_CCTV_CAMERAS_EXT, CATALOG_CCTV_BATCH2,
+    CATALOG_CCTV_RECORDING, CATALOG_CCTV_ACCESSORIES,
+    CATALOG_ACCESS_CONTROL, CATALOG_ACCESS_CONTROL_EXT,
+    CATALOG_AV_SYSTEMS, CATALOG_AV_EXT,
+    CATALOG_INTRUSION, CATALOG_INTRUSION_FIRE_BATCH2,
     CATALOG_FIRE_ALARM,
-    CATALOG_CABLING,
-    CATALOG_NETWORKING,
+    CATALOG_CABLING, CATALOG_CABLING_EXT,
+    CATALOG_NETWORKING, CATALOG_NETWORKING_BATCH2,
     CATALOG_PATHWAY,
+    CATALOG_WIRELESS, CATALOG_INTERCOM_PAGING, CATALOG_POWER_UPS,
+    CATALOG_BULK_EXPANSION_A, CATALOG_BULK_EXPANSION_B,
+    CATALOG_BULK_EXPANSION_C, CATALOG_BULK_EXPANSION_D,
 };
 
 /**
