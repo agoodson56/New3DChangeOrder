@@ -9,13 +9,17 @@ export { type CompactProduct, toProductDefinition, toProductDefinitions } from '
 
 import { type CompactProduct } from './types';
 import { CATALOG_CCTV_CAMERAS } from './cctvCameras';
+import { CATALOG_CCTV_CAMERAS_EXT } from './cctvCamerasExt';
 import { CATALOG_CCTV_RECORDING } from './cctvRecording';
 import { CATALOG_CCTV_ACCESSORIES } from './cctvAccessories';
 import { CATALOG_ACCESS_CONTROL } from './accessControl';
+import { CATALOG_ACCESS_CONTROL_EXT } from './accessControlExt';
 import { CATALOG_AV_SYSTEMS } from './avSystems';
+import { CATALOG_AV_EXT } from './avSystemsExt';
 import { CATALOG_INTRUSION } from './intrusionSystems';
 import { CATALOG_FIRE_ALARM } from './fireAlarm';
 import { CATALOG_CABLING } from './cabling';
+import { CATALOG_CABLING_EXT } from './cablingExt';
 import { CATALOG_NETWORKING } from './networking';
 import { CATALOG_PATHWAY } from './pathway';
 
@@ -24,13 +28,17 @@ import { CATALOG_PATHWAY } from './pathway';
  */
 export const FULL_CATALOG: CompactProduct[] = [
     ...CATALOG_CCTV_CAMERAS,
+    ...CATALOG_CCTV_CAMERAS_EXT,
     ...CATALOG_CCTV_RECORDING,
     ...CATALOG_CCTV_ACCESSORIES,
     ...CATALOG_ACCESS_CONTROL,
+    ...CATALOG_ACCESS_CONTROL_EXT,
     ...CATALOG_AV_SYSTEMS,
+    ...CATALOG_AV_EXT,
     ...CATALOG_INTRUSION,
     ...CATALOG_FIRE_ALARM,
     ...CATALOG_CABLING,
+    ...CATALOG_CABLING_EXT,
     ...CATALOG_NETWORKING,
     ...CATALOG_PATHWAY,
 ];
