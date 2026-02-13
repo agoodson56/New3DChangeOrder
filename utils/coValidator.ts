@@ -15,6 +15,8 @@ import {
     ACCESS_PANELS,
     CABLING_PRODUCTS,
     PATHWAY_PRODUCTS,
+    CONSUMABLE_PRODUCTS,
+    CAMERA_MOUNT_PRODUCTS,
     AV_PRODUCTS,
     INTRUSION_PANELS,
     INTRUSION_SENSORS,
@@ -37,6 +39,8 @@ const ALL_PRODUCTS: ProductDefinition[] = [
     ...ACCESS_PANELS,
     ...CABLING_PRODUCTS,
     ...PATHWAY_PRODUCTS,
+    ...CONSUMABLE_PRODUCTS,
+    ...CAMERA_MOUNT_PRODUCTS,
     ...AV_PRODUCTS,
     ...INTRUSION_PANELS,
     ...INTRUSION_SENSORS,
@@ -148,7 +152,14 @@ export function validateChangeOrder(data: ChangeOrderData): ValidationOutput {
             combined.includes('bracket') ||
             combined.includes('mount') ||
             combined.includes('sealant') ||
-            combined.includes('firestop');
+            combined.includes('firestop') ||
+            combined.includes('tubing') ||
+            combined.includes('loom') ||
+            combined.includes('shrink') ||
+            combined.includes('tape') ||
+            combined.includes('nut') ||
+            combined.includes('kit') ||
+            combined.includes('assort');
 
         // True bulk cable: sold by the foot
         const isBulkCable = !isAccessory && (

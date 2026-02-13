@@ -593,6 +593,246 @@ export const STANDARD_CONSUMABLES = [
 ];
 
 // =============================================================================
+// CONSUMABLE PRODUCTS — Full ProductDefinition[] for pricing validator matching
+// These mirror STANDARD_CONSUMABLES but as proper ProductDefinitions so the
+// pricing validator recognizes them at 100% confidence.
+// =============================================================================
+
+export const CONSUMABLE_PRODUCTS: ProductDefinition[] = [
+    {
+        manufacturer: 'Panduit',
+        model: 'Cable Ties 8" Black (bag of 100)',
+        partNumber: 'PLT2S-M0',
+        category: 'Material',
+        subcategory: 'Cable Management',
+        msrp: 8.50,
+        unitOfMeasure: 'ea',
+        description: '8" nylon cable ties, 50lb tensile, 100/bag',
+        installationRequirements: [],
+        accessories: [],
+        laborHours: 0,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: 'Velcro',
+        model: 'ONE-WRAP Thin Ties (25 pack)',
+        partNumber: '95172',
+        category: 'Material',
+        subcategory: 'Cable Management',
+        msrp: 15.00,
+        unitOfMeasure: 'ea',
+        description: 'Reusable hook-and-loop cable straps, 8" x 1/2", 25/pack',
+        installationRequirements: [],
+        accessories: [],
+        laborHours: 0,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: 'Brady',
+        model: 'Cable Labels (roll of 100)',
+        partNumber: 'M21-500-499',
+        category: 'Material',
+        subcategory: 'Labeling',
+        msrp: 12.00,
+        unitOfMeasure: 'ea',
+        description: 'Self-laminating vinyl cable labels, roll of 100',
+        installationRequirements: [],
+        accessories: [],
+        laborHours: 0,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: 'Tapcon',
+        model: 'Concrete Anchors 1/4x1-3/4 (box of 100)',
+        partNumber: '24355',
+        category: 'Material',
+        subcategory: 'Fasteners',
+        msrp: 35.00,
+        unitOfMeasure: 'ea',
+        description: '1/4" x 1-3/4" hex-head concrete anchors, 100/box',
+        installationRequirements: [],
+        accessories: [],
+        laborHours: 0,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: 'Toggler',
+        model: 'Drywall Anchors Assorted (kit)',
+        partNumber: 'DA-KIT',
+        category: 'Material',
+        subcategory: 'Fasteners',
+        msrp: 18.00,
+        unitOfMeasure: 'ea',
+        description: 'Assorted drywall anchors kit for mounting',
+        installationRequirements: [],
+        accessories: [],
+        laborHours: 0,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: 'Ideal',
+        model: 'Wire Nuts Assorted (bag of 50)',
+        partNumber: '30-072',
+        category: 'Material',
+        subcategory: 'Electrical',
+        msrp: 8.00,
+        unitOfMeasure: 'ea',
+        description: 'Assorted wire connectors, 50/bag',
+        installationRequirements: [],
+        accessories: [],
+        laborHours: 0,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: '3M',
+        model: 'Electrical Tape 3/4" (3 pack)',
+        partNumber: '6132-BA-10',
+        category: 'Material',
+        subcategory: 'Electrical',
+        msrp: 12.00,
+        unitOfMeasure: 'ea',
+        description: 'Scotch Super 33+ vinyl electrical tape, 3/4" x 66ft, 3-pack',
+        installationRequirements: [],
+        accessories: [],
+        laborHours: 0,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: 'DAP',
+        model: 'Silicone Sealant Clear (tube)',
+        partNumber: '08641',
+        category: 'Material',
+        subcategory: 'Sealants',
+        msrp: 8.50,
+        unitOfMeasure: 'ea',
+        description: 'Clear 100% silicone sealant for outdoor camera entries, 10.1oz',
+        installationRequirements: [],
+        accessories: [],
+        laborHours: 0,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: 'Panduit',
+        model: 'Split Loom Tubing 1" (10ft)',
+        partNumber: 'CLT100F-X20',
+        category: 'Material',
+        subcategory: 'Cable Protection',
+        msrp: 15.00,
+        unitOfMeasure: 'ea',
+        description: 'Corrugated split loom tubing 1" ID, 10ft section',
+        installationRequirements: [],
+        accessories: [],
+        laborHours: 0,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: 'Qualtek',
+        model: 'Heat Shrink Assortment Kit',
+        partNumber: 'Q2-KIT',
+        category: 'Material',
+        subcategory: 'Electrical',
+        msrp: 22.00,
+        unitOfMeasure: 'ea',
+        description: 'Assorted heat shrink tubing kit, multiple sizes',
+        installationRequirements: [],
+        accessories: [],
+        laborHours: 0,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: '3M',
+        model: 'Fire Barrier Sealant CP 25WB+',
+        partNumber: 'CP-25WB-PLUS',
+        category: 'Material',
+        subcategory: 'Firestop',
+        msrp: 19.79,
+        unitOfMeasure: 'ea',
+        description: 'Intumescent firestop sealant, 10.1oz cartridge, up to 4-hour rating',
+        installationRequirements: [],
+        accessories: [],
+        laborHours: 0.25,
+        complexity: 'Low'
+    },
+];
+
+// =============================================================================
+// CAMERA MOUNT PRODUCTS — Standalone entries for pricing validator matching
+// =============================================================================
+
+export const CAMERA_MOUNT_PRODUCTS: ProductDefinition[] = [
+    {
+        manufacturer: 'Axis',
+        model: 'Recessed Mount T94K01L',
+        partNumber: 'T94K01L',
+        category: 'Material',
+        subcategory: 'Camera Mount - Recessed',
+        msrp: 89.00,
+        unitOfMeasure: 'ea',
+        description: 'Indoor recessed ceiling mount for Axis dome cameras (drop ceiling)',
+        installationRequirements: [],
+        accessories: [],
+        laborHours: 0.5,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: 'Axis',
+        model: 'Pendant Kit T94A01D',
+        partNumber: 'T94A01D',
+        category: 'Material',
+        subcategory: 'Camera Mount - Pendant',
+        msrp: 59.00,
+        unitOfMeasure: 'ea',
+        description: 'Pendant mount kit for Axis dome cameras (exposed ceiling)',
+        installationRequirements: [],
+        accessories: [],
+        laborHours: 0.5,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: 'Axis',
+        model: 'Wall Mount Bracket T91L61',
+        partNumber: 'T91L61',
+        category: 'Material',
+        subcategory: 'Camera Mount - Wall',
+        msrp: 119.00,
+        unitOfMeasure: 'ea',
+        description: 'Wall and pole mount for Axis PTZ/dome cameras, IP66, replaces T91B61',
+        installationRequirements: [],
+        accessories: [],
+        laborHours: 0.75,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: 'Axis',
+        model: 'Corner Mount Bracket T94N01G',
+        partNumber: 'T94N01G',
+        category: 'Material',
+        subcategory: 'Camera Mount - Corner/Pole',
+        msrp: 95.00,
+        unitOfMeasure: 'ea',
+        description: 'Corner/pole mount adapter for Axis outdoor cameras',
+        installationRequirements: [],
+        accessories: [],
+        laborHours: 0.75,
+        complexity: 'Low'
+    },
+    {
+        manufacturer: 'Axis',
+        model: 'Wall Bracket T91B61',
+        partNumber: '5504-621',
+        category: 'Material',
+        subcategory: 'Camera Mount - Wall',
+        msrp: 45.00,
+        unitOfMeasure: 'ea',
+        description: 'Stainless steel wall bracket for Axis bullet/fixed cameras',
+        installationRequirements: [],
+        accessories: [],
+        laborHours: 0.5,
+        complexity: 'Low'
+    },
+];
+
+// =============================================================================
 // CABLE CALCULATION STANDARDS
 // =============================================================================
 

@@ -12,8 +12,10 @@ import {
     CCTV_CAMERAS, NVR_SYSTEMS, ACCESS_READERS, DOOR_HARDWARE, ACCESS_PANELS,
     CABLING_PRODUCTS, PATHWAY_PRODUCTS, AV_PRODUCTS, INTRUSION_PANELS, INTRUSION_SENSORS,
     FIRE_ALARM_PRODUCTS, FIRE_ALARM_CABLE, VERKADA_CAMERAS, BERKTEK_CABLE,
-    POE_SWITCHES, type ProductDefinition
+    POE_SWITCHES, CONSUMABLE_PRODUCTS, CAMERA_MOUNT_PRODUCTS,
+    STANDARD_CONSUMABLES, type ProductDefinition
 } from '../data/productDatabase';
+import { FULL_CATALOG, lookupProduct } from '../data/products';
 
 // Build master lookup
 const ALL_DB_PRODUCTS: ProductDefinition[] = [
@@ -21,6 +23,7 @@ const ALL_DB_PRODUCTS: ProductDefinition[] = [
     ...ACCESS_PANELS, ...CABLING_PRODUCTS, ...PATHWAY_PRODUCTS, ...AV_PRODUCTS,
     ...INTRUSION_PANELS, ...INTRUSION_SENSORS, ...FIRE_ALARM_PRODUCTS,
     ...FIRE_ALARM_CABLE, ...VERKADA_CAMERAS, ...BERKTEK_CABLE, ...POE_SWITCHES,
+    ...CONSUMABLE_PRODUCTS, ...CAMERA_MOUNT_PRODUCTS,
 ];
 
 function isInDatabase(manufacturer: string, model: string, partNumber?: string): { found: boolean; dbProduct?: ProductDefinition } {
@@ -51,6 +54,46 @@ function isInDatabase(manufacturer: string, model: string, partNumber?: string):
         )
     );
     if (fuzzy) return { found: true, dbProduct: fuzzy };
+
+    // 4. Match consumables by name substring (AI may generate slightly different names)
+    const consumableMatch = STANDARD_CONSUMABLES.find(c => {
+        const cName = c.name.toLowerCase();
+        return cName.includes(modelLower) || modelLower.includes(cName) ||
+            c.partNumber.toLowerCase() === partLower;
+    });
+    if (consumableMatch) {
+        // Find the corresponding CONSUMABLE_PRODUCTS entry
+        const dbConsumable = CONSUMABLE_PRODUCTS.find(p =>
+            p.partNumber.toLowerCase() === consumableMatch.partNumber.toLowerCase() ||
+            p.model.toLowerCase().includes(consumableMatch.name.toLowerCase().slice(0, 15))
+        );
+        if (dbConsumable) return { found: true, dbProduct: dbConsumable };
+        // Still match even without full ProductDefinition
+        return {
+            found: true, dbProduct: {
+                manufacturer: mfrLower, model: consumableMatch.name,
+                partNumber: consumableMatch.partNumber, category: 'Material',
+                subcategory: 'Consumable', msrp: consumableMatch.msrp,
+                unitOfMeasure: 'ea', description: '', installationRequirements: [],
+                accessories: [], laborHours: 0, complexity: 'Low' as const
+            }
+        };
+    }
+
+    // 5. Check FULL_CATALOG (5000+ compact products)
+    const catalogHit = lookupProduct(partLower || modelLower);
+    if (catalogHit) {
+        return {
+            found: true, dbProduct: {
+                manufacturer: catalogHit[0], model: catalogHit[1],
+                partNumber: catalogHit[2], category: catalogHit[3] as 'Material' | 'Equipment',
+                subcategory: catalogHit[4], msrp: catalogHit[5],
+                unitOfMeasure: catalogHit[6], description: catalogHit[7],
+                installationRequirements: [], accessories: [],
+                laborHours: catalogHit[8], complexity: 'Low' as const
+            }
+        };
+    }
 
     return { found: false };
 }
