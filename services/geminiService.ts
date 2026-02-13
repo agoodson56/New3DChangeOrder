@@ -545,6 +545,7 @@ ${buildProductReference()}
     contents,
     config: {
       systemInstruction,
+      temperature: 0,
       responseMimeType: "application/json",
       responseSchema: CO_SCHEMA
     }
@@ -694,6 +695,7 @@ export async function generateProposal(
     contents: { parts: [{ text: prompt }] },
     config: {
       systemInstruction,
+      temperature: 0,
       responseMimeType: "application/json",
       responseSchema: PROPOSAL_SCHEMA
     }

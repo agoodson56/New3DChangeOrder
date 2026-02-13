@@ -184,10 +184,10 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
         <div className="print:hidden">
           <div
             className={`px-4 py-2 flex items-center justify-between cursor-pointer ${data.validationResult.status === 'customer_ready'
-                ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white'
-                : data.validationResult.status === 'review_recommended'
-                  ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-black'
-                  : 'bg-gradient-to-r from-red-600 to-red-500 text-white'
+              ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white'
+              : data.validationResult.status === 'review_recommended'
+                ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-black'
+                : 'bg-gradient-to-r from-red-600 to-red-500 text-white'
               }`}
             onClick={() => setShowValidationDetails(!showValidationDetails)}
           >
@@ -432,6 +432,16 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
             <div className="col-span-2 px-2 py-px text-right font-mono font-black">$ {(task.hours * (rates[task.rateType as keyof LaborRates] || rates.base)).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
           </div>
         ))}
+
+        {/* Total Hours Row */}
+        <div className="grid grid-cols-12 text-[10px] font-black bg-gray-100 border-b-2 border-black">
+          <div className="col-span-1 border-r border-black px-2 py-1 text-center font-black text-[11px]">
+            {data.labor.reduce((sum, t) => sum + t.hours, 0).toFixed(2)}
+          </div>
+          <div className="col-span-7 border-r border-black px-2 py-1 uppercase tracking-wider text-right">Total Labor Hours:</div>
+          <div className="col-span-2 border-r border-black px-2 py-1 text-right"></div>
+          <div className="col-span-2 px-2 py-1 text-right font-mono font-black">$ {data.labor.reduce((sum, t) => sum + (t.hours * (rates[t.rateType as keyof LaborRates] || rates.base)), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+        </div>
 
         <div className="bg-white">
           <div className="grid grid-cols-12 text-[10px] font-bold border-b border-black">
