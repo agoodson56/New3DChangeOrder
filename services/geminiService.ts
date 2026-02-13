@@ -100,12 +100,12 @@ export async function generateChangeOrder(
     1. OPENING: "3D Technology Services proposes..." - describe what you're installing with quantities
     2. INSTALLATION: Mention J-hooks for cable support, lift equipment for high work, professional mounting
     3. TESTING: Fluke cable certification per TIA-568 standards, camera focus/alignment optimization  
-    4. CODES: Reference BICSI, NEC, and OSHA compliance in one sentence
+    4. CODES: Reference BICSI TDMM, NEC Article 800, NFPA 70E (for PoE electrical safety), and OSHA compliance
     5. VALUE: Business benefits (security, liability protection) and warranty coverage
     6. CLOSING: Turnkey solution commitment
     
     EXAMPLE (6 sentences - use this length):
-    "3D Technology Services proposes a comprehensive video surveillance enhancement featuring five (5) Axis P5655 PTZ cameras delivering 24/7 HD coverage across your warehouse facility. All cabling will be professionally suspended using J-hooks at 4-5 foot intervals per BICSI standards, with elevated work performed using OSHA-compliant scissor lift equipment. Every cable run will be Fluke-certified to TIA-568 standards, and each camera will be precisely aimed and optimized for maximum coverage. All work complies with BICSI TDMM, NEC Article 800, and OSHA 1910/1926 safety standards. This investment protects your assets with 24/7 surveillance, manufacturer warranty coverage, and 3D Technology Services' professional workmanship guarantee. Complete turnkey solution including installation, testing, certification, and documentation."
+    "3D Technology Services proposes a comprehensive video surveillance enhancement featuring five (5) Axis P5655 PTZ cameras delivering 24/7 HD coverage across your warehouse facility. All cabling will be professionally suspended using J-hooks at 4-5 foot intervals per BICSI standards, with elevated work performed using OSHA-compliant scissor lift equipment. Every cable run will be Fluke-certified to TIA-568 standards, and each camera will be precisely aimed and optimized for maximum coverage. All work complies with BICSI TDMM, NEC Article 800, NFPA 70E, and OSHA 1910/1926 safety standards. This investment protects your assets with 24/7 surveillance, manufacturer warranty coverage, and 3D Technology Services' professional workmanship guarantee. Complete turnkey solution including installation, testing, certification, and documentation."
     
     DO NOT exceed 8 sentences. Be comprehensive but CONCISE.
     </sales_focused_summary>
@@ -158,17 +158,23 @@ export async function generateChangeOrder(
        If it consumes time, material, or effort — it belongs on the change order.
 
     3. MINIMUM MATERIAL CATEGORIES (Non-Exhaustive - Include ALL When Applicable)
-       - Fasteners (screws, anchors, bolts)
-       - Mounting hardware and brackets
+       - Fasteners (screws, anchors, bolts, Tapcon anchors for masonry)
+       - Mounting hardware and brackets (camera mounts, wall arms)
        - Backboxes, mud rings, faceplates
-       - Patch cords, jumpers, pigtails
+       - PATCH CORDS (MANDATORY for every device - see details below)
+         * Camera to switch: 1x Cat6 patch cord per camera (3ft or 7ft)
+         * Patch panel to switch: 1x patch cord per port
+         * These are SEPARATE from the cable runs
        - Conduit fittings and supports
        - J-hooks, straps, and hangers (see calculation rule below)
-       - Fire-stopping materials
-       - Labels and labeling supplies
-       - Cable management accessories
+       - FIRESTOPPING MATERIALS (MANDATORY for wall/floor penetrations)
+         * 3M CP 25WB+ or Hilti CFS-S SIL firestop sealant
+         * Include for EVERY cable penetration through rated walls/floors
+         * 1 tube per 3-4 penetrations
+       - Labels and labeling supplies (use BRANDED labels: Brady, Panduit, Brother)
+       - Cable management accessories (Velcro ONE-WRAP, Panduit ties)
        - Power connectors and adapters
-       - Consumables (ties, Velcro, tape)
+       - Consumables (cable ties, Velcro, electrical tape)
        - Disposal materials and labor
        - RJ45/Keystone jacks (see calculation rule below)
        - Patch panels for rack terminations
@@ -178,6 +184,14 @@ export async function generateChangeOrder(
           * Scissor lift rental (daily rate) - for indoor work over 12ft
           * Boom lift rental (daily rate) - for outdoor/high exterior work
           * Safety harness/fall protection - required at 6ft+ elevated work
+       
+       GENERIC ITEMS RULE: NEVER use manufacturer name "Generic" for materials.
+       Always specify a real brand. Use these defaults for common items:
+       - Labels: Brady or Panduit
+       - Velcro: Velcro ONE-WRAP or Panduit HLS
+       - Cable ties: Panduit or Thomas & Betts
+       - Anchors: Tapcon or Hilti
+       - Firestop: 3M or Hilti
        If any category applies, list it explicitly.
 
     10. CABLE CATEGORY VERIFICATION (CRITICAL - PRODUCT SPECS OVERRIDE)
@@ -290,15 +304,25 @@ ${buildProductReference()}
 
     5. LABOR GRANULARITY RULE
        Labor must never be summarized as "install" or "configure" alone.
-       You must break labor into:
+       You MUST break labor into ALL of the following categories (include every one that applies):
        - Site Survey and Preparation
-       - Installation / Mounting
-       - Cabling and Pathways
-       - Termination and Connections
-       - Programming and Configuration
-       - Testing and Verification
-       - Documentation and Labeling
+       - Installation / Mounting (multiply per-device hours x quantity!)
+       - Cabling and Pathways (based on cable footage, not flat rate)
+       - Termination and Connections (based on number of terminations)
+       - Programming and Configuration (per device, not flat rate)
+       - Testing and Verification (per cable run / per device)
+       - Documentation and Labeling (per cable run / per device)
        - Customer Coordination and Sign-off
+       - PROJECT MANAGEMENT / COORDINATION (MANDATORY):
+         * Always include 8-12% of total install hours for PM
+         * Minimum 1.0 hour for small jobs, 2.0+ hours for multi-day jobs
+         * Includes: scheduling, material procurement, crew coordination,
+           GC coordination, site access arrangements, safety briefings
+       
+       HOUR CALCULATION RULE: For each labor line, MULTIPLY the per-device/per-unit
+       time by the QUANTITY of devices. Do NOT use flat times for multiple devices.
+       Example: 6 cameras x 1.5 hrs/camera = 9.0 hours (not 1.5 hours)
+       
        Even brief tasks must be included if they exist.
 
     5a. LABOR HOUR ESTIMATION - NECA MANUAL OF LABOR UNITS (MLU) ALIGNED
@@ -375,17 +399,18 @@ ${buildProductReference()}
        REX Sensor: 0.25 hours
        Power Supply: 0.50 hours
        Panel Programming: 0.50 hours per door
-       
-       === FIXED OVERHEAD TASKS (per project) ===
-       - Site Survey and Preparation: 1-2 hours
-       - Documentation and As-Builts: 0.50 hours per 5 devices
-       - Customer Walkthrough/Sign-off: 0.50 hours
-       - Cleanup/Debris Removal: 0.25 hours per 4 hours worked
-       
-       === CONDITION SELECTION RULES ===
-       Use NORMAL when: New construction, open ceilings, easy access, standard height (<12ft)
-       Use DIFFICULT when: Retrofit, limited access, height >12ft, occupied space
-       Use VERY DIFFICULT when: Historic buildings, concrete/masonry, extreme heights, hazardous areas
+              === FIXED OVERHEAD TASKS (per project, ALWAYS INCLUDE) ===
+        - Site Survey and Preparation: 1-2 hours
+        - Project Management/Coordination: 8-12% of total install hours (min 1.0 hour)
+        - Documentation and As-Builts: 0.50 hours per 5 devices
+        - Customer Walkthrough/Sign-off: 0.50 hours
+        - Cleanup/Debris Removal: 0.25 hours per 4 hours worked
+        - Network Switch Configuration (if adding PoE devices): 0.25 hours per port
+        
+        === CONDITION SELECTION RULES ===
+        Use NORMAL when: New construction, open ceilings, easy access, standard height (<12ft)
+        Use DIFFICULT when: Retrofit, limited access, height >12ft, occupied space
+        Use VERY DIFFICULT when: Historic buildings, concrete/masonry, extreme heights, hazardous areas
        
        CALCULATION REQUIREMENT: Multiply per-device time by device count. Do NOT use flat times.
 

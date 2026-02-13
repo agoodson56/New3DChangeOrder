@@ -104,20 +104,60 @@ export function validateChangeOrder(data: ChangeOrderData): ValidationOutput {
     });
 
     // =========================================================================
-    // RULE 2: Unit of measure — 'ft' for cables, 'ea' for everything else
+    // RULE 2: Unit of measure — 'ft' for bulk cable, 'ea' for everything else.
+    // Accessory items (jacks, panels, patch cables, connectors, ties, labels,
+    // velcro, etc.) are sold per-each even though their names may contain
+    // cable-related keywords like "cat6" or "cable".
     // =========================================================================
     data.materials.forEach((item, idx) => {
-        const isCable = item.model.toLowerCase().includes('cable') ||
-            item.model.toLowerCase().includes('cat6') ||
-            item.model.toLowerCase().includes('cat5') ||
-            item.model.toLowerCase().includes('fplp') ||
-            item.model.toLowerCase().includes('wire');
+        const modelLower = item.model.toLowerCase();
+        const descLower = (item.notes || '').toLowerCase();
+        const combined = modelLower + ' ' + descLower;
 
-        if (isCable && item.unitOfMeasure !== 'ft') {
+        // Items that are sold per-each, NOT per-foot (exclude from cable check)
+        const isAccessory =
+            combined.includes('jack') ||
+            combined.includes('panel') ||
+            combined.includes('patch') ||
+            combined.includes('connector') ||
+            combined.includes('label') ||
+            combined.includes('velcro') ||
+            combined.includes('strap') ||
+            combined.includes('tie') ||
+            combined.includes('plug') ||
+            combined.includes('keystone') ||
+            combined.includes('faceplate') ||
+            combined.includes('surface box') ||
+            combined.includes('coupler') ||
+            combined.includes('adapter') ||
+            combined.includes('crimper') ||
+            combined.includes('tester') ||
+            combined.includes('tool') ||
+            combined.includes('bag of') ||
+            combined.includes('pack') ||
+            combined.includes('roll of') ||
+            combined.includes('box of');
+
+        // True bulk cable: sold by the foot
+        const isBulkCable = !isAccessory && (
+            combined.includes('cable') ||
+            combined.includes('cat6a') ||
+            combined.includes('cat6') ||
+            combined.includes('cat5e') ||
+            combined.includes('cat5') ||
+            combined.includes('fplp') ||
+            combined.includes('fplr') ||
+            combined.includes('wire') ||
+            combined.includes('fiber') ||
+            combined.includes('coax') ||
+            combined.includes('speaker wire')
+        );
+
+        if (isBulkCable && item.unitOfMeasure !== 'ft') {
             warnings.push({
                 type: 'schema',
                 severity: 'warning',
-                message: `${item.model}: cable should have unitOfMeasure 'ft', got '${item.unitOfMeasure}'`,
+                message: `${item.model}: bulk cable should have unitOfMeasure 'ft', got '${item.unitOfMeasure}'`,
                 itemIndex: idx,
                 autoCorrection: 'Auto-set to ft'
             });
