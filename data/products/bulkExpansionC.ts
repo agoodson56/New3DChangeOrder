@@ -18,7 +18,7 @@ export const CATALOG_BULK_EXPANSION_C: CompactProduct[] = [
     ['Axis', 'P1455-LE-3', '02328-001', 'E', 'CCTV Camera', 699, 'ea', '2MP Outdoor Bullet DLPU IR', 2.5, 'M'],
     ['Axis', 'P1465-LE', '02340-001', 'E', 'CCTV Camera', 799, 'ea', '2MP Outdoor Bullet Lightfinder IR', 2.5, 'M'],
     ['Axis', 'P1465-LE-3', '02341-001', 'E', 'CCTV Camera', 899, 'ea', '2MP Outdoor Bullet LF IR 50m', 2.5, 'H'],
-    ['Axis', 'P3265-V', '02326-001', 'E', 'CCTV Camera', 699, 'ea', '2MP Indoor Dome DLPU WDR', 1.5, 'M'],
+    ['Axis', 'P3265-V', '02326-001', 'E', 'CCTV Camera', 529, 'ea', '2MP Indoor Dome DLPU WDR', 1.5, 'M'],
     ['Axis', 'P3265-LV', '02327-001', 'E', 'CCTV Camera', 799, 'ea', '2MP Indoor Dome Lightfinder', 1.5, 'M'],
     ['Axis', 'P3265-LVE', '02328-001', 'E', 'CCTV Camera', 899, 'ea', '2MP Outdoor Dome LF', 2.0, 'M'],
     ['Axis', 'P3267-LV', '02329-001', 'E', 'CCTV Camera', 999, 'ea', '5MP Indoor Dome Lightfinder', 1.5, 'H'],

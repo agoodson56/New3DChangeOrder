@@ -136,7 +136,17 @@ export function validateChangeOrder(data: ChangeOrderData): ValidationOutput {
             combined.includes('bag of') ||
             combined.includes('pack') ||
             combined.includes('roll of') ||
-            combined.includes('box of');
+            combined.includes('box of') ||
+            combined.includes('j-hook') ||
+            combined.includes('jhook') ||
+            combined.includes('hook') ||
+            combined.includes('hanger') ||
+            combined.includes('clamp') ||
+            combined.includes('anchor') ||
+            combined.includes('bracket') ||
+            combined.includes('mount') ||
+            combined.includes('sealant') ||
+            combined.includes('firestop');
 
         // True bulk cable: sold by the foot
         const isBulkCable = !isAccessory && (

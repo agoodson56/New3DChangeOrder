@@ -87,10 +87,10 @@ export const CATALOG_CABLING: CompactProduct[] = [
     // ══════════════════════════════════════════════════════════════
 
     // ── LEVITON — Jacks ──
-    ['Leviton', 'eXtreme Cat6A Jack Blue', '6110G-RL6', 'M', 'Jack', 16, 'ea', 'Cat6A UTP Jack Blue', 0.15, 'L'],
-    ['Leviton', 'eXtreme Cat6A Jack White', '6110G-RW6', 'M', 'Jack', 16, 'ea', 'Cat6A UTP Jack White', 0.15, 'L'],
-    ['Leviton', 'eXtreme Cat6A Jack Ivory', '6110G-RI6', 'M', 'Jack', 16, 'ea', 'Cat6A UTP Jack Ivory', 0.15, 'L'],
-    ['Leviton', 'eXtreme Cat6A Jack Orange', '6110G-RO6', 'M', 'Jack', 16, 'ea', 'Cat6A UTP Jack Orange', 0.15, 'L'],
+    ['Leviton', 'eXtreme Cat6A Jack Blue', '6110G-RL6', 'M', 'Jack', 18, 'ea', 'Cat6A UTP Jack Blue', 0.15, 'L'],
+    ['Leviton', 'eXtreme Cat6A Jack White', '6110G-RW6', 'M', 'Jack', 18, 'ea', 'Cat6A UTP Jack White', 0.15, 'L'],
+    ['Leviton', 'eXtreme Cat6A Jack Ivory', '6110G-RI6', 'M', 'Jack', 18, 'ea', 'Cat6A UTP Jack Ivory', 0.15, 'L'],
+    ['Leviton', 'eXtreme Cat6A Jack Orange', '6110G-RO6', 'M', 'Jack', 18, 'ea', 'Cat6A UTP Jack Orange', 0.15, 'L'],
     ['Leviton', 'eXtreme Cat6 Jack Blue', '61110-RL6', 'M', 'Jack', 9, 'ea', 'Cat6 UTP Jack Blue', 0.15, 'L'],
     ['Leviton', 'eXtreme Cat6 Jack White', '61110-RW6', 'M', 'Jack', 9, 'ea', 'Cat6 UTP Jack White', 0.15, 'L'],
     ['Leviton', 'eXtreme Cat6 Jack Ivory', '61110-RI6', 'M', 'Jack', 9, 'ea', 'Cat6 UTP Jack Ivory', 0.15, 'L'],

@@ -66,7 +66,7 @@ export const CCTV_CAMERAS: ProductDefinition[] = [
         partNumber: '02326-001',
         category: 'Equipment',
         subcategory: 'IP Camera - Indoor Dome',
-        msrp: 899.00,
+        msrp: 529.00,
         unitOfMeasure: 'ea',
         description: '2MP indoor dome with WDR, Lightfinder, and Forensic Capture',
         installationRequirements: [
@@ -476,7 +476,7 @@ export const CABLING_PRODUCTS: ProductDefinition[] = [
         partNumber: '6110G-RW6',
         category: 'Material',
         subcategory: 'Keystone Jack - Cat6A',
-        msrp: 13.50,
+        msrp: 18.45,
         unitOfMeasure: 'ea',
         description: 'eXtreme Cat6A QuickPort jack, white',
         installationRequirements: [
@@ -516,7 +516,7 @@ export const PATHWAY_PRODUCTS: ProductDefinition[] = [
         partNumber: 'CAT21HP',
         category: 'Material',
         subcategory: 'J-Hook - Cat6A Rated',
-        msrp: 3.85,
+        msrp: 5.86,
         unitOfMeasure: 'ea',
         description: '2" J-hook with 3" bend radius for Cat6A',
         installationRequirements: [
@@ -1254,7 +1254,7 @@ export const BERKTEK_CABLE: ProductDefinition[] = [
         partNumber: '11074918',
         category: 'Material',
         subcategory: 'Cat6A Cable - Plenum (Leviton Warranty)',
-        msrp: 0.78,
+        msrp: 0.81,
         unitOfMeasure: 'ft',
         description: 'Cat6A UTP plenum cable - REQUIRED for Leviton warranty compliance',
         installationRequirements: [

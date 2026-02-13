@@ -160,6 +160,13 @@ export async function generateChangeOrder(
     3. MINIMUM MATERIAL CATEGORIES (Non-Exhaustive - Include ALL When Applicable)
        - Fasteners (screws, anchors, bolts, Tapcon anchors for masonry)
        - Mounting hardware and brackets (camera mounts, wall arms)
+          * CAMERA MOUNTS ARE MANDATORY for every camera:
+            - Indoor dome: Axis T94K01L recessed mount or T94A01D pendant kit
+            - Outdoor dome: Axis T94T01D wall mount or T94N01G pole mount
+            - Bullet: Axis T91B61 wall bracket or T94A01D pendant
+            - PTZ: Axis T91B63 ceiling mount or T91A67 pole mount
+          * If mount type is unclear, include a generic wall/ceiling mount bracket
+          * NEVER omit camera mounting hardware
        - Backboxes, mud rings, faceplates
        - PATCH CORDS (MANDATORY for every device - see details below)
          * Camera to switch: 1x Cat6 patch cord per camera (3ft or 7ft)
@@ -311,8 +318,13 @@ ${buildProductReference()}
        - Termination and Connections (based on number of terminations)
        - Programming and Configuration (per device, not flat rate)
        - Testing and Verification (per cable run / per device)
-       - Documentation and Labeling (per cable run / per device)
-       - Customer Coordination and Sign-off
+        - System Commissioning and Startup (MANDATORY for all projects):
+          * Final system verification, end-to-end testing
+          * Firmware updates, default password changes
+          * Integration testing with existing systems
+          * Minimum 1.0 hour for simple jobs, 2.0+ hours for multi-device
+        - Documentation and Labeling (per cable run / per device)
+        - Customer Coordination and Sign-off
        - PROJECT MANAGEMENT / COORDINATION (MANDATORY):
          * Always include 8-12% of total install hours for PM
          * Minimum 1.0 hour for small jobs, 2.0+ hours for multi-day jobs
@@ -520,6 +532,10 @@ ${buildProductReference()}
     - 'materials' must include ALL Materials (infrastructure) and Equipment (active components)
     - 'labor' must include ALL labor tasks broken down granularly
     - 'assumptions' must list anything assumed about existing conditions
+      * NVR/RECORDING RULE: If installing cameras, you MUST either:
+        (a) Include NVR/recording equipment as a material line item, OR
+        (b) Explicitly state in assumptions: "Existing NVR/recording system on-site with available channels"
+        NEVER silently omit recording infrastructure.
     - 'exclusions' must list anything explicitly not included
     </format>
 
