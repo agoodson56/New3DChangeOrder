@@ -10,7 +10,7 @@ import { GoogleGenAI } from '@google/genai';
 import { ChangeOrderData, PricingValidation } from '../types';
 import {
     CCTV_CAMERAS, NVR_SYSTEMS, ACCESS_READERS, DOOR_HARDWARE, ACCESS_PANELS,
-    CABLING_PRODUCTS, AV_PRODUCTS, INTRUSION_PANELS, INTRUSION_SENSORS,
+    CABLING_PRODUCTS, PATHWAY_PRODUCTS, AV_PRODUCTS, INTRUSION_PANELS, INTRUSION_SENSORS,
     FIRE_ALARM_PRODUCTS, FIRE_ALARM_CABLE, VERKADA_CAMERAS, BERKTEK_CABLE,
     POE_SWITCHES, type ProductDefinition
 } from '../data/productDatabase';
@@ -18,18 +18,47 @@ import {
 // Build master lookup
 const ALL_DB_PRODUCTS: ProductDefinition[] = [
     ...CCTV_CAMERAS, ...NVR_SYSTEMS, ...ACCESS_READERS, ...DOOR_HARDWARE,
-    ...ACCESS_PANELS, ...CABLING_PRODUCTS, ...AV_PRODUCTS, ...INTRUSION_PANELS,
-    ...INTRUSION_SENSORS, ...FIRE_ALARM_PRODUCTS, ...FIRE_ALARM_CABLE,
-    ...VERKADA_CAMERAS, ...BERKTEK_CABLE, ...POE_SWITCHES,
+    ...ACCESS_PANELS, ...CABLING_PRODUCTS, ...PATHWAY_PRODUCTS, ...AV_PRODUCTS,
+    ...INTRUSION_PANELS, ...INTRUSION_SENSORS, ...FIRE_ALARM_PRODUCTS,
+    ...FIRE_ALARM_CABLE, ...VERKADA_CAMERAS, ...BERKTEK_CABLE, ...POE_SWITCHES,
 ];
 
-function isInDatabase(manufacturer: string, model: string): boolean {
+function isInDatabase(manufacturer: string, model: string, partNumber?: string): { found: boolean; dbProduct?: ProductDefinition } {
     const mfrLower = manufacturer.toLowerCase();
     const modelLower = model.toLowerCase();
-    return ALL_DB_PRODUCTS.some(p =>
+    const partLower = (partNumber || '').toLowerCase();
+
+    // 1. Exact part-number match (most reliable)
+    if (partLower) {
+        const byPart = ALL_DB_PRODUCTS.find(p =>
+            p.partNumber.toLowerCase() === partLower
+        );
+        if (byPart) return { found: true, dbProduct: byPart };
+    }
+
+    // 2. Exact manufacturer + model match
+    const exact = ALL_DB_PRODUCTS.find(p =>
         p.manufacturer.toLowerCase() === mfrLower &&
         p.model.toLowerCase() === modelLower
     );
+    if (exact) return { found: true, dbProduct: exact };
+
+    // 3. Fuzzy: manufacturer match + model substring
+    const fuzzy = ALL_DB_PRODUCTS.find(p =>
+        p.manufacturer.toLowerCase() === mfrLower && (
+            p.model.toLowerCase().includes(modelLower) ||
+            modelLower.includes(p.model.toLowerCase())
+        )
+    );
+    if (fuzzy) return { found: true, dbProduct: fuzzy };
+
+    return { found: false };
+}
+
+/** Extract part number from model string if present in parentheses, e.g. 'P3245-V (02326-001)' → '02326-001' */
+function extractPartNumber(model: string): string {
+    const m = model.match(/\(([^)]+)\)/);
+    return m ? m[1] : '';
 }
 
 const PRICING_SCHEMA = {
@@ -70,7 +99,7 @@ export async function validatePricing(data: ChangeOrderData): Promise<PricingVal
     // Find items not in our database that need price verification
     const itemsToVerify = data.materials
         .map((item, index) => ({ item, index }))
-        .filter(({ item }) => !isInDatabase(item.manufacturer, item.model));
+        .filter(({ item }) => !isInDatabase(item.manufacturer, item.model, extractPartNumber(item.model)).found);
 
     // If all items are in DB, they're already verified
     if (itemsToVerify.length === 0) {
@@ -107,82 +136,111 @@ IMPORTANT:
 
 You MUST respond with ONLY a JSON object in this exact format (no markdown, no backticks):
 {"validations":[{"itemIndex":0,"manufacturer":"Brand","model":"Model","validatedMsrp":123.45,"source":"Where found","confidence":85}]}`;
+    const MAX_RETRIES = 3;
+    const BASE_DELAY_MS = 2000;
 
-    try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.0-flash',
-            contents: { parts: [{ text: prompt }] },
-            config: {
-                tools: [{ googleSearch: {} }]
-            }
-        });
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        try {
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.0-flash',
+                contents: { parts: [{ text: prompt }] },
+                config: {
+                    temperature: 0,
+                    tools: [{ googleSearch: {} }]
+                }
+            });
 
-        const rawText = response.text || '';
-        // Extract JSON from the response (it may be wrapped in markdown code blocks)
-        const jsonMatch = rawText.match(/\{[\s\S]*"validations"[\s\S]*\}/);
-        const text = jsonMatch ? jsonMatch[0] : '{"validations":[]}';
-        const result = JSON.parse(text);
+            const rawText = response.text || '';
+            // Extract JSON from the response (it may be wrapped in markdown code blocks)
+            const jsonMatch = rawText.match(/\{[\s\S]*"validations"[\s\S]*\}/);
+            const text = jsonMatch ? jsonMatch[0] : '{"validations":[]}';
+            const result = JSON.parse(text);
 
-        // Combine DB-verified items with search-verified items
-        const allValidations: PricingValidation[] = [];
+            // Combine DB-verified items with search-verified items
+            const allValidations: PricingValidation[] = [];
 
-        data.materials.forEach((item, index) => {
-            if (isInDatabase(item.manufacturer, item.model)) {
-                allValidations.push({
-                    itemIndex: index,
-                    manufacturer: item.manufacturer,
-                    model: item.model,
-                    originalMsrp: item.msrp,
-                    validatedMsrp: item.msrp,
-                    source: 'Verified Product Database',
-                    confidence: 100,
-                    delta: 0,
-                });
-            } else {
-                const found = result.validations?.find((v: any) => v.itemIndex === index);
-                if (found) {
-                    const delta = item.msrp > 0
-                        ? Math.abs(found.validatedMsrp - item.msrp) / item.msrp * 100
-                        : 100;
+            data.materials.forEach((item, index) => {
+                const dbResult = isInDatabase(item.manufacturer, item.model, extractPartNumber(item.model));
+                if (dbResult.found) {
+                    // Use the DB price if the AI-generated price differs
+                    const dbPrice = dbResult.dbProduct?.msrp ?? item.msrp;
                     allValidations.push({
                         itemIndex: index,
                         manufacturer: item.manufacturer,
                         model: item.model,
                         originalMsrp: item.msrp,
-                        validatedMsrp: found.validatedMsrp,
-                        source: found.source || 'Google Search',
-                        confidence: found.confidence || 50,
-                        delta: Math.round(delta * 10) / 10,
+                        validatedMsrp: dbPrice,
+                        source: 'Verified Product Database',
+                        confidence: 100,
+                        delta: item.msrp > 0 ? Math.abs(dbPrice - item.msrp) / item.msrp * 100 : 0,
                     });
                 } else {
-                    allValidations.push({
-                        itemIndex: index,
-                        manufacturer: item.manufacturer,
-                        model: item.model,
-                        originalMsrp: item.msrp,
-                        validatedMsrp: item.msrp,
-                        source: 'Not Verified',
-                        confidence: 30,
-                        delta: 0,
-                    });
+                    const found = result.validations?.find((v: any) => v.itemIndex === index);
+                    if (found) {
+                        const delta = item.msrp > 0
+                            ? Math.abs(found.validatedMsrp - item.msrp) / item.msrp * 100
+                            : 100;
+                        allValidations.push({
+                            itemIndex: index,
+                            manufacturer: item.manufacturer,
+                            model: item.model,
+                            originalMsrp: item.msrp,
+                            validatedMsrp: found.validatedMsrp,
+                            source: found.source || 'Google Search',
+                            confidence: found.confidence || 50,
+                            delta: Math.round(delta * 10) / 10,
+                        });
+                    } else {
+                        allValidations.push({
+                            itemIndex: index,
+                            manufacturer: item.manufacturer,
+                            model: item.model,
+                            originalMsrp: item.msrp,
+                            validatedMsrp: item.msrp,
+                            source: 'Not Verified',
+                            confidence: 30,
+                            delta: 0,
+                        });
+                    }
                 }
+            });
+
+            return allValidations;
+
+        } catch (error: any) {
+            const is429 = error?.message?.includes('429') || error?.message?.includes('RESOURCE_EXHAUSTED');
+
+            if (is429 && attempt < MAX_RETRIES - 1) {
+                const delay = BASE_DELAY_MS * Math.pow(2, attempt);
+                console.warn(`Pricing validation rate limited (429). Retrying in ${delay / 1000}s... (attempt ${attempt + 1}/${MAX_RETRIES})`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                continue;
             }
-        });
 
-        return allValidations;
-
-    } catch (error) {
-        console.error('Pricing validation error:', error);
-        // Return items with low confidence if search fails
-        return data.materials.map((item, index) => ({
-            itemIndex: index,
-            manufacturer: item.manufacturer,
-            model: item.model,
-            originalMsrp: item.msrp,
-            validatedMsrp: item.msrp,
-            source: isInDatabase(item.manufacturer, item.model) ? 'Verified Product Database' : 'Validation Failed',
-            confidence: isInDatabase(item.manufacturer, item.model) ? 100 : 20,
-            delta: 0,
-        }));
+            console.error('Pricing validation error:', error);
+            // Return items with low confidence if search fails
+            return data.materials.map((item, index) => ({
+                itemIndex: index,
+                manufacturer: item.manufacturer,
+                model: item.model,
+                originalMsrp: item.msrp,
+                validatedMsrp: item.msrp,
+                source: isInDatabase(item.manufacturer, item.model, extractPartNumber(item.model)).found ? 'Verified Product Database' : 'Validation Failed',
+                confidence: isInDatabase(item.manufacturer, item.model, extractPartNumber(item.model)).found ? 100 : 20,
+                delta: 0,
+            }));
+        }
     }
+
+    // Fallback
+    return data.materials.map((item, index) => ({
+        itemIndex: index,
+        manufacturer: item.manufacturer,
+        model: item.model,
+        originalMsrp: item.msrp,
+        validatedMsrp: item.msrp,
+        source: 'Validation Incomplete',
+        confidence: 20,
+        delta: 0,
+    }));
 }
