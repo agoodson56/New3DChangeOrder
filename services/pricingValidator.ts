@@ -94,7 +94,7 @@ export async function validatePricing(data: ChangeOrderData): Promise<PricingVal
 
     const prompt = `You are a professional low-voltage pricing analyst. Verify the MSRP pricing for these products by searching distributor websites, manufacturer sites, and authorized dealer listings.
 
-For each product, find the current MSRP or list price. Return itemIndex, manufacturer, model, validatedMsrp (your best price finding), source (where you found it), and confidence (0-100, how confident you are in this price).
+For each product, find the current MSRP or list price.
 
 Products to verify:
 ${itemList}
@@ -103,20 +103,24 @@ IMPORTANT:
 - Search real distributor sites like eBay, Amazon Business, Anixter, Graybar, ADI, Wesco
 - If you cannot find an exact match, estimate based on the closest comparable product
 - Set confidence lower (40-60) if you're estimating
-- Return validatedMsrp in USD, just the number`;
+- Return validatedMsrp in USD, just the number
+
+You MUST respond with ONLY a JSON object in this exact format (no markdown, no backticks):
+{"validations":[{"itemIndex":0,"manufacturer":"Brand","model":"Model","validatedMsrp":123.45,"source":"Where found","confidence":85}]}`;
 
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-2.0-flash',
             contents: { parts: [{ text: prompt }] },
             config: {
-                responseMimeType: 'application/json',
-                responseSchema: PRICING_SCHEMA,
                 tools: [{ googleSearch: {} }]
             }
         });
 
-        const text = response.text || '{"validations":[]}';
+        const rawText = response.text || '';
+        // Extract JSON from the response (it may be wrapped in markdown code blocks)
+        const jsonMatch = rawText.match(/\{[\s\S]*"validations"[\s\S]*\}/);
+        const text = jsonMatch ? jsonMatch[0] : '{"validations":[]}';
         const result = JSON.parse(text);
 
         // Combine DB-verified items with search-verified items
