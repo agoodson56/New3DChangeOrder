@@ -37,6 +37,8 @@ import { CATALOG_BULK_EXPANSION_A } from './bulkExpansionA';
 import { CATALOG_BULK_EXPANSION_B } from './bulkExpansionB';
 import { CATALOG_BULK_EXPANSION_C } from './bulkExpansionC';
 import { CATALOG_BULK_EXPANSION_D } from './bulkExpansionD';
+import { CATALOG_BULK_EXPANSION_E } from './bulkExpansionE';
+import { CATALOG_BULK_EXPANSION_F } from './bulkExpansionF';
 
 /**
  * Full product catalog — all compact product entries across all categories.
@@ -71,6 +73,8 @@ export const FULL_CATALOG: CompactProduct[] = [
     ...CATALOG_BULK_EXPANSION_B,
     ...CATALOG_BULK_EXPANSION_C,
     ...CATALOG_BULK_EXPANSION_D,
+    ...CATALOG_BULK_EXPANSION_E,
+    ...CATALOG_BULK_EXPANSION_F,
 ];
 
 // Re-export individual catalogs for category-specific access
@@ -87,6 +91,7 @@ export {
     CATALOG_WIRELESS, CATALOG_INTERCOM_PAGING, CATALOG_POWER_UPS,
     CATALOG_BULK_EXPANSION_A, CATALOG_BULK_EXPANSION_B,
     CATALOG_BULK_EXPANSION_C, CATALOG_BULK_EXPANSION_D,
+    CATALOG_BULK_EXPANSION_E, CATALOG_BULK_EXPANSION_F,
 };
 
 /**
