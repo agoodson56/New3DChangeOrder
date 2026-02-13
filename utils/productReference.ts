@@ -6,6 +6,8 @@
  * installation requirements, accessories, and labor hours.
  */
 
+import { FULL_CATALOG, getCatalogStats } from '../data/products';
+
 import {
     CCTV_CAMERAS,
     NVR_SYSTEMS,
@@ -135,6 +137,24 @@ export function buildProductReference(): string {
        Fire Alarm: Smoke Detector ${LABOR_STANDARDS.smokeDetector}hrs | Heat Detector ${LABOR_STANDARDS.heatDetector}hrs | Pull Station ${LABOR_STANDARDS.pullStation}hrs | Horn/Strobe ${LABOR_STANDARDS.hornStrobe}hrs | FACP ${LABOR_STANDARDS.firePanel}hrs
        Cabling: Per run ${LABOR_STANDARDS.cablePullPerRun}hrs + ${LABOR_STANDARDS.cablePullPer50Ft}hrs/50ft | Termination ${LABOR_STANDARDS.terminationPerEnd}hrs/end | 24-port panel ${LABOR_STANDARDS.patchPanelPer24}hrs
        Pathway: J-hook ${LABOR_STANDARDS.jHookInstall}hrs | Ladder rack ${LABOR_STANDARDS.ladderRackPer10Ft}hrs/10ft | Conduit ${LABOR_STANDARDS.conduitPer10Ft}hrs/10ft
+`;
+
+    // Expanded catalog summary (compact products from data/products/)
+    const stats = getCatalogStats();
+    ref += `
+       === EXPANDED PRODUCT CATALOG (${stats.total} additional products available) ===
+       Beyond the detailed products above, we maintain a verified catalog of ${stats.total} products.
+       Use these EXACT prices when matching. For any product not found, use Google Search for pricing.
+
+       Available Manufacturers: ${Object.entries(stats.manufacturers)
+            .sort((a, b) => b[1] - a[1])
+            .map(([mfr, count]) => `${mfr} (${count})`)
+            .join(', ')}
+
+       Available Categories: ${Object.entries(stats.categories)
+            .sort((a, b) => b[1] - a[1])
+            .map(([cat, count]) => `${cat} (${count})`)
+            .join(', ')}
 `;
 
     return ref;
