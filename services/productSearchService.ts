@@ -45,6 +45,9 @@ const PRODUCT_SEARCH_SCHEMA = {
  */
 export async function searchProducts(query: string): Promise<ProductSearchResult[]> {
   const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY;
+  if (!apiKey) {
+    throw new Error('GEMINI_API_KEY is not configured. Please set the GEMINI_API_KEY environment variable in your Cloudflare Pages project settings (Settings → Environment Variables) and redeploy.');
+  }
   const ai = new GoogleGenAI({ apiKey });
   const model = 'gemini-2.0-flash';
 
