@@ -565,6 +565,7 @@ ${buildProductReference()}
     config: {
       systemInstruction,
       temperature: 0,
+      maxOutputTokens: 65536,
       responseMimeType: "application/json",
       responseSchema: CO_SCHEMA
     }
@@ -573,7 +574,30 @@ ${buildProductReference()}
   const rawText = response.text;
   if (!rawText) throw new Error("No response from AI");
 
-  const data = JSON.parse(rawText) as ChangeOrderData;
+  let data: ChangeOrderData;
+  try {
+    data = JSON.parse(rawText) as ChangeOrderData;
+  } catch (parseErr) {
+    // Attempt to repair truncated JSON
+    console.warn('JSON parse failed, attempting recovery:', parseErr);
+    let fixed = rawText;
+    // Close any open strings
+    const quoteCount = (fixed.match(/(?<!\\)"/g) || []).length;
+    if (quoteCount % 2 !== 0) fixed += '"';
+    // Balance brackets
+    const openBrackets = (fixed.match(/\[/g) || []).length - (fixed.match(/\]/g) || []).length;
+    const openBraces = (fixed.match(/\{/g) || []).length - (fixed.match(/\}/g) || []).length;
+    // Remove trailing comma if present
+    fixed = fixed.replace(/,\s*$/, '');
+    for (let i = 0; i < openBrackets; i++) fixed += ']';
+    for (let i = 0; i < openBraces; i++) fixed += '}';
+    try {
+      data = JSON.parse(fixed) as ChangeOrderData;
+      console.log('JSON recovery successful');
+    } catch {
+      throw new Error(`AI response JSON is invalid and could not be repaired. Length: ${rawText.length} chars. Error: ${parseErr}`);
+    }
+  }
   data.coordinatorIntent = intent;
   return data;
 }
