@@ -338,8 +338,11 @@ ${buildProductReference()}
        Even brief tasks must be included if they exist.
 
     5a. LABOR HOUR ESTIMATION - NECA MANUAL OF LABOR UNITS (MLU) ALIGNED
-       These labor units are aligned with NECA MLU standards. Use "Normal" for ideal conditions,
-       "Difficult" for challenging access/retrofit, "Very Difficult" for complex environments.
+        MANDATORY: You MUST use ONLY the national labor hour standards below and the 
+        LABOR_STANDARDS in the Product Database Reference. NEVER estimate or invent labor hours.
+        If the product database lists laborHours for a product, use THAT value exactly.
+        These labor units are aligned with NECA MLU standards. Use "Normal" for ideal conditions,
+        "Difficult" for challenging access/retrofit, "Very Difficult" for complex environments.
        
        === CCTV CAMERA INSTALLATION (per camera, NECA MLU aligned) ===
        Camera with Enclosure (includes mounting, wiring, basic config):

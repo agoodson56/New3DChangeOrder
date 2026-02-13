@@ -164,18 +164,26 @@ export async function validatePricing(data: ChangeOrderData): Promise<PricingVal
         `[${index}] ${item.manufacturer} ${item.model} — listed MSRP: $${item.msrp.toFixed(2)}`
     ).join('\n');
 
-    const prompt = `You are a professional low-voltage pricing analyst. Verify the MSRP pricing for these products by searching distributor websites, manufacturer sites, and authorized dealer listings.
+    const prompt = `You are a professional low-voltage pricing analyst. Your task is to find the MANUFACTURER'S SUGGESTED RETAIL PRICE (MSRP) for these products.
 
-For each product, find the current MSRP or list price.
+PRICING PRIORITY ORDER (use only ONE source per product — highest priority wins):
+1. MANUFACTURER WEBSITE — Official MSRP / list price from the manufacturer's own site
+2. AUTHORIZED DISTRIBUTOR — Price from Anixter, Graybar, ADI Global, Wesco, TEC
+3. PROFESSIONAL RESELLER — Price from B&H Photo, CDW, SHI, or other authorized resellers
+4. NEVER use eBay, Amazon consumer listings, Walmart, or auction sites — these are NOT MSRP
+
+For each product, return the MSRP (not street price, not sale price, not auction price).
 
 Products to verify:
 ${itemList}
 
-IMPORTANT:
-- Search real distributor sites like eBay, Amazon Business, Anixter, Graybar, ADI, Wesco
-- If you cannot find an exact match, estimate based on the closest comparable product
-- Set confidence lower (40-60) if you're estimating
-- Return validatedMsrp in USD, just the number
+RULES:
+- Return the per-unit MSRP in USD
+- If the product is sold in bulk (e.g., box of 100), return the PRICE PER BOX, not per individual unit
+- If you cannot find an exact match, find the closest comparable product from the same manufacturer
+- Set confidence 80-95 if you found MSRP on an authoritative source
+- Set confidence 50-70 if you're using a comparable product or secondary source
+- Set confidence below 50 ONLY if you cannot find any reliable pricing
 
 You MUST respond with ONLY a JSON object in this exact format (no markdown, no backticks):
 {"validations":[{"itemIndex":0,"manufacturer":"Brand","model":"Model","validatedMsrp":123.45,"source":"Where found","confidence":85}]}`;
