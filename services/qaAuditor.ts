@@ -8,6 +8,48 @@
 
 import { GoogleGenAI } from '@google/genai';
 import { ChangeOrderData } from '../types';
+import { FULL_CATALOG, lookupProduct } from '../data/products';
+import {
+    CCTV_CAMERAS, NVR_SYSTEMS, ACCESS_READERS, DOOR_HARDWARE, ACCESS_PANELS,
+    CABLING_PRODUCTS, PATHWAY_PRODUCTS, AV_PRODUCTS, INTRUSION_PANELS, INTRUSION_SENSORS,
+    FIRE_ALARM_PRODUCTS, FIRE_ALARM_CABLE, VERKADA_CAMERAS, BERKTEK_CABLE,
+    POE_SWITCHES, CONSUMABLE_PRODUCTS, CAMERA_MOUNT_PRODUCTS,
+    type ProductDefinition
+} from '../data/productDatabase';
+
+const ALL_DB_PRODUCTS: ProductDefinition[] = [
+    ...CCTV_CAMERAS, ...NVR_SYSTEMS, ...ACCESS_READERS, ...DOOR_HARDWARE,
+    ...ACCESS_PANELS, ...CABLING_PRODUCTS, ...PATHWAY_PRODUCTS, ...AV_PRODUCTS,
+    ...INTRUSION_PANELS, ...INTRUSION_SENSORS, ...FIRE_ALARM_PRODUCTS,
+    ...FIRE_ALARM_CABLE, ...VERKADA_CAMERAS, ...BERKTEK_CABLE, ...POE_SWITCHES,
+    ...CONSUMABLE_PRODUCTS, ...CAMERA_MOUNT_PRODUCTS,
+];
+
+function isDbVerified(manufacturer: string, model: string): boolean {
+    const mfrLower = manufacturer.toLowerCase();
+    const modelLower = model.toLowerCase();
+    // Check legacy DB
+    const inDb = ALL_DB_PRODUCTS.some(p =>
+        (p.manufacturer.toLowerCase() === mfrLower && p.model.toLowerCase() === modelLower) ||
+        (p.manufacturer.toLowerCase() === mfrLower && (
+            p.model.toLowerCase().includes(modelLower) || modelLower.includes(p.model.toLowerCase())
+        ))
+    );
+    if (inDb) return true;
+    // Check FULL_CATALOG
+    const inCatalog = FULL_CATALOG.some(p => {
+        const pMfr = p[0].toLowerCase();
+        const pModel = p[1].toLowerCase();
+        const pSub = p[4].toLowerCase();
+        const pDesc = p[7].toLowerCase();
+        const mfrMatch = pMfr === mfrLower || mfrLower === 'generic' || pMfr === 'generic';
+        const modelMatch = pModel === modelLower || pModel.includes(modelLower) ||
+            modelLower.includes(pModel) || pSub.includes(modelLower) ||
+            pDesc.includes(modelLower);
+        return mfrMatch && modelMatch;
+    });
+    return inCatalog;
+}
 
 const QA_SCHEMA = {
     type: 'OBJECT' as const,
@@ -67,8 +109,17 @@ export async function auditChangeOrder(data: ChangeOrderData): Promise<QAAuditRe
 
     const ai = new GoogleGenAI({ apiKey });
 
+    // Identify which materials are already in our verified product database
+    const dbVerifiedItems = data.materials
+        .filter(m => isDbVerified(m.manufacturer, m.model))
+        .map(m => `${m.manufacturer} ${m.model} — $${m.msrp} (DB-verified)`);
+
+    const dbVerifiedSection = dbVerifiedItems.length > 0
+        ? `\n=== DATABASE-VERIFIED ITEMS ===\nThe following ${dbVerifiedItems.length} items are from our verified product database with confirmed, accurate pricing.\nDo NOT flag these as missing, generic, unverified, or incorrectly priced. Their specifications are confirmed:\n${dbVerifiedItems.join('\n')}\n`
+        : '';
+
     const materialSummary = data.materials.map((m, i) =>
-        `[${i}] ${m.manufacturer} ${m.model} — Qty: ${m.quantity} — $${m.msrp} ${m.unitOfMeasure || 'ea'} — ${m.category}`
+        `[${i}] ${m.manufacturer} ${m.model} — Qty: ${m.quantity} — $${m.msrp} ${m.unitOfMeasure || 'ea'} — ${m.category}${isDbVerified(m.manufacturer, m.model) ? ' [DB-VERIFIED]' : ''}`
     ).join('\n');
 
     const laborSummary = data.labor.map((l, i) =>
@@ -79,6 +130,12 @@ export async function auditChangeOrder(data: ChangeOrderData): Promise<QAAuditRe
 
 Review this Change Order for customer-presentability. Score it 0-100.
 
+IMPORTANT SCORING GUIDANCE:
+- If most materials are DB-VERIFIED and labor is properly broken down, start at 92+ and deduct only for genuine omissions
+- Only deduct points for items NOT marked [DB-VERIFIED]
+- Do NOT penalize for using 'Generic' manufacturer on commodity items (conduit, fittings, etc.) — this is standard industry practice
+- Focus on structural issues: missing labor categories, missing critical equipment, code violations
+${dbVerifiedSection}
 === CHANGE ORDER DETAILS ===
 Customer: ${data.customer}
 Project: ${data.projectName}

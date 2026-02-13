@@ -820,8 +820,18 @@ export async function generateValidatedChangeOrder(
 
   // Calculate overall confidence
   const codeScore = codeValidation.score;
+  // Separate DB-verified (100%) from web-searched items to prevent
+  // a few unverified commodity items from tanking the entire score
+  const dbItems = pricingValidations.filter(v => v.source === 'Verified Product Database');
+  const webItems = pricingValidations.filter(v => v.source !== 'Verified Product Database');
+  const webConfidence = webItems.length > 0
+    ? webItems.reduce((sum, v) => sum + v.confidence, 0) / webItems.length
+    : 100;
+  const dbRatio = pricingValidations.length > 0
+    ? dbItems.length / pricingValidations.length
+    : 0;
   const pricingConfidence = pricingValidations.length > 0
-    ? pricingValidations.reduce((sum, v) => sum + v.confidence, 0) / pricingValidations.length
+    ? Math.round(100 * dbRatio + webConfidence * (1 - dbRatio))
     : 70;
   const qaScore = qaResult.overallScore;
 

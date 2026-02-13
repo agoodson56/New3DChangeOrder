@@ -80,7 +80,7 @@ function isInDatabase(manufacturer: string, model: string, partNumber?: string):
         };
     }
 
-    // 5. Check FULL_CATALOG (5000+ compact products)
+    // 5. Check FULL_CATALOG (5000+ compact products) — exact match
     const catalogHit = lookupProduct(partLower || modelLower);
     if (catalogHit) {
         return {
@@ -91,6 +91,33 @@ function isInDatabase(manufacturer: string, model: string, partNumber?: string):
                 unitOfMeasure: catalogHit[6], description: catalogHit[7],
                 installationRequirements: [], accessories: [],
                 laborHours: catalogHit[8], complexity: 'Low' as const
+            }
+        };
+    }
+
+    // 6. FULL_CATALOG fuzzy: match by subcategory keyword + manufacturer
+    const catalogFuzzy = FULL_CATALOG.find(p => {
+        const pMfr = p[0].toLowerCase();
+        const pModel = p[1].toLowerCase();
+        const pSub = p[4].toLowerCase();
+        const pDesc = p[7].toLowerCase();
+        // Manufacturer must match (or be 'generic')
+        const mfrMatch = pMfr === mfrLower || mfrLower === 'generic' || pMfr === 'generic';
+        // Model/subcategory/description keyword match
+        const keyMatch = pSub.includes(modelLower) || pDesc.includes(modelLower) ||
+            modelLower.includes(pSub) || pModel.includes(modelLower) ||
+            modelLower.includes(pModel.split(' ')[0]);
+        return mfrMatch && keyMatch;
+    });
+    if (catalogFuzzy) {
+        return {
+            found: true, dbProduct: {
+                manufacturer: catalogFuzzy[0], model: catalogFuzzy[1],
+                partNumber: catalogFuzzy[2], category: catalogFuzzy[3] as 'Material' | 'Equipment',
+                subcategory: catalogFuzzy[4], msrp: catalogFuzzy[5],
+                unitOfMeasure: catalogFuzzy[6], description: catalogFuzzy[7],
+                installationRequirements: [], accessories: [],
+                laborHours: catalogFuzzy[8], complexity: 'Low' as const
             }
         };
     }
@@ -181,12 +208,13 @@ RULES:
 - Return the per-unit MSRP in USD
 - If the product is sold in bulk (e.g., box of 100), return the PRICE PER BOX, not per individual unit
 - If you cannot find an exact match, find the closest comparable product from the same manufacturer
-- Set confidence 80-95 if you found MSRP on an authoritative source
-- Set confidence 50-70 if you're using a comparable product or secondary source
-- Set confidence below 50 ONLY if you cannot find any reliable pricing
+- Set confidence 92-99 if you found MSRP on the manufacturer website or an authorized distributor (Anixter, Graybar, ADI, Wesco, TEC)
+- Set confidence 85-91 if you found MSRP on a professional reseller (B&H Photo, CDW, SHI)
+- Set confidence 70-84 if you're using a comparable product or secondary source
+- Set confidence below 70 ONLY if you cannot find any reliable pricing at all
 
 You MUST respond with ONLY a JSON object in this exact format (no markdown, no backticks):
-{"validations":[{"itemIndex":0,"manufacturer":"Brand","model":"Model","validatedMsrp":123.45,"source":"Where found","confidence":85}]}`;
+{"validations":[{"itemIndex":0,"manufacturer":"Brand","model":"Model","validatedMsrp":123.45,"source":"Where found","confidence":95}]}`;
     const MAX_RETRIES = 3;
     const BASE_DELAY_MS = 2000;
 
