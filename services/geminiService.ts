@@ -581,16 +581,51 @@ ${buildProductReference()}
     // Attempt to repair truncated JSON
     console.warn('JSON parse failed, attempting recovery:', parseErr);
     let fixed = rawText;
-    // Close any open strings
-    const quoteCount = (fixed.match(/(?<!\\)"/g) || []).length;
-    if (quoteCount % 2 !== 0) fixed += '"';
+
+    // Strategy: truncate back to the last complete value, then close all open brackets
+    // 1. Find the last complete key-value pair by looking for the last valid JSON boundary
+    //    (a comma, closing bracket, or closing brace that's NOT inside a string)
+    // 2. Trim everything after that point
+    // 3. Close any remaining open brackets/braces
+
+    // First, try to find a clean truncation point by removing the broken trailing content
+    // Look for the last comma or colon followed by a complete value
+    const lastGoodComma = Math.max(
+      fixed.lastIndexOf('",'),
+      fixed.lastIndexOf('"],'),
+      fixed.lastIndexOf('},'),
+      fixed.lastIndexOf('],')
+    );
+    const lastGoodEnd = Math.max(
+      fixed.lastIndexOf('"}'),
+      fixed.lastIndexOf('"]'),
+      fixed.lastIndexOf(']}'),
+      fixed.lastIndexOf(']]')
+    );
+    const lastGood = Math.max(lastGoodComma, lastGoodEnd);
+
+    if (lastGood > fixed.length * 0.5) {
+      // Truncate to the last clean boundary (keep the matched chars)
+      const keepTo = lastGoodComma > lastGoodEnd
+        ? lastGoodComma + 2  // keep the '",' 
+        : lastGoodEnd + 2;   // keep the '"}' etc.
+      fixed = fixed.substring(0, keepTo);
+    } else {
+      // Fallback: close any open string, remove trailing partial content after last comma
+      const quoteCount = (fixed.match(/(?<!\\)"/g) || []).length;
+      if (quoteCount % 2 !== 0) fixed += '"';
+      fixed = fixed.replace(/,\s*$/, '');
+    }
+
+    // Remove any trailing comma before closing
+    fixed = fixed.replace(/,\s*$/, '');
+
     // Balance brackets
     const openBrackets = (fixed.match(/\[/g) || []).length - (fixed.match(/\]/g) || []).length;
     const openBraces = (fixed.match(/\{/g) || []).length - (fixed.match(/\}/g) || []).length;
-    // Remove trailing comma if present
-    fixed = fixed.replace(/,\s*$/, '');
     for (let i = 0; i < openBrackets; i++) fixed += ']';
     for (let i = 0; i < openBraces; i++) fixed += '}';
+
     try {
       data = JSON.parse(fixed) as ChangeOrderData;
       console.log('JSON recovery successful');
