@@ -87,7 +87,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                         <div className="bg-gradient-to-br from-[#008a8a] to-[#006666] text-white p-8 flex flex-col justify-center items-center text-center rounded-lg shadow-lg">
                             <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D4AF37] mb-2">Total Investment</div>
                             <div className="text-4xl font-black">
-                                ${proposal.investmentSummary.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                ${proposal.investmentSummary.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </div>
                             <div className="text-xs text-white/80 mt-2">Complete Turnkey Solution</div>
                         </div>
@@ -214,20 +214,20 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                     <div className="max-w-md mx-auto space-y-3">
                         <div className="flex justify-between items-center py-3 border-b border-gray-200">
                             <span className="text-gray-600 font-medium">Professional Labor & Installation</span>
-                            <span className="font-bold font-mono">${proposal.investmentSummary.laborTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                            <span className="font-bold font-mono">${proposal.investmentSummary.laborTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </div>
                         <div className="flex justify-between items-center py-3 border-b border-gray-200">
                             <span className="text-gray-600 font-medium">Equipment & Materials</span>
-                            <span className="font-bold font-mono">${proposal.investmentSummary.materialsTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                            <span className="font-bold font-mono">${proposal.investmentSummary.materialsTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </div>
                         <div className="flex justify-between items-center py-3 border-b border-gray-200">
                             <span className="text-gray-600 font-medium">Applicable Taxes</span>
-                            <span className="font-bold font-mono">${proposal.investmentSummary.taxTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                            <span className="font-bold font-mono">${proposal.investmentSummary.taxTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </div>
                         {/* Total Investment - Teal Gradient */}
                         <div className="flex justify-between items-center py-4 bg-gradient-to-r from-[#008a8a] to-[#006666] text-white px-4 -mx-4 mt-4 rounded-lg">
                             <span className="font-black uppercase tracking-wider">Total Investment</span>
-                            <span className="font-black font-mono text-2xl text-[#D4AF37]">${proposal.investmentSummary.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                            <span className="font-black font-mono text-2xl text-[#D4AF37]">${proposal.investmentSummary.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </div>
                     </div>
                 </div>

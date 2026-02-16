@@ -599,6 +599,20 @@ ${buildProductReference()}
     }
   }
   data.coordinatorIntent = intent;
+
+  // Sanitize: round all monetary values to 2 decimal places
+  // The AI occasionally returns prices with 3+ decimals (e.g. 234.567)
+  if (data.materials) {
+    data.materials.forEach(m => {
+      m.msrp = Math.ceil(m.msrp * 100) / 100;
+    });
+  }
+  if (data.labor) {
+    data.labor.forEach(l => {
+      l.hours = Math.round(l.hours * 100) / 100;
+    });
+  }
+
   return data;
 }
 
