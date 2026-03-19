@@ -112,21 +112,25 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
     );
     const isCable = item.unitOfMeasure === 'ft';
     const isLoading = lookupLoadingIndex === safeIndex;
+    const isDeduct = item.isDeduct === true;
+    const sign = isDeduct ? -1 : 1;
+    const extension = sign * item.quantity * item.msrp;
 
     return (
-      <div key={displayIndex} className="grid grid-cols-12 text-[9px] border-b border-gray-300 group">
+      <div key={displayIndex} className={`grid grid-cols-12 text-[9px] border-b border-gray-300 group ${isDeduct ? 'bg-red-50' : ''}`}>
         <div className="col-span-1 border-r border-black px-1 py-px text-center font-bold flex items-center justify-center">
           <input
             type="number"
             value={item.quantity}
             onChange={(e) => updateMaterial(safeIndex, { quantity: parseFloat(e.target.value) || 0 })}
-            className={`${editableNumberClass} w-12 text-center font-bold`}
+            className={`${editableNumberClass} w-12 text-center font-bold ${isDeduct ? 'text-red-600' : ''}`}
             min="0"
             step="1"
           />
           {isCable && <span className="ml-0.5">ft</span>}
         </div>
-        <div className="col-span-6 border-r border-black px-2 py-px uppercase flex items-center">
+        <div className={`col-span-5 border-r border-black px-2 py-px uppercase flex items-center ${isDeduct ? 'text-red-600 font-bold' : ''}`}>
+          {isDeduct && <span className="text-[8px] bg-red-600 text-white px-1 mr-1 rounded-sm font-black tracking-wider print:bg-red-600">DEDUCT</span>}
           <span className="flex-1">{item.manufacturer} {item.model} {isCable ? '(PER FT)' : ''}</span>
           {/* Lookup MSRP button - hidden on print */}
           <button
@@ -147,22 +151,36 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
             )}
           </button>
         </div>
+        {/* Deduct toggle - hidden on print */}
+        <div className="col-span-1 border-r border-black px-1 py-px text-center flex items-center justify-center print:hidden">
+          <button
+            onClick={() => updateMaterial(safeIndex, { isDeduct: !isDeduct })}
+            className={`text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-sm transition-all ${
+              isDeduct
+                ? 'bg-red-600 text-white hover:bg-red-700'
+                : 'bg-gray-200 text-gray-500 hover:bg-green-100 hover:text-green-700'
+            }`}
+            title={isDeduct ? 'Click to change to ADD' : 'Click to change to DEDUCT'}
+          >
+            {isDeduct ? '−' : '+'}
+          </button>
+        </div>
         <div className="col-span-1 border-r border-black px-1 py-px text-center text-[8px] text-gray-500 uppercase print:hidden">
           {item.category === 'Equipment' ? 'EQP' : 'MAT'}
         </div>
-        <div className="col-span-2 border-r border-black px-1 py-px text-right font-mono font-bold flex items-center">
+        <div className={`col-span-2 border-r border-black px-1 py-px text-right font-mono font-bold flex items-center ${isDeduct ? 'text-red-600' : ''}`}>
           <span className="mr-0.5">$</span>
           <input
             type="number"
             value={item.msrp}
             onChange={(e) => updateMaterial(safeIndex, { msrp: parseFloat(e.target.value) || 0 })}
-            className={`${editableNumberClass} font-mono font-bold`}
+            className={`${editableNumberClass} font-mono font-bold ${isDeduct ? 'text-red-600' : ''}`}
             min="0"
             step="0.01"
           />
         </div>
-        <div className="col-span-2 px-2 py-px text-right font-mono font-bold">
-          $ {(item.quantity * item.msrp).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        <div className={`col-span-2 px-2 py-px text-right font-mono font-bold ${isDeduct ? 'text-red-600' : ''}`}>
+          {isDeduct ? '- ' : ''}$ {Math.abs(extension).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </div>
       </div>
     );
@@ -402,45 +420,75 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
       <div className="border-t-4 border-black">
         <div className="grid grid-cols-12 bg-gray-200 text-[10px] font-black border-b-2 border-black uppercase tracking-[0.15em]">
           <div className="col-span-1 border-r border-black px-2 py-1 text-center">HR. UNITS</div>
-          <div className="col-span-7 border-r border-black px-2 py-1">System Components & Implementation Tasks</div>
+          <div className="col-span-6 border-r border-black px-2 py-1">System Components & Implementation Tasks</div>
+          <div className="col-span-1 border-r border-black px-2 py-1 text-center print:hidden"></div>
           <div className="col-span-2 border-r border-black px-2 py-1 text-right">Unit Value</div>
           <div className="col-span-2 px-2 py-1 text-right">Extension</div>
         </div>
 
         {/* Labor Rows */}
-        {data.labor.map((task, i) => (
-          <div key={i} className="grid grid-cols-12 text-[9px] border-b border-gray-300">
+        {data.labor.map((task, i) => {
+          const isDeduct = task.isDeduct === true;
+          const rate = rates[task.rateType as keyof LaborRates] || rates.base;
+          const sign = isDeduct ? -1 : 1;
+          const extension = sign * task.hours * rate;
+          return (
+          <div key={i} className={`grid grid-cols-12 text-[9px] border-b border-gray-300 group ${isDeduct ? 'bg-red-50' : ''}`}>
             <div className="col-span-1 border-r border-black px-1 py-px text-center font-black flex items-center justify-center">
               <input
                 type="number"
                 value={task.hours}
                 onChange={(e) => updateLaborTask(i, { hours: parseFloat(e.target.value) || 0 })}
-                className={`${editableNumberClass} w-10 text-center font-black`}
+                className={`${editableNumberClass} w-10 text-center font-black ${isDeduct ? 'text-red-600' : ''}`}
                 min="0"
                 step="0.5"
               />
             </div>
-            <div className="col-span-7 border-r border-black px-1 py-px uppercase font-bold text-gray-800 flex items-center">
+            <div className={`col-span-6 border-r border-black px-1 py-px uppercase font-bold flex items-center ${isDeduct ? 'text-red-600' : 'text-gray-800'}`}>
+              {isDeduct && <span className="text-[8px] bg-red-600 text-white px-1 mr-1 rounded-sm font-black tracking-wider">DEDUCT</span>}
               <input
                 type="text"
                 value={task.task}
                 onChange={(e) => updateLaborTask(i, { task: e.target.value })}
-                className={`${editableTextClass} flex-1 uppercase font-bold text-gray-800`}
+                className={`${editableTextClass} flex-1 uppercase font-bold ${isDeduct ? 'text-red-600' : 'text-gray-800'}`}
               />
             </div>
-            <div className="col-span-2 border-r border-black px-2 py-px text-right font-mono font-bold">$ {(rates[task.rateType as keyof LaborRates] || rates.base).toFixed(2)}</div>
-            <div className="col-span-2 px-2 py-px text-right font-mono font-black">$ {(task.hours * (rates[task.rateType as keyof LaborRates] || rates.base)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            {/* Deduct toggle - hidden on print */}
+            <div className="col-span-1 border-r border-black px-1 py-px text-center flex items-center justify-center print:hidden">
+              <button
+                onClick={() => updateLaborTask(i, { isDeduct: !isDeduct })}
+                className={`text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-sm transition-all ${
+                  isDeduct
+                    ? 'bg-red-600 text-white hover:bg-red-700'
+                    : 'bg-gray-200 text-gray-500 hover:bg-green-100 hover:text-green-700'
+                }`}
+                title={isDeduct ? 'Click to change to ADD' : 'Click to change to DEDUCT'}
+              >
+                {isDeduct ? '−' : '+'}
+              </button>
+            </div>
+            <div className={`col-span-2 border-r border-black px-2 py-px text-right font-mono font-bold ${isDeduct ? 'text-red-600' : ''}`}>$ {rate.toFixed(2)}</div>
+            <div className={`col-span-2 px-2 py-px text-right font-mono font-black ${isDeduct ? 'text-red-600' : ''}`}>
+              {isDeduct ? '- ' : ''}$ {Math.abs(extension).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
           </div>
-        ))}
+          );
+        })}
 
         {/* Total Hours Row */}
         <div className="grid grid-cols-12 text-[10px] font-black bg-gray-100 border-b-2 border-black">
           <div className="col-span-1 border-r border-black px-2 py-1 text-center font-black text-[11px]">
-            {data.labor.reduce((sum, t) => sum + t.hours, 0).toFixed(2)}
+            {data.labor.reduce((sum, t) => {
+              const s = t.isDeduct ? -1 : 1;
+              return sum + s * t.hours;
+            }, 0).toFixed(2)}
           </div>
           <div className="col-span-7 border-r border-black px-2 py-1 uppercase tracking-wider text-right">Total Labor Hours:</div>
           <div className="col-span-2 border-r border-black px-2 py-1 text-right"></div>
-          <div className="col-span-2 px-2 py-1 text-right font-mono font-black">$ {data.labor.reduce((sum, t) => sum + (t.hours * (rates[t.rateType as keyof LaborRates] || rates.base)), 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+          <div className="col-span-2 px-2 py-1 text-right font-mono font-black">$ {data.labor.reduce((sum, t) => {
+            const s = t.isDeduct ? -1 : 1;
+            return sum + (s * t.hours * (rates[t.rateType as keyof LaborRates] || rates.base));
+          }, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
         </div>
 
         <div className="bg-white">
@@ -470,7 +518,8 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
         </div>
         <div className="grid grid-cols-12 bg-gray-200 text-[10px] font-black border-b-2 border-black uppercase tracking-[0.15em]">
           <div className="col-span-1 border-r border-black px-2 py-1 text-center">Qty</div>
-          <div className="col-span-6 border-r border-black px-2 py-1">Infrastructure, Hardware & Material Assets</div>
+          <div className="col-span-5 border-r border-black px-2 py-1">Infrastructure, Hardware & Material Assets</div>
+          <div className="col-span-1 border-r border-black px-2 py-1 text-center print:hidden">+/−</div>
           <div className="col-span-1 border-r border-black px-2 py-1 text-center print:hidden">Type</div>
           <div className="col-span-2 border-r border-black px-2 py-1 text-right">Unit Price</div>
           <div className="col-span-2 px-2 py-1 text-right">Total</div>

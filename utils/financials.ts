@@ -22,24 +22,31 @@ export function calculateFinancials(data: ChangeOrderData, rates: LaborRates): F
     salesTax: number;
     taxBase: number;
 } {
-    // Labor
+    // Labor (deducts contribute negative values)
     const laborSubtotal = round2(data.labor.reduce((acc, task) => {
         const rate = rates[task.rateType as keyof LaborRates] || rates.base;
-        return acc + (task.hours * rate);
+        const sign = task.isDeduct ? -1 : 1;
+        return acc + (sign * task.hours * rate);
     }, 0));
     const laborMarkup = round2(laborSubtotal * LABOR_MARKUP_RATE);
     const laborTotal = round2(laborSubtotal + laborMarkup);
 
-    // Materials (passive infrastructure)
+    // Materials (passive infrastructure — deducts contribute negative values)
     const materialSubtotal = round2(data.materials
         .filter(m => m.category === 'Material')
-        .reduce((acc, item) => acc + (item.msrp * item.quantity), 0));
+        .reduce((acc, item) => {
+            const sign = item.isDeduct ? -1 : 1;
+            return acc + (sign * item.msrp * item.quantity);
+        }, 0));
     const materialMarkup = round2(materialSubtotal * ASSET_MARKUP_RATE);
 
-    // Equipment (active devices)
+    // Equipment (active devices — deducts contribute negative values)
     const equipmentSubtotal = round2(data.materials
         .filter(m => m.category === 'Equipment')
-        .reduce((acc, item) => acc + (item.msrp * item.quantity), 0));
+        .reduce((acc, item) => {
+            const sign = item.isDeduct ? -1 : 1;
+            return acc + (sign * item.msrp * item.quantity);
+        }, 0));
     const equipmentMarkup = round2(equipmentSubtotal * ASSET_MARKUP_RATE);
 
     const materialsTotal = round2(materialSubtotal + equipmentSubtotal + materialMarkup + equipmentMarkup);

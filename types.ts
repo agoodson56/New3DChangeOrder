@@ -14,6 +14,7 @@ export interface MaterialItem {
   unitOfMeasure?: string; // e.g., 'ft', 'ea'
   complexity: 'Low' | 'Medium' | 'High';
   notes?: string;
+  isDeduct?: boolean; // true = credit/removal from existing quote
 }
 
 export interface LaborTask {
@@ -22,6 +23,7 @@ export interface LaborTask {
   hours: number;
   rateType: 'base' | 'afterHours' | 'emergency';
   notes?: string;
+  isDeduct?: boolean; // true = credit/removal from existing quote
 }
 
 // Validation types for multi-brain pipeline

@@ -224,6 +224,9 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
             <span className="text-[#D4AF37] font-bold">If no manufacturer specified:</span> The system will select appropriate professional-grade equipment and maintain brand consistency within each system type.
           </p>
           <p className="leading-relaxed border-t border-gray-800 pt-3 mt-3">
+            <span className="text-red-400 font-bold">🔻 DEDUCTIONS / CREDITS:</span> To remove or credit items, say <span className="text-gray-500 italic">"Remove 4 cameras from the existing quote"</span> or <span className="text-gray-500 italic">"Credit back the Cat6 cabling"</span>. The system will price them as negative credits that are subtracted from the total.
+          </p>
+          <p className="leading-relaxed border-t border-gray-800 pt-3 mt-3">
             <span className="text-[#D4AF37] font-bold">⚡ NECA MLU Aligned:</span> Labor formulas are aligned with NECA Manual of Labor Units (MLU) standards, featuring Normal/Difficult/Very Difficult condition multipliers for accurate estimating.
           </p>
         </div>

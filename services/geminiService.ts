@@ -31,7 +31,8 @@ const CO_SCHEMA = {
           msrp: { type: Type.NUMBER, description: "Unit value. If cable, this MUST be the price per foot." },
           unitOfMeasure: { type: Type.STRING, description: "If cabling, this MUST be 'ft'. Otherwise 'ea'." },
           complexity: { type: Type.STRING, enum: ['Low', 'Medium', 'High'] },
-          notes: { type: Type.STRING, description: "The purpose or dependency for this item." }
+          notes: { type: Type.STRING, description: "The purpose or dependency for this item." },
+          isDeduct: { type: Type.BOOLEAN, description: "Set to true if this item is being REMOVED/DEDUCTED/CREDITED from the existing scope. Default false for new additions." }
         },
         required: ['manufacturer', 'model', 'quantity', 'msrp', 'category', 'unitOfMeasure']
       }
@@ -45,7 +46,8 @@ const CO_SCHEMA = {
           task: { type: Type.STRING },
           hours: { type: Type.NUMBER },
           rateType: { type: Type.STRING, enum: ['base', 'afterHours', 'emergency'] },
-          notes: { type: Type.STRING }
+          notes: { type: Type.STRING },
+          isDeduct: { type: Type.BOOLEAN, description: "Set to true if this labor is being CREDITED BACK (removal labor). Default false for new work." }
         },
         required: ['class', 'task', 'hours', 'rateType']
       }
@@ -528,6 +530,35 @@ ${buildProductReference()}
        - Power Supplies: Valid for Access Control, CCTV, Intrusion (system-specific models)
        - Patch Cords: Valid for Structured Cabling, CCTV, AV, IP-based systems
     </instructions>
+
+    <deduct_rules>
+    DEDUCTION / CREDIT HANDLING (Change Order Deducts):
+    
+    When the coordinator's intent includes REMOVING, DELETING, DEDUCTING, or CREDITING BACK 
+    items from an existing quote or scope, you MUST:
+    
+    1. Set "isDeduct": true on ALL materials and equipment being REMOVED
+    2. Set "isDeduct": true on ALL labor tasks associated with the REMOVED work
+    3. Keep full itemization — deducts must have the same detail as additions 
+       (manufacturer, model, MSRP, quantities, labor hours)
+    4. Items being ADDED stay with isDeduct: false (or omitted, defaults to false)
+    5. A single change order CAN have both additions and deductions
+    
+    TRIGGER WORDS for deductions:
+    - "remove", "delete", "deduct", "credit", "credit back", "take out",
+      "pull out", "no longer needed", "cancel", "omit from scope"
+    
+    DEDUCT LABOR RULES:
+    - If removing equipment, include the labor credit for: removal/demolition, 
+      de-installation, de-termination, and cleanup
+    - Use the SAME labor hour standards as installation (deduct at Normal condition rates)
+    - Label deduct labor tasks clearly, e.g., "DEDUCT - Camera removal (3 units)"
+    
+    DEDUCT MATERIAL RULES:
+    - Use the same MSRP as the original quoted item
+    - Include ALL related materials being removed (mounts, cables, connectors, etc.)
+    - Label deduct notes clearly, e.g., "Removed from original scope"
+    </deduct_rules>
 
     <format>
     Your output MUST be a JSON object adhering to the provided schema.
