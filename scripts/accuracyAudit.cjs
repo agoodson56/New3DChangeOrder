@@ -79,7 +79,7 @@ check('AIPrompt', 'NECA MLU', p.includes('NECA MLU'), '');
 check('AIPrompt', 'Firestopping', p.includes('FIRESTOPPING'), '');
 check('AIPrompt', 'Patch cords MANDATORY', p.includes('PATCH CORDS') && p.includes('MANDATORY'), '');
 check('AIPrompt', 'Lift equipment rules', p.includes('LIFT/EQUIPMENT'), '');
-check('AIPrompt', 'J-hook spacing', p.includes('1 per every 5 feet') || p.includes('1 per 5ft'), '');
+check('AIPrompt', 'J-hook spacing', p.includes('1 per every 10 feet') || p.includes('1 per 10 feet'), '');
 check('AIPrompt', 'Label count rule', p.includes('2 per cable run'), '');
 check('AIPrompt', 'No Generic mfr', p.includes('NEVER use manufacturer name'), '');
 check('AIPrompt', 'BICSI TDMM', p.includes('BICSI TDMM'), '');

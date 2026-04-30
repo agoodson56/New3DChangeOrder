@@ -128,7 +128,7 @@ export function buildProductReference(): string {
        Average per camera: ${CABLE_STANDARDS.perCameraFeet}ft
        Average per door: ${CABLE_STANDARDS.perDoorFeet}ft
        Average per data drop: ${CABLE_STANDARDS.perDropFeet}ft
-       J-hook spacing: Every ${CABLE_STANDARDS.jHookSpacingFeet}ft (TIA-569)
+       J-hook spacing: Every ${CABLE_STANDARDS.jHookSpacingFeet}ft (3DTSI install standard) — also include 1 beam clamp per J-hook (1:1 ratio)
        Pull box interval: Every ${CABLE_STANDARDS.pullBoxIntervalFeet}ft for long runs
        Waste factor: ${CABLE_STANDARDS.wasteFactorPercent}% for terminations and pulls
 `;

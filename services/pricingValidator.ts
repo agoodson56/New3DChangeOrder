@@ -31,56 +31,12 @@ function isInDatabase(manufacturer: string, model: string, partNumber?: string):
     const modelLower = model.toLowerCase();
     const partLower = (partNumber || '').toLowerCase();
 
-    // 1. Exact part-number match (most reliable)
-    if (partLower) {
-        const byPart = ALL_DB_PRODUCTS.find(p =>
-            p.partNumber.toLowerCase() === partLower
-        );
-        if (byPart) return { found: true, dbProduct: byPart };
-    }
+    // ── PRIORITY 1: FULL_CATALOG (authoritative) ────────────────────────────────
+    // FULL_CATALOG is the canonical price source. When the same product exists in
+    // both FULL_CATALOG and ALL_DB_PRODUCTS, FULL_CATALOG wins so we don't quote
+    // stale list MSRPs from the legacy productDatabase.
 
-    // 2. Exact manufacturer + model match
-    const exact = ALL_DB_PRODUCTS.find(p =>
-        p.manufacturer.toLowerCase() === mfrLower &&
-        p.model.toLowerCase() === modelLower
-    );
-    if (exact) return { found: true, dbProduct: exact };
-
-    // 3. Fuzzy: manufacturer match + model substring
-    const fuzzy = ALL_DB_PRODUCTS.find(p =>
-        p.manufacturer.toLowerCase() === mfrLower && (
-            p.model.toLowerCase().includes(modelLower) ||
-            modelLower.includes(p.model.toLowerCase())
-        )
-    );
-    if (fuzzy) return { found: true, dbProduct: fuzzy };
-
-    // 4. Match consumables by name substring (AI may generate slightly different names)
-    const consumableMatch = STANDARD_CONSUMABLES.find(c => {
-        const cName = c.name.toLowerCase();
-        return cName.includes(modelLower) || modelLower.includes(cName) ||
-            c.partNumber.toLowerCase() === partLower;
-    });
-    if (consumableMatch) {
-        // Find the corresponding CONSUMABLE_PRODUCTS entry
-        const dbConsumable = CONSUMABLE_PRODUCTS.find(p =>
-            p.partNumber.toLowerCase() === consumableMatch.partNumber.toLowerCase() ||
-            p.model.toLowerCase().includes(consumableMatch.name.toLowerCase().slice(0, 15))
-        );
-        if (dbConsumable) return { found: true, dbProduct: dbConsumable };
-        // Still match even without full ProductDefinition
-        return {
-            found: true, dbProduct: {
-                manufacturer: mfrLower, model: consumableMatch.name,
-                partNumber: consumableMatch.partNumber, category: 'Material',
-                subcategory: 'Consumable', msrp: consumableMatch.msrp,
-                unitOfMeasure: 'ea', description: '', installationRequirements: [],
-                accessories: [], laborHours: 0, complexity: 'Low' as const
-            }
-        };
-    }
-
-    // 5. Check FULL_CATALOG (5000+ compact products) — exact match
+    // 1. FULL_CATALOG exact match by part number or model
     const catalogHit = lookupProduct(partLower || modelLower);
     if (catalogHit) {
         return {
@@ -95,15 +51,13 @@ function isInDatabase(manufacturer: string, model: string, partNumber?: string):
         };
     }
 
-    // 6. FULL_CATALOG fuzzy: match by subcategory keyword + manufacturer
+    // 2. FULL_CATALOG fuzzy: match by subcategory keyword + manufacturer
     const catalogFuzzy = FULL_CATALOG.find(p => {
         const pMfr = p[0].toLowerCase();
         const pModel = p[1].toLowerCase();
         const pSub = p[4].toLowerCase();
         const pDesc = p[7].toLowerCase();
-        // Manufacturer must match (or be 'generic')
         const mfrMatch = pMfr === mfrLower || mfrLower === 'generic' || pMfr === 'generic';
-        // Model/subcategory/description keyword match
         const keyMatch = pSub.includes(modelLower) || pDesc.includes(modelLower) ||
             modelLower.includes(pSub) || pModel.includes(modelLower) ||
             modelLower.includes(pModel.split(' ')[0]);
@@ -118,6 +72,55 @@ function isInDatabase(manufacturer: string, model: string, partNumber?: string):
                 unitOfMeasure: catalogFuzzy[6], description: catalogFuzzy[7],
                 installationRequirements: [], accessories: [],
                 laborHours: catalogFuzzy[8], complexity: 'Low' as const
+            }
+        };
+    }
+
+    // ── PRIORITY 2: ALL_DB_PRODUCTS (legacy productDatabase, fallback) ──────────
+
+    // 3. ALL_DB_PRODUCTS exact part-number match
+    if (partLower) {
+        const byPart = ALL_DB_PRODUCTS.find(p =>
+            p.partNumber.toLowerCase() === partLower
+        );
+        if (byPart) return { found: true, dbProduct: byPart };
+    }
+
+    // 4. ALL_DB_PRODUCTS exact manufacturer + model match
+    const exact = ALL_DB_PRODUCTS.find(p =>
+        p.manufacturer.toLowerCase() === mfrLower &&
+        p.model.toLowerCase() === modelLower
+    );
+    if (exact) return { found: true, dbProduct: exact };
+
+    // 5. ALL_DB_PRODUCTS fuzzy: manufacturer match + model substring
+    const fuzzy = ALL_DB_PRODUCTS.find(p =>
+        p.manufacturer.toLowerCase() === mfrLower && (
+            p.model.toLowerCase().includes(modelLower) ||
+            modelLower.includes(p.model.toLowerCase())
+        )
+    );
+    if (fuzzy) return { found: true, dbProduct: fuzzy };
+
+    // 6. STANDARD_CONSUMABLES by name substring (AI may generate slightly different names)
+    const consumableMatch = STANDARD_CONSUMABLES.find(c => {
+        const cName = c.name.toLowerCase();
+        return cName.includes(modelLower) || modelLower.includes(cName) ||
+            c.partNumber.toLowerCase() === partLower;
+    });
+    if (consumableMatch) {
+        const dbConsumable = CONSUMABLE_PRODUCTS.find(p =>
+            p.partNumber.toLowerCase() === consumableMatch.partNumber.toLowerCase() ||
+            p.model.toLowerCase().includes(consumableMatch.name.toLowerCase().slice(0, 15))
+        );
+        if (dbConsumable) return { found: true, dbProduct: dbConsumable };
+        return {
+            found: true, dbProduct: {
+                manufacturer: mfrLower, model: consumableMatch.name,
+                partNumber: consumableMatch.partNumber, category: 'Material',
+                subcategory: 'Consumable', msrp: consumableMatch.msrp,
+                unitOfMeasure: 'ea', description: '', installationRequirements: [],
+                accessories: [], laborHours: 0, complexity: 'Low' as const
             }
         };
     }

@@ -28,15 +28,7 @@ const ALL_DB_PRODUCTS: ProductDefinition[] = [
 function isDbVerified(manufacturer: string, model: string): boolean {
     const mfrLower = manufacturer.toLowerCase();
     const modelLower = model.toLowerCase();
-    // Check legacy DB
-    const inDb = ALL_DB_PRODUCTS.some(p =>
-        (p.manufacturer.toLowerCase() === mfrLower && p.model.toLowerCase() === modelLower) ||
-        (p.manufacturer.toLowerCase() === mfrLower && (
-            p.model.toLowerCase().includes(modelLower) || modelLower.includes(p.model.toLowerCase())
-        ))
-    );
-    if (inDb) return true;
-    // Check FULL_CATALOG
+    // Check FULL_CATALOG first (authoritative price source)
     const inCatalog = FULL_CATALOG.some(p => {
         const pMfr = p[0].toLowerCase();
         const pModel = p[1].toLowerCase();
@@ -48,7 +40,15 @@ function isDbVerified(manufacturer: string, model: string): boolean {
             pDesc.includes(modelLower);
         return mfrMatch && modelMatch;
     });
-    return inCatalog;
+    if (inCatalog) return true;
+    // Fallback: legacy productDatabase
+    const inDb = ALL_DB_PRODUCTS.some(p =>
+        (p.manufacturer.toLowerCase() === mfrLower && p.model.toLowerCase() === modelLower) ||
+        (p.manufacturer.toLowerCase() === mfrLower && (
+            p.model.toLowerCase().includes(modelLower) || modelLower.includes(p.model.toLowerCase())
+        ))
+    );
+    return inDb;
 }
 
 const QA_SCHEMA = {

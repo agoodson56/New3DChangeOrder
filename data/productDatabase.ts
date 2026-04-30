@@ -89,7 +89,7 @@ export const CCTV_CAMERAS: ProductDefinition[] = [
         partNumber: '02326-004',
         category: 'Equipment',
         subcategory: 'IP Camera - Indoor Dome',
-        msrp: 1199.00,
+        msrp: 749.00, // Lower-quartile street price (was $1,199 list MSRP)
         unitOfMeasure: 'ea',
         description: '4K indoor dome with WDR, Lightfinder 2.0, analytics',
         installationRequirements: [
@@ -111,7 +111,7 @@ export const CCTV_CAMERAS: ProductDefinition[] = [
         partNumber: '02099-001',
         category: 'Equipment',
         subcategory: 'IP Camera - Outdoor Dome',
-        msrp: 1349.00,
+        msrp: 999.00, // Lower-quartile street price (was $1,349 list MSRP)
         unitOfMeasure: 'ea',
         description: '2MP outdoor dome with deep learning, WDR, IK10/IP66',
         installationRequirements: [
@@ -134,7 +134,7 @@ export const CCTV_CAMERAS: ProductDefinition[] = [
         partNumber: '01958-004',
         category: 'Equipment',
         subcategory: 'IP Camera - PTZ',
-        msrp: 5899.00,
+        msrp: 2950.00, // Lower-quartile street price (was $5,899 list MSRP — verified $2,849-$3,520 across NetworkCameraStore, Southern Electronics, B&H)
         unitOfMeasure: 'ea',
         description: '2MP PTZ with 32x optical zoom, IR illumination, Speed Dry',
         installationRequirements: [
@@ -157,7 +157,7 @@ export const CCTV_CAMERAS: ProductDefinition[] = [
         partNumber: 'DS-2CD2143G2-IU',
         category: 'Equipment',
         subcategory: 'IP Camera - Indoor Dome',
-        msrp: 285.00,
+        msrp: 159.00, // Lower-quartile street price (was $285 list MSRP)
         unitOfMeasure: 'ea',
         description: '4MP AcuSense dome with built-in mic, WDR 130dB',
         installationRequirements: [
@@ -178,7 +178,7 @@ export const CCTV_CAMERAS: ProductDefinition[] = [
         partNumber: 'DS-2CD2T47G2-L',
         category: 'Equipment',
         subcategory: 'IP Camera - Outdoor Bullet',
-        msrp: 425.00,
+        msrp: 239.00, // Lower-quartile street price (was $425 list MSRP)
         unitOfMeasure: 'ea',
         description: '4MP ColorVu outdoor bullet with 24/7 color imaging',
         installationRequirements: [
@@ -203,7 +203,7 @@ export const NVR_SYSTEMS: ProductDefinition[] = [
         partNumber: '0202-004',
         category: 'Equipment',
         subcategory: 'NVR - Enterprise',
-        msrp: 4299.00,
+        msrp: 3499.00, // Lower-quartile street price (was $4,299 list MSRP)
         unitOfMeasure: 'ea',
         description: '16-channel NVR with 8TB storage, RAID support',
         installationRequirements: [
@@ -224,7 +224,7 @@ export const NVR_SYSTEMS: ProductDefinition[] = [
         partNumber: 'DS-7616NXI-K2/16P',
         category: 'Equipment',
         subcategory: 'NVR - Commercial',
-        msrp: 649.00,
+        msrp: 499.00, // Lower-quartile street price (was $649 list MSRP)
         unitOfMeasure: 'ea',
         description: '16-channel NVR with 16 PoE ports, AcuSense, 4K output',
         installationRequirements: [
@@ -407,7 +407,7 @@ export const CABLING_PRODUCTS: ProductDefinition[] = [
         unitOfMeasure: 'ft',
         description: 'Cat6A UTP plenum cable, blue, 1000ft box',
         installationRequirements: [
-            { type: 'consumable', name: 'J-Hook 2" CAT-HP (every 5ft)', quantityPerUnit: 0.2, msrp: 3.50, notes: '1 per 5 feet' },
+            { type: 'consumable', name: 'J-Hook 2" CAT-HP (every 10ft)', quantityPerUnit: 0.1, msrp: 3.50, notes: '1 per 10 feet (3DTSI standard)' },
             { type: 'consumable', name: 'Cable Tie Velcro (every 3ft)', quantityPerUnit: 0.33, msrp: 0.25 },
             { type: 'consumable', name: 'Cable Labels', quantityPerUnit: 0.01, msrp: 0.15, notes: '2 per run' }
         ],
@@ -425,7 +425,7 @@ export const CABLING_PRODUCTS: ProductDefinition[] = [
         unitOfMeasure: 'ft',
         description: 'Cat6A F/UTP plenum cable, blue, 1000ft reel',
         installationRequirements: [
-            { type: 'consumable', name: 'J-Hook 2" CAT-HP (every 5ft)', quantityPerUnit: 0.2, msrp: 3.50 },
+            { type: 'consumable', name: 'J-Hook 2" CAT-HP (every 10ft)', quantityPerUnit: 0.1, msrp: 3.50 },
             { type: 'consumable', name: 'Velcro Strap (every 3ft)', quantityPerUnit: 0.33, msrp: 0.25 }
         ],
         accessories: [],
@@ -841,7 +841,7 @@ export const CABLE_STANDARDS: CableCalculation = {
     perCameraFeet: 150,    // Average cable run per camera
     perDoorFeet: 200,      // Average cable run per access door (reader + lock + sensors)
     perDropFeet: 100,      // Average cable run per network drop
-    jHookSpacingFeet: 5,   // J-hooks every 5 feet per TIA-569
+    jHookSpacingFeet: 10,  // J-hooks every 10 feet (3DTSI install standard — overrides TIA-569 default of 5ft)
     pullBoxIntervalFeet: 100, // Pull box every 100 feet for long runs
     wasteFactorPercent: 10 // 10% waste factor for terminations and pulls (matches prompt rule)
 };
@@ -1498,7 +1498,7 @@ export const BERKTEK_CABLE: ProductDefinition[] = [
         unitOfMeasure: 'ft',
         description: 'Cat6A UTP plenum cable - REQUIRED for Leviton warranty compliance',
         installationRequirements: [
-            { type: 'consumable', name: 'J-Hook 2" CAT-HP (every 5ft)', quantityPerUnit: 0.2, msrp: 3.50 },
+            { type: 'consumable', name: 'J-Hook 2" CAT-HP (every 10ft)', quantityPerUnit: 0.1, msrp: 3.50 },
             { type: 'consumable', name: 'Velcro Strap (every 3ft)', quantityPerUnit: 0.33, msrp: 0.25 },
             { type: 'consumable', name: 'Cable Labels', quantityPerUnit: 0.01, msrp: 0.15 }
         ],
@@ -1516,7 +1516,7 @@ export const BERKTEK_CABLE: ProductDefinition[] = [
         unitOfMeasure: 'ft',
         description: 'Cat6 UTP plenum cable - Leviton warranty compliant',
         installationRequirements: [
-            { type: 'consumable', name: 'J-Hook 2" (every 5ft)', quantityPerUnit: 0.2, msrp: 3.25 },
+            { type: 'consumable', name: 'J-Hook 2" (every 10ft)', quantityPerUnit: 0.1, msrp: 3.25 },
             { type: 'consumable', name: 'Velcro Strap (every 3ft)', quantityPerUnit: 0.33, msrp: 0.25 }
         ],
         accessories: [],

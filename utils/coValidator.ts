@@ -317,7 +317,7 @@ export function validateChangeOrder(data: ChangeOrderData): ValidationOutput {
     });
 
     // =========================================================================
-    // RULE 4: J-hooks — 1 per 5ft of cable run
+    // RULE 4: J-hooks — 1 per 10ft of cable run (3DTSI install standard)
     // =========================================================================
     const totalCableFeet = cableItems.reduce((sum, item) => sum + item.quantity, 0);
     if (totalCableFeet > 0) {

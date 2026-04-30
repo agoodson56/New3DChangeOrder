@@ -342,7 +342,8 @@ ${buildProductReference()}
        - BEAM CLAMPS: 1 per J-hook, 1:1 ratio (each J-hook attaches to a beam clamp on overhead steel)
        - TIE WRAPS/VELCRO: 10 per cable run (bundling at J-hooks)
        - LABELS: 2 per cable run (both ends)
-       - CABLE WASTE: Add 15% to stated footage for terminations and routing
+       - CABLE WASTE: Add EXACTLY 10% to stated footage for terminations, service loops, and routing slack
+         (e.g., 500ft stated → 550ft ordered). This is mandatory and matches the QUANTITY CALCULATION RULES below.
        
        DATA DROP MATERIALS (per wall outlet):
        - RJ45 JACKS: 2 per drop (1 wall jack + 1 patch panel jack)
