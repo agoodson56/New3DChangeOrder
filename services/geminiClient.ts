@@ -97,7 +97,11 @@ async function tryModel(req: GenerateRequest, model: string): Promise<GenerateRe
       return await attemptOnce(reqWithModel);
     } catch (e) {
       lastErr = e;
-      const retryable = e instanceof UnavailableError || e instanceof RateLimitError || e instanceof NetworkError;
+      // 429 (rate limit) is per-model-quota and won't clear in seconds — don't burn
+      // more quota on this model. Throw immediately so generateContent falls through
+      // to the next model (different quota pool).
+      if (e instanceof RateLimitError) throw e;
+      const retryable = e instanceof UnavailableError || e instanceof NetworkError;
       if (!retryable || attempt === MAX_RETRIES) throw e;
       const backoffMs = Math.round((2 ** attempt) * 1000 * (0.7 + Math.random() * 0.6));
       await sleep(backoffMs);
