@@ -27,8 +27,14 @@ export class RateLimitError extends Error {
 export class NetworkError extends Error {
   constructor(message: string) { super(message); this.name = 'NetworkError'; }
 }
+export class UnavailableError extends Error {
+  constructor(message: string) { super(message); this.name = 'UnavailableError'; }
+}
 
-export async function generateContent(req: GenerateRequest): Promise<GenerateResponse> {
+const MAX_RETRIES = 3;
+const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+
+async function attemptOnce(req: GenerateRequest): Promise<GenerateResponse> {
   let res: Response;
   try {
     res = await fetch('/api/gemini', {
@@ -49,6 +55,9 @@ export async function generateContent(req: GenerateRequest): Promise<GenerateRes
     if (res.status === 429) {
       throw new RateLimitError(`Rate limited (HTTP 429). Try again in a moment.`);
     }
+    if (res.status === 503 || res.status === 502 || res.status === 504) {
+      throw new UnavailableError(`AI service temporarily unavailable (HTTP ${res.status}).`);
+    }
     throw new Error(`AI service error ${res.status}: ${bodyText.slice(0, 500)}`);
   }
 
@@ -56,7 +65,6 @@ export async function generateContent(req: GenerateRequest): Promise<GenerateRes
   try { data = JSON.parse(bodyText); }
   catch { throw new Error('AI service returned non-JSON response'); }
 
-  // Some upstream errors are returned with status 200 and an error envelope
   if (data?.error) {
     const code = data.error.code;
     const msg = data.error.message || 'Unknown AI error';
@@ -64,10 +72,12 @@ export async function generateContent(req: GenerateRequest): Promise<GenerateRes
       throw new ApiKeyError(msg);
     }
     if (code === 429) throw new RateLimitError(msg);
+    if (code === 503 || code === 502 || code === 504 || data.error.status === 'UNAVAILABLE') {
+      throw new UnavailableError(msg);
+    }
     throw new Error(`AI service error: ${msg}`);
   }
 
-  // Standard Gemini response shape
   const text: string = data?.candidates?.[0]?.content?.parts
     ?.map((p: any) => p?.text || '')
     .join('') || '';
@@ -75,10 +85,27 @@ export async function generateContent(req: GenerateRequest): Promise<GenerateRes
   return { text };
 }
 
+export async function generateContent(req: GenerateRequest): Promise<GenerateResponse> {
+  let lastErr: unknown;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return await attemptOnce(req);
+    } catch (e) {
+      lastErr = e;
+      const retryable = e instanceof UnavailableError || e instanceof RateLimitError || e instanceof NetworkError;
+      if (!retryable || attempt === MAX_RETRIES) throw e;
+      const backoffMs = Math.round((2 ** attempt) * 1000 * (0.7 + Math.random() * 0.6));
+      await sleep(backoffMs);
+    }
+  }
+  throw lastErr;
+}
+
 /** Translate any error from generateContent into a user-friendly message. */
 export function describeAiError(err: unknown): string {
   if (err instanceof ApiKeyError) return 'AI service key is missing, invalid, or suspended. Contact your administrator.';
   if (err instanceof RateLimitError) return 'AI service is rate-limited. Wait a minute and try again.';
+  if (err instanceof UnavailableError) return 'Google\'s AI service is overloaded right now. We retried 3 times. Please try again in a minute or two.';
   if (err instanceof NetworkError) return 'Network error. Check your connection and try again.';
   if (err instanceof Error) return err.message;
   return 'Unknown error generating change order.';
