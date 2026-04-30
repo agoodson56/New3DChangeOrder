@@ -93,7 +93,7 @@ check('AIPrompt', 'Switch config labor', p.includes('Network Switch Configuratio
 
 // SECTION 4: PRICING VALIDATOR (Brain 2)
 const pr = fs.readFileSync('services/pricingValidator.ts', 'utf8');
-check('PricingBrain', 'GoogleGenAI import', pr.includes('GoogleGenAI'), '');
+check('PricingBrain', 'geminiClient import', pr.includes('geminiClient'), '');
 check('PricingBrain', 'Google Search grounding', pr.includes('googleSearch'), '');
 check('PricingBrain', 'No controlledGen+Search', !(pr.includes('responseSchema') && pr.includes('googleSearch')), 'Fixed 400 error');
 check('PricingBrain', 'JSON extraction', pr.includes('jsonMatch') || pr.includes('JSON.parse'), '');

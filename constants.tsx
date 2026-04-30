@@ -37,3 +37,48 @@ export const SYSTEMS = [
   'Fire Alarm',
   'Intrusion'
 ];
+
+export interface Office {
+  id: string;
+  name: string;
+  address: string;
+  cityState: string;
+  salesTaxRate: number;
+  taxJurisdictionLabel: string;
+}
+
+export const OFFICES: Office[] = [
+  {
+    id: 'rancho-cordova',
+    name: 'Sacramento HQ',
+    address: '11365 Sunrise Gold Circle',
+    cityState: 'Rancho Cordova, CA 95742',
+    salesTaxRate: 0.0825,
+    taxJurisdictionLabel: 'Rancho Cordova',
+  },
+  {
+    id: 'livermore',
+    name: 'Bay Area',
+    address: '7616 Las Positas Road',
+    cityState: 'Livermore, CA 94551',
+    salesTaxRate: 0.1025,
+    taxJurisdictionLabel: 'Livermore',
+  },
+  {
+    id: 'sparks',
+    name: 'Northern Nevada',
+    address: '1430 Greg Street, Suite 511',
+    cityState: 'Sparks, NV 89431',
+    salesTaxRate: 0.08265,
+    taxJurisdictionLabel: 'Sparks',
+  },
+];
+
+export const DEFAULT_OFFICE_ID = 'rancho-cordova';
+
+export const getOffice = (id?: string): Office =>
+  OFFICES.find(o => o.id === id) || OFFICES[0];
+
+export const COMPANY_PHONE = '(916) 853-9111';
+export const COMPANY_FAX = '(916) 853-9118';
+export const COMPANY_LICENSE = '#875745';

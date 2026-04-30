@@ -2,7 +2,12 @@
 import React, { useState, useRef } from 'react';
 import { GoldButton } from './GoldButton';
 import { generateValidatedChangeOrder } from '../services/geminiService';
+import { describeAiError } from '../services/geminiClient';
 import { ChangeOrderData } from '../types';
+import { OFFICES, DEFAULT_OFFICE_ID } from '../constants';
+
+const MAX_IMAGE_BYTES = 5_000_000; // 5MB per image
+const MAX_IMAGES = 10;
 
 interface COGeneratorProps {
   onResult: (data: ChangeOrderData) => void;
@@ -15,7 +20,9 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
   const [isListening, setIsListening] = useState(false);
   const [pipelineStatus, setPipelineStatus] = useState('');
   const [pipelinePercent, setPipelinePercent] = useState(0);
+  const [intentError, setIntentError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<any>(null);
 
   // Administrative Fields
   const [adminData, setAdminData] = useState({
@@ -26,10 +33,11 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
     phone: '',
     projectNumber: '53160',
     rfiNumber: '',
-    pcoNumber: ''
+    pcoNumber: '',
+    officeId: DEFAULT_OFFICE_ID
   });
 
-  const handleAdminChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAdminChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setAdminData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
@@ -39,24 +47,44 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      if (file) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImages(prev => [...prev, reader.result as string]);
-        };
-        reader.readAsDataURL(file);
+      if (!file) continue;
+      if (!file.type.startsWith('image/')) {
+        alert(`Skipped "${file.name}": not an image file.`);
+        continue;
       }
+      if (file.size > MAX_IMAGE_BYTES) {
+        alert(`Skipped "${file.name}": exceeds 5MB image size limit.`);
+        continue;
+      }
+      const reader = new FileReader();
+      reader.onerror = () => alert(`Failed to read "${file.name}".`);
+      reader.onloadend = () => {
+        setImages(prev => prev.length >= MAX_IMAGES ? prev : [...prev, reader.result as string]);
+      };
+      reader.readAsDataURL(file);
     }
+    // Reset input so the same file can be re-selected if removed
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const removeImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
-    if (!intent.trim()) return;
+    if (loading) return; // guard against double-submit
+    const trimmed = intent.trim();
+    if (!trimmed) {
+      setIntentError('Please describe the work before generating.');
+      return;
+    }
+    setIntentError(null);
     setLoading(true);
     setPipelineStatus('🧠 Initializing 3-Brain Pipeline...');
     setPipelinePercent(5);
     try {
       const result = await generateValidatedChangeOrder(
-        intent,
+        trimmed,
         images,
         adminData,
         (stage, percent) => {
@@ -67,7 +95,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
       onResult(result);
     } catch (error) {
       console.error(error);
-      alert("Error generating Change Order. Please try again.");
+      alert(`Error generating Change Order: ${describeAiError(error)}`);
     } finally {
       setLoading(false);
       setPipelineStatus('');
@@ -108,6 +136,21 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
           </div>
           <div className="space-y-4">
             <div>
+              <label className={labelClasses}>Issuing Office</label>
+              <select
+                name="officeId"
+                value={adminData.officeId}
+                onChange={handleAdminChange}
+                className={inputClasses}
+              >
+                {OFFICES.map(office => (
+                  <option key={office.id} value={office.id}>
+                    {office.name} — {office.cityState}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
               <label className={labelClasses}>3DTSI Project #</label>
               <input name="projectNumber" value={adminData.projectNumber} onChange={handleAdminChange} className={inputClasses} placeholder="53160" />
             </div>
@@ -131,7 +174,11 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
           <button
             type="button"
             onClick={() => {
-              // Check for browser support
+              // Toggle: if already listening, stop and reset
+              if (isListening && recognitionRef.current) {
+                try { recognitionRef.current.stop(); } catch { /* ignore */ }
+                return;
+              }
               const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
               if (!SpeechRecognition) {
                 alert('Speech recognition is not supported in this browser. Please use Chrome or Edge.');
@@ -139,45 +186,58 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
               }
 
               const recognition = new SpeechRecognition();
+              recognitionRef.current = recognition;
               recognition.continuous = true;
               recognition.interimResults = true;
               recognition.lang = 'en-US';
 
-              // Visual feedback via React state
               setIsListening(true);
 
-              let finalTranscript = '';
-
               recognition.onresult = (event: any) => {
-                let interimTranscript = '';
+                // Only append finals from the current event burst — never re-iterate
+                // older results, which would duplicate text.
+                let newlyFinal = '';
                 for (let i = event.resultIndex; i < event.results.length; i++) {
-                  const transcript = event.results[i][0].transcript;
                   if (event.results[i].isFinal) {
-                    finalTranscript += transcript + ' ';
-                  } else {
-                    interimTranscript += transcript;
+                    newlyFinal += event.results[i][0].transcript + ' ';
                   }
                 }
-                // Update the intent with the transcribed text
-                setIntent(prev => prev + finalTranscript);
-                finalTranscript = '';
+                if (newlyFinal) {
+                  setIntent(prev => prev + newlyFinal);
+                }
               };
 
               recognition.onerror = (event: any) => {
                 console.error('Speech recognition error:', event.error);
                 setIsListening(false);
+                if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                  alert('Microphone permission denied. Enable in browser settings and try again.');
+                } else if (event.error === 'no-speech') {
+                  // Silent — common, no need to alert.
+                } else if (event.error === 'network') {
+                  alert('Network error during speech recognition. Check your connection.');
+                } else if (event.error !== 'aborted') {
+                  alert(`Speech recognition error: ${event.error}`);
+                }
               };
 
               recognition.onend = () => {
                 setIsListening(false);
+                recognitionRef.current = null;
               };
 
-              recognition.start();
+              try {
+                recognition.start();
+              } catch (e) {
+                console.error('Failed to start recognition', e);
+                setIsListening(false);
+                recognitionRef.current = null;
+              }
 
-              // Stop after 30 seconds max
+              // Auto-stop after 60 seconds (was 30s — too short for verbose scopes)
               setTimeout(() => {
-                recognition.stop();
-              }, 30000);
+                try { recognition.stop(); } catch { /* ignore */ }
+              }, 60000);
             }}
             className={`flex items-center gap-2 px-4 py-2 font-bold text-xs uppercase tracking-wider transition-all ${isListening ? 'animate-pulse bg-red-600 text-white' : 'bg-[#D4AF37] text-black hover:bg-[#FFD700]'}`}
           >
@@ -197,11 +257,54 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
           </button>
         </div>
         <textarea
-          className="w-full h-40 bg-[#0a0a0a] border border-gray-800 text-white p-6 focus:border-[#D4AF37] outline-none transition-all resize-none shadow-inner text-lg placeholder-gray-700"
+          className={`w-full h-40 bg-[#0a0a0a] border ${intentError ? 'border-red-500' : 'border-gray-800'} text-white p-6 focus:border-[#D4AF37] outline-none transition-all resize-none shadow-inner text-lg placeholder-gray-700`}
           placeholder="Type your description here, or click 'Voice Input' to speak it. e.g., 'Add two cameras in the warehouse at column B4 and C6. Include cabling back to MDF-1.'"
           value={intent}
-          onChange={(e) => setIntent(e.target.value)}
+          onChange={(e) => {
+            setIntent(e.target.value);
+            if (intentError) setIntentError(null);
+          }}
         />
+        {intentError && (
+          <p className="text-red-400 text-sm font-bold uppercase tracking-wider">{intentError}</p>
+        )}
+        <div className="space-y-2">
+          <div className="flex items-center gap-3">
+            <label className="cursor-pointer bg-white/5 hover:bg-white/10 border border-gray-800 px-3 py-1.5 text-xs uppercase font-bold tracking-wider text-gray-400 hover:text-[#D4AF37] transition-all">
+              + Attach Images
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+            </label>
+            {images.length > 0 && (
+              <span className="text-[10px] text-gray-500 uppercase tracking-widest">
+                {images.length} of {MAX_IMAGES} attached
+              </span>
+            )}
+          </div>
+          {images.length > 0 && (
+            <div className="grid grid-cols-5 gap-2">
+              {images.map((src, i) => (
+                <div key={i} className="relative group">
+                  <img src={src} alt="" className="w-full h-20 object-cover border border-gray-800" />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(i)}
+                    className="absolute top-0 right-0 bg-red-600 text-white w-5 h-5 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-label="Remove image"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Guidance Section */}

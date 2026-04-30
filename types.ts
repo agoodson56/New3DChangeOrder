@@ -65,6 +65,7 @@ export interface ChangeOrderData {
   projectNumber: string;
   rfiNumber: string;
   pcoNumber: string;
+  officeId?: string;
   coordinatorIntent: string;
   technicalScope: string;
   systemsImpacted: string[];
@@ -122,6 +123,7 @@ export interface AdminData {
   projectNumber: string;
   rfiNumber: string;
   pcoNumber: string;
+  officeId?: string;
 }
 
 export interface Financials {
@@ -130,4 +132,17 @@ export interface Financials {
   taxTotal: number;
   grandTotal: number;
 }
+
+/** Single source of truth for AdminData defaults — keeps service & UI initializers in sync. */
+export const DEFAULT_ADMIN_DATA: AdminData = {
+  customer: '',
+  contact: '',
+  projectName: '',
+  address: '',
+  phone: '',
+  projectNumber: '',
+  rfiNumber: '',
+  pcoNumber: '',
+  officeId: 'rancho-cordova',
+};
 

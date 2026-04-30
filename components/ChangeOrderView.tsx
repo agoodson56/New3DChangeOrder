@@ -2,10 +2,13 @@
 import React, { useState, useMemo } from 'react';
 import { ChangeOrderData, LaborRates, MaterialItem, LaborTask, ValidationResult } from '../types';
 import { GoldButton } from './GoldButton';
-import { Icons } from '../constants';
+import { Icons, getOffice, COMPANY_PHONE, COMPANY_FAX, COMPANY_LICENSE } from '../constants';
 import { ProductSearchModal } from './ProductSearchModal';
 import { lookupMSRP } from '../services/productSearchService';
-import { calculateFinancials } from '../utils/financials';
+import { calculateFinancials, fmtUSD } from '../utils/financials';
+
+const clampNonNeg = (n: number) => Math.max(0, Number.isFinite(n) ? n : 0);
+const round2OnCommit = (n: number) => Math.round(clampNonNeg(n) * 100) / 100;
 
 interface ChangeOrderViewProps {
   data: ChangeOrderData;
@@ -81,8 +84,14 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
     onDataChange({ ...data, materials: newMaterials });
   };
 
+  // Resolve issuing office (drives header address + sales tax)
+  const office = getOffice(data.officeId);
+
   // Financial Calculations - memoized to avoid recalculating on unrelated re-renders
-  const financials = useMemo(() => calculateFinancials(data, rates), [data, rates]);
+  const financials = useMemo(
+    () => calculateFinancials(data, rates, office.salesTaxRate),
+    [data, rates, office.salesTaxRate]
+  );
   const {
     laborSubtotal, laborMarkup, laborTotal: totalLabor,
     materialSubtotal, materialMarkup,
@@ -122,7 +131,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
           <input
             type="number"
             value={item.quantity}
-            onChange={(e) => updateMaterial(safeIndex, { quantity: parseFloat(e.target.value) || 0 })}
+            onChange={(e) => updateMaterial(safeIndex, { quantity: clampNonNeg(parseFloat(e.target.value)) })}
             className={`${editableNumberClass} w-12 text-center font-bold ${isDeduct ? 'text-red-600' : ''}`}
             min="0"
             step="1"
@@ -173,14 +182,14 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
           <input
             type="number"
             value={item.msrp}
-            onChange={(e) => updateMaterial(safeIndex, { msrp: parseFloat(e.target.value) || 0 })}
+            onChange={(e) => updateMaterial(safeIndex, { msrp: round2OnCommit(parseFloat(e.target.value)) })}
             className={`${editableNumberClass} font-mono font-bold ${isDeduct ? 'text-red-600' : ''}`}
             min="0"
             step="0.01"
           />
         </div>
         <div className={`col-span-2 px-2 py-px text-right font-mono font-bold ${isDeduct ? 'text-red-600' : ''}`}>
-          {isDeduct ? '- ' : ''}$ {Math.abs(extension).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          {fmtUSD(isDeduct ? -Math.abs(extension) : Math.abs(extension))}
         </div>
       </div>
     );
@@ -201,6 +210,9 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
       {data.validationResult && (
         <div className="print:hidden">
           <div
+            role="button"
+            tabIndex={0}
+            aria-expanded={showValidationDetails}
             className={`px-4 py-2 flex items-center justify-between cursor-pointer ${data.validationResult.status === 'customer_ready'
               ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white'
               : data.validationResult.status === 'review_recommended'
@@ -208,6 +220,12 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
                 : 'bg-gradient-to-r from-red-600 to-red-500 text-white'
               }`}
             onClick={() => setShowValidationDetails(!showValidationDetails)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setShowValidationDetails(!showValidationDetails);
+              }
+            }}
           >
             <div className="flex items-center gap-3">
               <span className="text-lg">
@@ -228,7 +246,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
             </div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] uppercase tracking-wider opacity-75">
-                {data.validationResult.warnings.length} warnings · {data.validationResult.qaIssues.length} QA notes
+                {data.validationResult.warnings?.length ?? 0} warnings · {data.validationResult.qaIssues?.length ?? 0} QA notes
               </span>
               <svg className={`w-4 h-4 transition-transform ${showValidationDetails ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
@@ -237,25 +255,25 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
           </div>
           {showValidationDetails && (
             <div className="bg-gray-900 text-gray-200 p-4 text-[10px] space-y-3 max-h-64 overflow-y-auto">
-              {data.validationResult.autoCorrections.length > 0 && (
+              {(data.validationResult.autoCorrections?.length ?? 0) > 0 && (
                 <div>
                   <h4 className="text-emerald-400 font-bold uppercase tracking-wider mb-1">🔧 Auto-Corrections Applied</h4>
-                  {data.validationResult.autoCorrections.map((c, i) => <p key={i} className="text-gray-400">• {c}</p>)}
+                  {(data.validationResult.autoCorrections ?? []).map((c, i) => <p key={i} className="text-gray-400">• {c}</p>)}
                 </div>
               )}
-              {data.validationResult.warnings.length > 0 && (
+              {(data.validationResult.warnings?.length ?? 0) > 0 && (
                 <div>
                   <h4 className="text-amber-400 font-bold uppercase tracking-wider mb-1">⚠️ Code Validation Warnings</h4>
-                  {data.validationResult.warnings.map((w, i) => (
+                  {(data.validationResult.warnings ?? []).map((w, i) => (
                     <p key={i} className={`${w.severity === 'error' ? 'text-red-400' : w.severity === 'warning' ? 'text-amber-300' : 'text-gray-500'
                       }`}>• [{w.type}] {w.message}</p>
                   ))}
                 </div>
               )}
-              {data.validationResult.pricingValidations.filter(p => p.source !== 'Verified Product Database').length > 0 && (
+              {(data.validationResult.pricingValidations ?? []).filter(p => p.source !== 'Verified Product Database').length > 0 && (
                 <div>
                   <h4 className="text-blue-400 font-bold uppercase tracking-wider mb-1">💰 Pricing Verifications (Non-DB)</h4>
-                  {data.validationResult.pricingValidations
+                  {(data.validationResult.pricingValidations ?? [])
                     .filter(p => p.source !== 'Verified Product Database')
                     .map((p, i) => (
                       <p key={i} className={p.delta > 15 ? 'text-red-400' : 'text-gray-400'}>
@@ -264,10 +282,10 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
                     ))}
                 </div>
               )}
-              {data.validationResult.qaIssues.length > 0 && (
+              {(data.validationResult.qaIssues?.length ?? 0) > 0 && (
                 <div>
                   <h4 className="text-purple-400 font-bold uppercase tracking-wider mb-1">🔍 QA Audit Notes</h4>
-                  {data.validationResult.qaIssues.map((issue, i) => <p key={i} className="text-gray-400">• {issue}</p>)}
+                  {(data.validationResult.qaIssues ?? []).map((issue, i) => <p key={i} className="text-gray-400">• {issue}</p>)}
                 </div>
               )}
             </div>
@@ -284,8 +302,8 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
           </div>
 
           <div className="text-[10px] text-right font-bold leading-tight uppercase mt-6 tracking-tighter">
-            11365 SUNRISE GOLD CIRCLE - RANCHO CORDOVA, CA 95742<br />
-            Phone: (916) 853-9111 - Fax: (916) 853-9118 - Lic.: 8757457
+            {office.address.toUpperCase()} - {office.cityState.toUpperCase()}<br />
+            Phone: {COMPANY_PHONE} - Fax: {COMPANY_FAX} - Lic.: {COMPANY_LICENSE}
           </div>
         </div>
 
@@ -438,7 +456,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
               <input
                 type="number"
                 value={task.hours}
-                onChange={(e) => updateLaborTask(i, { hours: parseFloat(e.target.value) || 0 })}
+                onChange={(e) => updateLaborTask(i, { hours: clampNonNeg(parseFloat(e.target.value)) })}
                 className={`${editableNumberClass} w-10 text-center font-black ${isDeduct ? 'text-red-600' : ''}`}
                 min="0"
                 step="0.5"
@@ -467,39 +485,37 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
                 {isDeduct ? '−' : '+'}
               </button>
             </div>
-            <div className={`col-span-2 border-r border-black px-2 py-px text-right font-mono font-bold ${isDeduct ? 'text-red-600' : ''}`}>$ {rate.toFixed(2)}</div>
+            <div className={`col-span-2 border-r border-black px-2 py-px text-right font-mono font-bold ${isDeduct ? 'text-red-600' : ''}`}>{fmtUSD(rate)}</div>
             <div className={`col-span-2 px-2 py-px text-right font-mono font-black ${isDeduct ? 'text-red-600' : ''}`}>
-              {isDeduct ? '- ' : ''}$ {Math.abs(extension).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {fmtUSD(isDeduct ? -Math.abs(extension) : Math.abs(extension))}
             </div>
           </div>
           );
         })}
 
-        {/* Total Hours Row */}
+        {/* Total Hours Row — uses laborSubtotal from calculateFinancials so it never drifts from the final totals */}
         <div className="grid grid-cols-12 text-[10px] font-black bg-gray-100 border-b-2 border-black">
           <div className="col-span-1 border-r border-black px-2 py-1 text-center font-black text-[11px]">
             {data.labor.reduce((sum, t) => {
-              const s = t.isDeduct ? -1 : 1;
-              return sum + s * t.hours;
+              const s = t.isDeduct === true ? -1 : 1;
+              const h = Number.isFinite(t.hours) ? t.hours : 0;
+              return sum + s * h;
             }, 0).toFixed(2)}
           </div>
           <div className="col-span-7 border-r border-black px-2 py-1 uppercase tracking-wider text-right">Total Labor Hours:</div>
           <div className="col-span-2 border-r border-black px-2 py-1 text-right"></div>
-          <div className="col-span-2 px-2 py-1 text-right font-mono font-black">$ {data.labor.reduce((sum, t) => {
-            const s = t.isDeduct ? -1 : 1;
-            return sum + (s * t.hours * (rates[t.rateType as keyof LaborRates] || rates.base));
-          }, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+          <div className="col-span-2 px-2 py-1 text-right font-mono font-black">{fmtUSD(laborSubtotal)}</div>
         </div>
 
         <div className="bg-white">
           <div className="grid grid-cols-12 text-[10px] font-bold border-b border-black">
             <div className="col-span-8 border-r border-black px-2 py-1 uppercase text-right tracking-wider">Labor Markup & Management:</div>
             <div className="col-span-2 border-r border-black px-2 py-1 text-right">15.00%</div>
-            <div className="col-span-2 px-2 py-1 text-right font-mono font-bold text-[#008a8a]">$ {laborMarkup.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div className="col-span-2 px-2 py-1 text-right font-mono font-bold text-[#008a8a]">{fmtUSD(laborMarkup)}</div>
           </div>
           <div className="grid grid-cols-12 text-[11px] font-black bg-gray-50 border-b-4 border-black">
             <div className="col-span-10 border-r border-black px-2 py-1.5 text-right uppercase italic tracking-[0.2em]">Subtotal Labor Component:</div>
-            <div className="col-span-2 px-2 py-1.5 text-right font-mono text-base">$ {totalLabor.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div className="col-span-2 px-2 py-1.5 text-right font-mono text-base">{fmtUSD(totalLabor)}</div>
           </div>
         </div>
 
@@ -531,16 +547,16 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
           <div className="grid grid-cols-12 text-[9px] border-b border-black font-bold">
             <div className="col-span-8 border-r border-black px-2 py-0.5 text-right uppercase tracking-wider">Asset Inventory Markup:</div>
             <div className="col-span-2 border-r border-black px-2 py-0.5 text-right">15.00%</div>
-            <div className="col-span-2 px-2 py-0.5 text-right font-mono font-bold text-[#008a8a]">$ {(materialMarkup + equipmentMarkup).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div className="col-span-2 px-2 py-0.5 text-right font-mono font-bold text-[#008a8a]">{fmtUSD(materialMarkup + equipmentMarkup)}</div>
           </div>
           <div className="grid grid-cols-12 text-[9px] border-b border-black font-bold">
-            <div className="col-span-8 border-r border-black px-2 py-0.5 text-right uppercase tracking-wider">State & Local Sales Tax (Rancho Cordova):</div>
-            <div className="col-span-2 border-r border-black px-2 py-0.5 text-right">8.25%</div>
-            <div className="col-span-2 px-2 py-0.5 text-right font-mono font-bold text-[#d4af37]">$ {salesTax.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div className="col-span-8 border-r border-black px-2 py-0.5 text-right uppercase tracking-wider">State & Local Sales Tax ({office.taxJurisdictionLabel}):</div>
+            <div className="col-span-2 border-r border-black px-2 py-0.5 text-right">{(office.salesTaxRate * 100).toFixed(3).replace(/\.?0+$/, '')}%</div>
+            <div className="col-span-2 px-2 py-0.5 text-right font-mono font-bold text-[#d4af37]">{fmtUSD(salesTax)}</div>
           </div>
           <div className="grid grid-cols-12 text-sm font-black bg-gray-100 py-1 border-b-4 border-black shadow-[inset_0_4px_6px_rgba(0,0,0,0.05)]">
             <div className="col-span-8 text-right px-2 uppercase italic tracking-[0.15em] self-center drop-shadow-sm">Grand Total Service Amount:</div>
-            <div className="col-span-4 text-right px-2 self-center font-mono text-base font-black text-black">$ {grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div className="col-span-4 text-right px-2 self-center font-mono text-base font-black text-black">{fmtUSD(grandTotal)}</div>
           </div>
         </div>
       </div>
@@ -575,7 +591,13 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
 
       {/* Non-Printable Actions */}
       <div className="p-10 flex gap-6 print:hidden bg-gray-100 border-t-4 border-gray-300">
-        <GoldButton onClick={() => window.print()} className="flex-1 h-16 text-lg shadow-xl tracking-[0.15em] font-black">
+        <GoldButton
+          onClick={() => {
+            // Defer print so any pending React state from a final keystroke flushes to the DOM first.
+            setTimeout(() => window.print(), 50);
+          }}
+          className="flex-1 h-16 text-lg shadow-xl tracking-[0.15em] font-black"
+        >
           🖨️ PRINT CHANGE ORDER
         </GoldButton>
         <GoldButton

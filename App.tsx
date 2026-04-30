@@ -5,9 +5,11 @@ import { LaborRateModal } from './components/LaborRateModal';
 import { COGenerator } from './components/COGenerator';
 import { ChangeOrderView } from './components/ChangeOrderView';
 import { ProposalView } from './components/ProposalView';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { generateProposal } from './services/geminiService';
+import { describeAiError } from './services/geminiClient';
 import { calculateFinancials } from './utils/financials';
-import { Icons } from './constants';
+import { Icons, getOffice } from './constants';
 
 const App: React.FC = () => {
   const [status, setStatus] = useState<AppStatus>(AppStatus.IDLE);
@@ -34,6 +36,9 @@ const App: React.FC = () => {
   };
 
   const handleReset = () => {
+    if (coData && !window.confirm('Discard the current change order and start a new intake? This cannot be undone.')) {
+      return;
+    }
     setCoData(null);
     setProposalData(null);
     setStatus(AppStatus.IDLE);
@@ -50,13 +55,14 @@ const App: React.FC = () => {
 
     setIsGeneratingProposal(true);
     try {
-      const financials = calculateFinancials(coData, rates);
+      const office = getOffice(coData.officeId);
+      const financials = calculateFinancials(coData, rates, office.salesTaxRate);
       const proposal = await generateProposal(coData, rates, financials);
       setProposalData(proposal);
       setStatus(AppStatus.PROPOSAL);
     } catch (error) {
       console.error('Error generating proposal:', error);
-      alert('Failed to generate proposal. Please try again.');
+      alert(`Failed to generate proposal: ${describeAiError(error)}`);
     } finally {
       setIsGeneratingProposal(false);
     }
@@ -116,30 +122,36 @@ const App: React.FC = () => {
                   Submit coordinator intent with attached project collateral. Our multimodal reasoning engine will synthesize a defensible Change Order with deterministic labor units and infrastructure requirements.
                 </p>
               </div>
-              <COGenerator onResult={handleGeneratedResult} />
+              <ErrorBoundary fallbackTitle="Intake form failed">
+                <COGenerator onResult={handleGeneratedResult} />
+              </ErrorBoundary>
             </div>
           )}
 
           {status === AppStatus.RESULT && coData && rates && (
             <div className="animate-in slide-in-from-bottom-12 duration-700 ease-out">
-              <ChangeOrderView
-                data={coData}
-                rates={rates}
-                onReset={handleReset}
-                onDataChange={handleDataChange}
-                onGenerateProposal={handleGenerateProposal}
-                isGeneratingProposal={isGeneratingProposal}
-              />
+              <ErrorBoundary fallbackTitle="Change order view failed">
+                <ChangeOrderView
+                  data={coData}
+                  rates={rates}
+                  onReset={handleReset}
+                  onDataChange={handleDataChange}
+                  onGenerateProposal={handleGenerateProposal}
+                  isGeneratingProposal={isGeneratingProposal}
+                />
+              </ErrorBoundary>
             </div>
           )}
 
           {status === AppStatus.PROPOSAL && proposalData && coData && (
             <div className="animate-in fade-in slide-in-from-right-12 duration-700 ease-out">
-              <ProposalView
-                proposal={proposalData}
-                coData={coData}
-                onBack={handleBackToChangeOrder}
-              />
+              <ErrorBoundary fallbackTitle="Proposal view failed">
+                <ProposalView
+                  proposal={proposalData}
+                  coData={coData}
+                  onBack={handleBackToChangeOrder}
+                />
+              </ErrorBoundary>
             </div>
           )}
         </main>

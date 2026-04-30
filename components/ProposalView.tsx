@@ -2,7 +2,7 @@
 import React from 'react';
 import { ProposalData, ChangeOrderData } from '../types';
 import { GoldButton } from './GoldButton';
-import { Icons } from '../constants';
+import { Icons, getOffice, COMPANY_PHONE, COMPANY_LICENSE } from '../constants';
 
 interface ProposalViewProps {
     proposal: ProposalData;
@@ -11,6 +11,7 @@ interface ProposalViewProps {
 }
 
 export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, onBack }) => {
+    const office = getOffice(coData.officeId);
     return (
         <div className="w-full max-w-5xl mx-auto mb-20">
             {/* Print-Hidden Controls */}
@@ -87,7 +88,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                         <div className="bg-gradient-to-br from-[#008a8a] to-[#006666] text-white p-8 flex flex-col justify-center items-center text-center rounded-lg shadow-lg">
                             <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D4AF37] mb-2">Total Investment</div>
                             <div className="text-4xl font-black">
-                                ${proposal.investmentSummary.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                ${proposal.investmentSummary.grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </div>
                             <div className="text-xs text-white/80 mt-2">Complete Turnkey Solution</div>
                         </div>
@@ -97,7 +98,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                 {/* Footer */}
                 <div className="bg-gradient-to-r from-[#D4AF37]/20 to-[#008a8a]/20 px-12 py-4 text-center border-t border-[#D4AF37]/30">
                     <div className="text-[10px] font-bold uppercase tracking-widest text-gray-600">
-                        3D Technology Services | 11365 Sunrise Gold Circle, Rancho Cordova, CA 95742 | (916) 853-9111
+                        3D Technology Services | {office.address}, {office.cityState} | {COMPANY_PHONE}
                     </div>
                 </div>
             </div>
@@ -144,7 +145,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                             Technical Highlights
                         </h3>
                         <ul className="space-y-2">
-                            {proposal.technicalHighlights.map((item, i) => (
+                            {(proposal.technicalHighlights ?? []).map((item, i) => (
                                 <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
                                     <span className="text-[#008a8a] font-bold mt-0.5">▸</span>
                                     <span>{item}</span>
@@ -162,7 +163,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                             Business Value
                         </h3>
                         <ul className="space-y-2">
-                            {proposal.valueProposition.map((item, i) => (
+                            {(proposal.valueProposition ?? []).map((item, i) => (
                                 <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
                                     <span className="text-[#D4AF37] font-bold mt-0.5">★</span>
                                     <span>{item}</span>
@@ -181,7 +182,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                         Industry Insights & Market Intelligence
                     </h3>
                     <div className="grid grid-cols-1 gap-3">
-                        {proposal.industryInsights.map((insight, i) => (
+                        {(proposal.industryInsights ?? []).map((insight, i) => (
                             <div key={i} className="flex items-start gap-3 text-sm">
                                 <span className="text-[#D4AF37] font-bold">📊</span>
                                 <span className="text-white/90">{insight}</span>
@@ -214,20 +215,20 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                     <div className="max-w-md mx-auto space-y-3">
                         <div className="flex justify-between items-center py-3 border-b border-gray-200">
                             <span className="text-gray-600 font-medium">Professional Labor & Installation</span>
-                            <span className="font-bold font-mono">${proposal.investmentSummary.laborTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            <span className="font-bold font-mono">${proposal.investmentSummary.laborTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </div>
                         <div className="flex justify-between items-center py-3 border-b border-gray-200">
                             <span className="text-gray-600 font-medium">Equipment & Materials</span>
-                            <span className="font-bold font-mono">${proposal.investmentSummary.materialsTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            <span className="font-bold font-mono">${proposal.investmentSummary.materialsTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </div>
                         <div className="flex justify-between items-center py-3 border-b border-gray-200">
                             <span className="text-gray-600 font-medium">Applicable Taxes</span>
-                            <span className="font-bold font-mono">${proposal.investmentSummary.taxTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            <span className="font-bold font-mono">${proposal.investmentSummary.taxTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </div>
                         {/* Total Investment - Teal Gradient */}
                         <div className="flex justify-between items-center py-4 bg-gradient-to-r from-[#008a8a] to-[#006666] text-white px-4 -mx-4 mt-4 rounded-lg">
                             <span className="font-black uppercase tracking-wider">Total Investment</span>
-                            <span className="font-black font-mono text-2xl text-[#D4AF37]">${proposal.investmentSummary.grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            <span className="font-black font-mono text-2xl text-[#D4AF37]">${proposal.investmentSummary.grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                         </div>
                     </div>
                 </div>
@@ -238,7 +239,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                     <div className="px-8 py-6">
                         <h3 className="text-xs font-black uppercase tracking-[0.15em] text-[#008a8a] mb-4">Why Choose 3D Technology Services</h3>
                         <ul className="space-y-2">
-                            {proposal.whyChooseUs.map((item, i) => (
+                            {(proposal.whyChooseUs ?? []).map((item, i) => (
                                 <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
                                     <span className="text-[#D4AF37]">✓</span>
                                     <span>{item}</span>
@@ -265,7 +266,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                 <div className="px-10 py-6 bg-[#D4AF37]/10 border-t border-[#D4AF37]/30">
                     <h3 className="text-sm font-black uppercase tracking-[0.15em] text-gray-900 mb-4 text-center">Next Steps</h3>
                     <div className="flex flex-wrap justify-center gap-4">
-                        {proposal.nextSteps.map((step, i) => (
+                        {(proposal.nextSteps ?? []).map((step, i) => (
                             <div key={i} className="flex items-center gap-2 bg-white px-4 py-2 rounded shadow-sm border border-[#D4AF37]/30">
                                 <span className="w-6 h-6 bg-[#D4AF37] text-white rounded-full flex items-center justify-center text-xs font-black">{i + 1}</span>
                                 <span className="text-sm font-medium text-gray-800">{step}</span>
@@ -315,7 +316,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                         <Icons.Logo className="w-full h-auto" />
                     </div>
                     <div className="text-[10px] text-white/90 uppercase tracking-widest">
-                        11365 Sunrise Gold Circle, Rancho Cordova, CA 95742 | Phone: (916) 853-9111 | License: #875745
+                        {office.address}, {office.cityState} | Phone: {COMPANY_PHONE} | License: {COMPANY_LICENSE}
                     </div>
                     <div className="text-[9px] text-white mt-2 uppercase tracking-[0.3em] font-bold">
                         Intelligence At Work™

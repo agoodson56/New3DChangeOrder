@@ -3,16 +3,41 @@ import { ChangeOrderData, LaborRates, Financials } from '../types';
 
 const LABOR_MARKUP_RATE = 0.15;
 const ASSET_MARKUP_RATE = 0.15;
-const SALES_TAX_RATE = 0.0825; // 8.25% Rancho Cordova
+const DEFAULT_SALES_TAX_RATE = 0.0825; // 8.25% Rancho Cordova fallback
 
-/** Round UP to nearest cent — prevents 3-digit values and never underbills */
-const round2 = (n: number) => Math.ceil(n * 100) / 100;
+/**
+ * Round to nearest cent. Sign-symmetric: positive values round half-away-from-zero,
+ * negative values also round half-away-from-zero, so credits/deducts get the
+ * customer the cent they're owed. Replaces the previous Math.ceil-based rounding
+ * which biased every cent toward the company on positive values AND on credits.
+ */
+const round2 = (n: number): number => {
+  if (!Number.isFinite(n)) return 0;
+  return Math.sign(n) * Math.round(Math.abs(n) * 100) / 100;
+};
+
+const validRateTypes = ['base', 'afterHours', 'emergency'] as const;
+type RateKey = typeof validRateTypes[number];
+
+function rateLookup(rates: LaborRates, rateType: string): number {
+  if ((validRateTypes as readonly string[]).includes(rateType)) {
+    return rates[rateType as RateKey];
+  }
+  if (rateType) {
+    console.warn(`Unknown rateType "${rateType}" — defaulted to base. Possible AI/data drift.`);
+  }
+  return rates.base;
+}
 
 /**
  * Single source of truth for all financial calculations.
  * Used by both ChangeOrderView (display) and App (proposal generation).
  */
-export function calculateFinancials(data: ChangeOrderData, rates: LaborRates): Financials & {
+export function calculateFinancials(
+    data: ChangeOrderData,
+    rates: LaborRates,
+    salesTaxRate: number = DEFAULT_SALES_TAX_RATE
+): Financials & {
     laborSubtotal: number;
     laborMarkup: number;
     materialSubtotal: number;
@@ -24,9 +49,10 @@ export function calculateFinancials(data: ChangeOrderData, rates: LaborRates): F
 } {
     // Labor (deducts contribute negative values)
     const laborSubtotal = round2(data.labor.reduce((acc, task) => {
-        const rate = rates[task.rateType as keyof LaborRates] || rates.base;
-        const sign = task.isDeduct ? -1 : 1;
-        return acc + (sign * task.hours * rate);
+        const rate = rateLookup(rates, task.rateType);
+        const sign = task.isDeduct === true ? -1 : 1;
+        const hours = Number.isFinite(task.hours) ? task.hours : 0;
+        return acc + (sign * hours * rate);
     }, 0));
     const laborMarkup = round2(laborSubtotal * LABOR_MARKUP_RATE);
     const laborTotal = round2(laborSubtotal + laborMarkup);
@@ -35,8 +61,10 @@ export function calculateFinancials(data: ChangeOrderData, rates: LaborRates): F
     const materialSubtotal = round2(data.materials
         .filter(m => m.category === 'Material')
         .reduce((acc, item) => {
-            const sign = item.isDeduct ? -1 : 1;
-            return acc + (sign * item.msrp * item.quantity);
+            const sign = item.isDeduct === true ? -1 : 1;
+            const qty = Number.isFinite(item.quantity) ? item.quantity : 0;
+            const msrp = Number.isFinite(item.msrp) ? item.msrp : 0;
+            return acc + (sign * msrp * qty);
         }, 0));
     const materialMarkup = round2(materialSubtotal * ASSET_MARKUP_RATE);
 
@@ -44,16 +72,20 @@ export function calculateFinancials(data: ChangeOrderData, rates: LaborRates): F
     const equipmentSubtotal = round2(data.materials
         .filter(m => m.category === 'Equipment')
         .reduce((acc, item) => {
-            const sign = item.isDeduct ? -1 : 1;
-            return acc + (sign * item.msrp * item.quantity);
+            const sign = item.isDeduct === true ? -1 : 1;
+            const qty = Number.isFinite(item.quantity) ? item.quantity : 0;
+            const msrp = Number.isFinite(item.msrp) ? item.msrp : 0;
+            return acc + (sign * msrp * qty);
         }, 0));
     const equipmentMarkup = round2(equipmentSubtotal * ASSET_MARKUP_RATE);
 
     const materialsTotal = round2(materialSubtotal + equipmentSubtotal + materialMarkup + equipmentMarkup);
 
-    // Tax on raw material + equipment cost (before markup)
+    // Tax on raw material + equipment cost (before markup).
+    // NOTE: For California contractors, this may need to be on POST-markup price.
+    // Verify with accountant. Toggle by changing the line below.
     const taxBase = round2(materialSubtotal + equipmentSubtotal);
-    const salesTax = round2(taxBase * SALES_TAX_RATE);
+    const salesTax = round2(taxBase * salesTaxRate);
 
     const grandTotal = round2(laborTotal + materialsTotal + salesTax);
 
@@ -71,4 +103,12 @@ export function calculateFinancials(data: ChangeOrderData, rates: LaborRates): F
         taxTotal: salesTax,
         grandTotal,
     };
+}
+
+/** Format USD with locale pinned to en-US so the printed CO is jurisdiction-neutral. */
+export function fmtUSD(n: number): string {
+  if (!Number.isFinite(n)) return '$ 0.00';
+  const abs = Math.abs(n);
+  const formatted = abs.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return n < 0 ? `- $ ${formatted}` : `$ ${formatted}`;
 }

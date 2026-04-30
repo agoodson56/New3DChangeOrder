@@ -17,11 +17,32 @@ export const LaborRateModal: React.FC<LaborRateModalProps> = ({ onSave }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!Number.isFinite(rates.base) || rates.base <= 0) {
+      alert('Base rate must be a positive number.');
+      return;
+    }
+    if (!Number.isFinite(rates.afterHours) || rates.afterHours <= 0) {
+      alert('After-hours rate must be a positive number.');
+      return;
+    }
+    if (!Number.isFinite(rates.emergency) || rates.emergency <= 0) {
+      alert('Emergency rate must be a positive number.');
+      return;
+    }
     onSave(rates);
   };
 
+  // Esc key closes any focused input gracefully — but the modal is required-on-load.
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') (document.activeElement as HTMLElement | null)?.blur();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4" role="dialog" aria-modal="true" aria-labelledby="rate-modal-title">
       <div className="w-full max-w-xl bg-black border-4 border-[#D4AF37] p-12 shadow-[0_0_100px_rgba(212,175,55,0.25)] relative overflow-hidden">
         {/* Subtle Background Mark */}
         <div className="absolute -top-10 -right-10 opacity-5 pointer-events-none">
@@ -32,7 +53,7 @@ export const LaborRateModal: React.FC<LaborRateModalProps> = ({ onSave }) => {
           <div className="w-64">
             <Icons.Logo className="w-full h-auto" />
           </div>
-          <h2 className="mt-6 text-3xl font-black gold-gradient text-center uppercase tracking-tighter italic">System Initialization</h2>
+          <h2 id="rate-modal-title" className="mt-6 text-3xl font-black gold-gradient text-center uppercase tracking-tighter italic">System Initialization</h2>
           <p className="text-[#008a8a] text-xs mt-3 text-center uppercase font-bold tracking-[0.5em] animate-pulse">Labor Rate Deterministic Intake</p>
         </div>
 
@@ -45,11 +66,11 @@ export const LaborRateModal: React.FC<LaborRateModalProps> = ({ onSave }) => {
               className="w-full bg-[#0a0a0a] border-2 border-gray-800 text-white p-4 focus:border-[#D4AF37] outline-none transition-all text-xl font-mono"
               value={rates.base}
               onChange={(e) => {
-                const base = parseFloat(e.target.value);
-                setRates({ 
-                  base, 
-                  afterHours: base * 1.5, 
-                  emergency: base * 2 
+                const base = parseFloat(e.target.value) || 0;
+                setRates({
+                  base,
+                  afterHours: base * 1.5,
+                  emergency: base * 2
                 });
               }}
             />
@@ -62,7 +83,7 @@ export const LaborRateModal: React.FC<LaborRateModalProps> = ({ onSave }) => {
                 required
                 className="w-full bg-black border border-gray-800 text-gray-400 p-3 focus:border-[#D4AF37] outline-none transition-colors font-mono"
                 value={rates.afterHours}
-                onChange={(e) => setRates({ ...rates, afterHours: parseFloat(e.target.value) })}
+                onChange={(e) => setRates({ ...rates, afterHours: parseFloat(e.target.value) || 0 })}
               />
             </div>
             <div>
@@ -72,7 +93,7 @@ export const LaborRateModal: React.FC<LaborRateModalProps> = ({ onSave }) => {
                 required
                 className="w-full bg-black border border-gray-800 text-gray-400 p-3 focus:border-[#D4AF37] outline-none transition-colors font-mono"
                 value={rates.emergency}
-                onChange={(e) => setRates({ ...rates, emergency: parseFloat(e.target.value) })}
+                onChange={(e) => setRates({ ...rates, emergency: parseFloat(e.target.value) || 0 })}
               />
             </div>
           </div>

@@ -1,31 +1,19 @@
 import path from 'path';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-export default defineConfig(({ mode }) => {
-  // Load from .env files (local development)
-  const envFile = loadEnv(mode, process.cwd(), '');
-
-  // Get API key — check ALL possible names from both .env and Cloudflare process.env
-  const apiKey = envFile.VITE_GEMINI_API_KEY || envFile.GEMINI_API_KEY
-    || process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY
-    || process.env.API_KEY || '';
-
-  return {
-    server: {
-      port: 3000,
-      host: '0.0.0.0',
-    },
-    plugins: [react()],
-    define: {
-      'process.env.API_KEY': JSON.stringify(apiKey),
-      'process.env.GEMINI_API_KEY': JSON.stringify(apiKey),
-      'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(apiKey)
-    },
-    resolve: {
-      alias: {
-        '@': path.resolve(__dirname, '.'),
-      }
+// SECURITY: We deliberately DO NOT inject GEMINI_API_KEY into the client bundle.
+// All AI calls go through /api/gemini (Cloudflare Pages Function) which holds
+// the key as a server-side env var. See functions/api/gemini.ts.
+export default defineConfig(() => ({
+  server: {
+    port: 3000,
+    host: '0.0.0.0',
+  },
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, '.'),
     }
-  };
-});
+  }
+}));

@@ -6,8 +6,8 @@
  * against real distributor pricing from the web.
  */
 
-import { GoogleGenAI } from '@google/genai';
 import { ChangeOrderData, PricingValidation } from '../types';
+import { generateContent, ApiKeyError, RateLimitError } from './geminiClient';
 import {
     CCTV_CAMERAS, NVR_SYSTEMS, ACCESS_READERS, DOOR_HARDWARE, ACCESS_PANELS,
     CABLING_PRODUCTS, PATHWAY_PRODUCTS, AV_PRODUCTS, INTRUSION_PANELS, INTRUSION_SENSORS,
@@ -159,13 +159,6 @@ const PRICING_SCHEMA = {
  * Only non-DB products get checked via Google Search.
  */
 export async function validatePricing(data: ChangeOrderData): Promise<PricingValidation[]> {
-    const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY;
-
-    if (!apiKey || apiKey === 'undefined' || apiKey === '') {
-        console.warn('Pricing validation skipped: API key not available');
-        return [];
-    }
-
     // Find items not in our database that need price verification
     const itemsToVerify = data.materials
         .map((item, index) => ({ item, index }))
@@ -185,10 +178,9 @@ export async function validatePricing(data: ChangeOrderData): Promise<PricingVal
         }));
     }
 
-    const ai = new GoogleGenAI({ apiKey });
-
+    const sanitize = (s: string) => (s || '').replace(/[\x00-\x1f\x7f<>{}]/g, '').slice(0, 200);
     const itemList = itemsToVerify.map(({ item, index }) =>
-        `[${index}] ${item.manufacturer} ${item.model} — listed MSRP: $${item.msrp.toFixed(2)}`
+        `[${index}] ${sanitize(item.manufacturer)} ${sanitize(item.model)} — listed MSRP: $${item.msrp.toFixed(2)}`
     ).join('\n');
 
     const prompt = `You are a professional low-voltage pricing analyst. Your task is to find the MANUFACTURER'S SUGGESTED RETAIL PRICE (MSRP) for these products.
@@ -220,8 +212,8 @@ You MUST respond with ONLY a JSON object in this exact format (no markdown, no b
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
         try {
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.0-flash',
+            const response = await generateContent({
+                model: 'gemini-2.5-flash',
                 contents: { parts: [{ text: prompt }] },
                 config: {
                     temperature: 0,
@@ -287,7 +279,13 @@ You MUST respond with ONLY a JSON object in this exact format (no markdown, no b
             return allValidations;
 
         } catch (error: any) {
-            const is429 = error?.message?.includes('429') || error?.message?.includes('RESOURCE_EXHAUSTED');
+            // Don't retry auth errors — the key is bad.
+            if (error instanceof ApiKeyError) {
+                console.error('Pricing validation: API key error', error);
+                throw error;
+            }
+            const is429 = error instanceof RateLimitError ||
+                error?.message?.includes('429') || error?.message?.includes('RESOURCE_EXHAUSTED');
 
             if (is429 && attempt < MAX_RETRIES - 1) {
                 const delay = BASE_DELAY_MS * Math.pow(2, attempt);

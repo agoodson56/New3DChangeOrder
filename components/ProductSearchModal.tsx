@@ -1,6 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { searchProducts, ProductSearchResult, toMaterialItem } from '../services/productSearchService';
+import { describeAiError } from '../services/geminiClient';
 import { MaterialItem } from '../types';
 import { GoldButton } from './GoldButton';
 
@@ -41,7 +42,7 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
             setQuantities(initialQuantities);
         } catch (err) {
             console.error('Search error:', err);
-            setError('Failed to search products. Please try again.');
+            setError(`Failed to search products: ${describeAiError(err)}`);
         } finally {
             setLoading(false);
         }
@@ -60,10 +61,19 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
         }
     };
 
+    useEffect(() => {
+        if (!isOpen) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [isOpen, onClose]);
+
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-label="Product Search">
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-black/80 backdrop-blur-sm"

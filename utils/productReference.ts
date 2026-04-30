@@ -66,11 +66,17 @@ function formatSection(title: string, products: ProductDefinition[]): string {
     return `\n       === ${title} ===\n${lines}`;
 }
 
+// Cache: the product DB is static at module load, so the reference string
+// is too. Compute once, reuse. Saves significant tokens AND wall-time on
+// every CO generation.
+let _productReferenceCache: string | null = null;
+
 /**
  * Builds the complete product reference for AI prompt injection.
  * Returns a string block ready to be embedded in the system instruction.
  */
 export function buildProductReference(): string {
+    if (_productReferenceCache !== null) return _productReferenceCache;
     let ref = `
     12. VERIFIED PRODUCT DATABASE (USE THESE EXACT PRICES AND INSTALLATION REQUIREMENTS)
         The following products are from our verified database. When a user mentions any of these
@@ -157,6 +163,7 @@ export function buildProductReference(): string {
             .join(', ')}
 `;
 
+    _productReferenceCache = ref;
     return ref;
 }
 

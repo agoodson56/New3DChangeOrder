@@ -1,6 +1,7 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
+import { Type } from "@google/genai";
 import { MaterialItem } from "../types";
+import { generateContent } from "./geminiClient";
 
 // Product search result interface
 export interface ProductSearchResult {
@@ -44,12 +45,8 @@ const PRODUCT_SEARCH_SCHEMA = {
  * Returns real product data including part numbers and MSRP pricing
  */
 export async function searchProducts(query: string): Promise<ProductSearchResult[]> {
-  const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY;
-  if (!apiKey) {
-    throw new Error('GEMINI_API_KEY is not configured. Please set the GEMINI_API_KEY environment variable in your Cloudflare Pages project settings (Settings → Environment Variables) and redeploy.');
-  }
-  const ai = new GoogleGenAI({ apiKey });
-  const model = 'gemini-2.0-flash';
+  const safeQuery = (query || '').replace(/[\x00-\x1f\x7f<>{}]/g, '').slice(0, 500);
+  const model = 'gemini-2.5-flash';
 
   const systemInstruction = `
     You are a professional low-voltage systems product research specialist.
@@ -80,9 +77,9 @@ export async function searchProducts(query: string): Promise<ProductSearchResult
 
   const prompt = `
     Search for the following product(s) and provide accurate pricing information:
-    
-    "${query}"
-    
+
+    "${safeQuery}"
+
     Return up to 5 relevant products matching this search. Include:
     - Official manufacturer name
     - Complete model/product name
@@ -96,14 +93,13 @@ export async function searchProducts(query: string): Promise<ProductSearchResult
   `;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await generateContent({
       model,
       contents: { parts: [{ text: prompt }] },
       config: {
         systemInstruction,
         responseMimeType: "application/json",
         responseSchema: PRODUCT_SEARCH_SCHEMA,
-        // Enable Google Search grounding for real-time product data
         tools: [{ googleSearch: {} }]
       }
     });
@@ -112,7 +108,12 @@ export async function searchProducts(query: string): Promise<ProductSearchResult
     if (!rawText) throw new Error("No response from AI");
 
     const data = JSON.parse(rawText);
-    return data.products || [];
+    const products: ProductSearchResult[] = (data.products || []).filter((p: any) =>
+      p && typeof p.msrp === 'number' && p.msrp > 0 && p.msrp < 1_000_000 &&
+      typeof p.partNumber === 'string' && p.partNumber.length > 0 &&
+      typeof p.manufacturer === 'string' && p.manufacturer.length > 0
+    );
+    return products;
   } catch (error) {
     console.error('Product search error:', error);
     throw error;

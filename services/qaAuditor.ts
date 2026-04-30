@@ -6,8 +6,8 @@
  * Uses Gemini to apply expert-level review that code validation can't do.
  */
 
-import { GoogleGenAI } from '@google/genai';
 import { ChangeOrderData } from '../types';
+import { generateContent, ApiKeyError, RateLimitError } from './geminiClient';
 import { FULL_CATALOG, lookupProduct } from '../data/products';
 import {
     CCTV_CAMERAS, NVR_SYSTEMS, ACCESS_READERS, DOOR_HARDWARE, ACCESS_PANELS,
@@ -93,22 +93,6 @@ export interface QAAuditResult {
  * Checks for professional completeness, omissions, and industry standards.
  */
 export async function auditChangeOrder(data: ChangeOrderData): Promise<QAAuditResult> {
-    const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY || process.env.API_KEY;
-
-    if (!apiKey || apiKey === 'undefined' || apiKey === '') {
-        console.warn('QA audit skipped: API key not available');
-        return {
-            overallScore: 70,
-            issues: ['QA audit could not run: API key not configured'],
-            recommendations: [],
-            missingItems: [],
-            brandingIssues: [],
-            complianceNotes: []
-        };
-    }
-
-    const ai = new GoogleGenAI({ apiKey });
-
     // Identify which materials are already in our verified product database
     const dbVerifiedItems = data.materials
         .filter(m => isDbVerified(m.manufacturer, m.model))
@@ -195,8 +179,8 @@ Return:
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
         try {
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.0-flash',
+            const response = await generateContent({
+                model: 'gemini-2.5-flash',
                 contents: { parts: [{ text: prompt }] },
                 config: {
                     temperature: 0,
@@ -218,7 +202,12 @@ Return:
             };
 
         } catch (error: any) {
-            const is429 = error?.message?.includes('429') || error?.message?.includes('RESOURCE_EXHAUSTED');
+            if (error instanceof ApiKeyError) {
+                console.error('QA audit: API key error', error);
+                throw error;
+            }
+            const is429 = error instanceof RateLimitError ||
+                error?.message?.includes('429') || error?.message?.includes('RESOURCE_EXHAUSTED');
 
             if (is429 && attempt < MAX_RETRIES - 1) {
                 const delay = BASE_DELAY_MS * Math.pow(2, attempt); // 2s, 4s, 8s

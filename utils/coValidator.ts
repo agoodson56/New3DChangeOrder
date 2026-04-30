@@ -77,14 +77,44 @@ export function validateChangeOrder(data: ChangeOrderData): ValidationOutput {
     let deductions = 0;
 
     // =========================================================================
-    // RULE 1: All materials must have quantity > 0, msrp > 0, valid category
+    // RULE 0: Empty CO sanity — no materials AND no labor is suspicious
+    // =========================================================================
+    if ((!data.materials || data.materials.length === 0) && (!data.labor || data.labor.length === 0)) {
+        warnings.push({
+            type: 'schema',
+            severity: 'error',
+            message: 'Change order has no materials and no labor — AI may have failed to parse the request.'
+        });
+        deductions += 30;
+    } else if (!data.materials || data.materials.length === 0) {
+        warnings.push({
+            type: 'material',
+            severity: 'warning',
+            message: 'Change order has no materials. Verify this is intentional (labor-only CO).'
+        });
+        deductions += 5;
+    } else if (!data.labor || data.labor.length === 0) {
+        warnings.push({
+            type: 'labor',
+            severity: 'warning',
+            message: 'Change order has no labor. Verify this is intentional (materials-only credit/deduct CO).'
+        });
+        deductions += 5;
+    }
+
+    // =========================================================================
+    // RULE 1: All materials must have valid quantity, msrp, category, and identifying info
+    // — with isDeduct branching: credits may legitimately have negative subtotals,
+    // but quantity and msrp themselves should remain positive (the sign is applied
+    // by the isDeduct flag, not by negative inputs).
     // =========================================================================
     data.materials.forEach((item, idx) => {
+        const isDeduct = item.isDeduct === true;
         if (item.quantity <= 0) {
             warnings.push({
                 type: 'schema',
                 severity: 'error',
-                message: `${item.manufacturer} ${item.model}: quantity is ${item.quantity} (must be > 0)`,
+                message: `${item.manufacturer} ${item.model}: quantity is ${item.quantity} (must be > 0; use isDeduct=true for credits, not negative qty)`,
                 itemIndex: idx
             });
             deductions += 3;
@@ -92,11 +122,11 @@ export function validateChangeOrder(data: ChangeOrderData): ValidationOutput {
         if (item.msrp <= 0) {
             warnings.push({
                 type: 'pricing',
-                severity: 'warning',
+                severity: isDeduct ? 'info' : 'warning',
                 message: `${item.manufacturer} ${item.model}: MSRP is $${item.msrp} (may be missing)`,
                 itemIndex: idx
             });
-            deductions += 2;
+            if (!isDeduct) deductions += 2;
         }
         if (!['Material', 'Equipment'].includes(item.category)) {
             warnings.push({
@@ -106,6 +136,83 @@ export function validateChangeOrder(data: ChangeOrderData): ValidationOutput {
                 itemIndex: idx
             });
             deductions += 2;
+        }
+        if (!item.manufacturer || item.manufacturer.trim() === '') {
+            warnings.push({
+                type: 'schema',
+                severity: 'warning',
+                message: `Item [${idx}] has no manufacturer`,
+                itemIndex: idx
+            });
+            deductions += 1;
+        }
+        if (!item.model || item.model.trim() === '') {
+            warnings.push({
+                type: 'schema',
+                severity: 'error',
+                message: `Item [${idx}] (${item.manufacturer}) has no model number`,
+                itemIndex: idx
+            });
+            deductions += 2;
+        }
+        if (!item.complexity || !['Low', 'Medium', 'High'].includes(item.complexity)) {
+            warnings.push({
+                type: 'schema',
+                severity: 'info',
+                message: `${item.model}: missing/invalid complexity "${item.complexity}" — defaulting to Medium`,
+                itemIndex: idx,
+                autoCorrection: 'Auto-set to Medium'
+            });
+            item.complexity = 'Medium';
+            autoCorrections.push(`Set ${item.model} complexity to 'Medium'`);
+        }
+    });
+
+    // =========================================================================
+    // RULE 1b: Cable per-foot price sanity. A typo entering box price as
+    // per-foot ($45/ft instead of $0.45/ft) silently inflates the bid by 100x.
+    // Conversely, $0.05/ft is below floor for any commercial cable.
+    // =========================================================================
+    data.materials.forEach((item, idx) => {
+        if (item.unitOfMeasure !== 'ft') return;
+        if (item.msrp > 0 && item.msrp < 0.10) {
+            warnings.push({
+                type: 'pricing',
+                severity: 'warning',
+                message: `${item.model}: $${item.msrp.toFixed(2)}/ft seems unrealistically low for commercial cable (typical floor: $0.10/ft)`,
+                itemIndex: idx
+            });
+            deductions += 2;
+        }
+        if (item.msrp > 5) {
+            warnings.push({
+                type: 'pricing',
+                severity: 'warning',
+                message: `${item.model}: $${item.msrp.toFixed(2)}/ft seems unrealistically high — verify this isn't a per-box price (typical ceiling: $5/ft)`,
+                itemIndex: idx
+            });
+            deductions += 2;
+        }
+    });
+
+    // =========================================================================
+    // RULE 1c: Duplicate detection — same manufacturer+model appearing twice
+    // is almost always a data-entry mistake.
+    // =========================================================================
+    const seen = new Map<string, number>();
+    data.materials.forEach((item, idx) => {
+        const key = `${item.manufacturer.toLowerCase()}|${item.model.toLowerCase()}`;
+        if (seen.has(key)) {
+            const prevIdx = seen.get(key)!;
+            warnings.push({
+                type: 'material',
+                severity: 'warning',
+                message: `Duplicate material: "${item.manufacturer} ${item.model}" appears at rows ${prevIdx + 1} and ${idx + 1}. Likely a duplicate entry — verify quantities aren't being double-counted.`,
+                itemIndex: idx
+            });
+            deductions += 2;
+        } else {
+            seen.set(key, idx);
         }
     });
 
