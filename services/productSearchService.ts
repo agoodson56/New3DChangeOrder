@@ -99,19 +99,25 @@ export async function searchProducts(query: string): Promise<ProductSearchResult
     - LOWER-QUARTILE current street price in USD (what a contractor actually pays — NOT list MSRP)
     - Brief product description
     - Category (Material for passive components, Equipment for active devices)
-    - Unit of measure (ft for cables, ea for individual items)
+    - Unit of measure ('ft' for cables, 'ea' for individual items)
+    - Confidence ('high', 'medium', or 'low')
 
     Cross-reference 2-3 distributor/reseller listings and return the lower-quartile price.
+
+    You MUST respond with ONLY a JSON object in this exact format (no markdown fences, no commentary):
+    {"products":[{"manufacturer":"Brand","model":"Model","partNumber":"PN123","msrp":123.45,"description":"Brief","category":"Equipment","unitOfMeasure":"ea","confidence":"high"}]}
   `;
 
   try {
+    // NOTE: Gemini API rejects responseMimeType/responseSchema combined with
+    // Google Search grounding. We keep grounding (more valuable for live
+    // pricing) and parse JSON manually from the text response.
     const response = await generateContent({
       model,
       contents: { parts: [{ text: prompt }] },
       config: {
         systemInstruction,
-        responseMimeType: "application/json",
-        responseSchema: PRODUCT_SEARCH_SCHEMA,
+        temperature: 0,
         tools: [{ googleSearch: {} }]
       }
     });
@@ -119,7 +125,10 @@ export async function searchProducts(query: string): Promise<ProductSearchResult
     const rawText = response.text;
     if (!rawText) throw new Error("No response from AI");
 
-    const data = JSON.parse(rawText);
+    // Extract JSON from a possibly-wrapped response (markdown fences, prose, etc.)
+    const jsonMatch = rawText.match(/\{[\s\S]*"products"[\s\S]*\}/);
+    const text = jsonMatch ? jsonMatch[0] : '{"products":[]}';
+    const data = JSON.parse(text);
     const products: ProductSearchResult[] = (data.products || []).filter((p: any) =>
       p && typeof p.msrp === 'number' && p.msrp > 0 && p.msrp < 1_000_000 &&
       typeof p.partNumber === 'string' && p.partNumber.length > 0 &&
