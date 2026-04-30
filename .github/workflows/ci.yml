@@ -26,6 +26,9 @@ jobs:
       - name: Run tests
         run: npm test
 
+      - name: Accuracy audit
+        run: node scripts/accuracyAudit.cjs
+
       - name: Build
         run: npm run build
 

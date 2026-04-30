@@ -1,12 +1,21 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { AppStatus, LaborRates, ChangeOrderData, ProposalData } from './types';
 import { LaborRateModal } from './components/LaborRateModal';
 import { COGenerator } from './components/COGenerator';
-import { ChangeOrderView } from './components/ChangeOrderView';
-import { ProposalView } from './components/ProposalView';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { HistoryModal } from './components/HistoryModal';
+
+// Code-split the post-generation views — they don't load until the user has
+// generated a CO, so keeping them out of the initial bundle speeds up first paint.
+const ChangeOrderView = lazy(() =>
+  import('./components/ChangeOrderView').then(m => ({ default: m.ChangeOrderView }))
+);
+const ProposalView = lazy(() =>
+  import('./components/ProposalView').then(m => ({ default: m.ProposalView }))
+);
+const HistoryModal = lazy(() =>
+  import('./components/HistoryModal').then(m => ({ default: m.HistoryModal }))
+);
 import { generateProposal } from './services/geminiService';
 import { describeAiError } from './services/geminiClient';
 import { calculateFinancials } from './utils/financials';
@@ -236,16 +245,18 @@ const App: React.FC = () => {
           {status === AppStatus.RESULT && coData && rates && (
             <div className="animate-in slide-in-from-bottom-12 duration-700 ease-out">
               <ErrorBoundary fallbackTitle="Change order view failed">
-                <ChangeOrderView
-                  data={coData}
-                  rates={rates}
-                  onReset={handleReset}
-                  onDataChange={handleDataChange}
-                  onGenerateProposal={handleGenerateProposal}
-                  isGeneratingProposal={isGeneratingProposal}
-                  onArchive={handleSnapshotToHistory}
-                  archivedId={savedCoId}
-                />
+                <Suspense fallback={<LoadingShim label="Loading change order view…" />}>
+                  <ChangeOrderView
+                    data={coData}
+                    rates={rates}
+                    onReset={handleReset}
+                    onDataChange={handleDataChange}
+                    onGenerateProposal={handleGenerateProposal}
+                    isGeneratingProposal={isGeneratingProposal}
+                    onArchive={handleSnapshotToHistory}
+                    archivedId={savedCoId}
+                  />
+                </Suspense>
               </ErrorBoundary>
             </div>
           )}
@@ -253,11 +264,13 @@ const App: React.FC = () => {
           {status === AppStatus.PROPOSAL && proposalData && coData && (
             <div className="animate-in fade-in slide-in-from-right-12 duration-700 ease-out">
               <ErrorBoundary fallbackTitle="Proposal view failed">
-                <ProposalView
-                  proposal={proposalData}
-                  coData={coData}
-                  onBack={handleBackToChangeOrder}
-                />
+                <Suspense fallback={<LoadingShim label="Loading proposal…" />}>
+                  <ProposalView
+                    proposal={proposalData}
+                    coData={coData}
+                    onBack={handleBackToChangeOrder}
+                  />
+                </Suspense>
               </ErrorBoundary>
             </div>
           )}
@@ -266,7 +279,9 @@ const App: React.FC = () => {
 
       {/* History modal */}
       {historyOpen && (
-        <HistoryModal onClose={() => setHistoryOpen(false)} />
+        <Suspense fallback={null}>
+          <HistoryModal onClose={() => setHistoryOpen(false)} />
+        </Suspense>
       )}
 
       {/* Cinematic Background Ambience */}
@@ -278,5 +293,12 @@ const App: React.FC = () => {
     </div>
   );
 };
+
+const LoadingShim: React.FC<{ label: string }> = ({ label }) => (
+  <div className="flex flex-col items-center justify-center py-32 text-gray-500">
+    <div className="w-12 h-12 border-2 border-[#D4AF37]/30 border-t-[#D4AF37] rounded-full animate-spin mb-4"></div>
+    <p className="text-xs uppercase font-bold tracking-widest">{label}</p>
+  </div>
+);
 
 export default App;

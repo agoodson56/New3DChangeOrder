@@ -100,7 +100,7 @@ check('PricingBrain', 'JSON extraction', pr.includes('jsonMatch') || pr.includes
 check('PricingBrain', 'DB product bypass', pr.includes('isInDatabase'), '');
 check('PricingBrain', 'Confidence scoring', pr.includes('confidence'), '');
 check('PricingBrain', 'Delta calculation', pr.includes('delta'), '');
-check('PricingBrain', 'Error fallback', pr.includes('catch (error)'), '');
+check('PricingBrain', 'Error fallback', pr.includes('catch (error') || pr.includes('catch(error'), '');
 
 // SECTION 5: QA AUDITOR (Brain 3)
 const qa = fs.readFileSync('services/qaAuditor.ts', 'utf8');
@@ -110,7 +110,7 @@ check('QAAuditor', 'Missing items', qa.includes('missingItems'), '');
 check('QAAuditor', 'Branding issues', qa.includes('brandingIssues'), '');
 check('QAAuditor', 'Compliance notes', qa.includes('complianceNotes'), '');
 check('QAAuditor', 'NECA reference', qa.includes('NECA'), '');
-check('QAAuditor', 'Error handling', qa.includes('catch (error)'), '');
+check('QAAuditor', 'Error handling', qa.includes('catch (error') || qa.includes('catch(error'), '');
 check('QAAuditor', '95+ threshold', qa.includes('95+') || qa.includes('customer ready'), '');
 
 // SECTION 6: SCHEMA & TYPE INTEGRITY
@@ -181,3 +181,6 @@ console.log('📋 Standards: BICSI TDMM, NEC 800, NFPA 70E, OSHA, TIA-568');
 console.log('');
 if (pct >= 98) console.log('🎯 TARGET MET: ' + pct + '% ≥ 98% — SYSTEM IS PRODUCTION READY');
 else console.log('⚠️  TARGET: ' + pct + '% — Need ' + (Math.ceil(totalChecks * 0.98) - passedChecks) + ' more passes to reach 98%');
+
+// Exit non-zero so CI can detect regressions
+process.exit(pct >= 98 ? 0 : 1);

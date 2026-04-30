@@ -293,10 +293,11 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
                 recognitionRef.current = null;
               }
 
-              // Auto-stop after 60 seconds (was 30s — too short for verbose scopes)
+              // Auto-stop after 2 minutes — long enough for verbose scopes (multi-camera installs,
+              // multi-system jobs) without being so long that an abandoned mic burns the whole quota.
               setTimeout(() => {
                 try { recognition.stop(); } catch { /* ignore */ }
-              }, 60000);
+              }, 120000);
             }}
             className={`flex items-center gap-2 px-4 py-2 font-bold text-xs uppercase tracking-wider transition-all ${isListening ? 'animate-pulse bg-red-600 text-white' : 'bg-[#D4AF37] text-black hover:bg-[#FFD700]'}`}
           >
