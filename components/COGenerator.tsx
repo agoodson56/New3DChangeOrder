@@ -145,7 +145,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
               >
                 {OFFICES.map(office => (
                   <option key={office.id} value={office.id}>
-                    {office.name} — {office.cityState}
+                    {office.name} — {office.address}, {office.cityState}
                   </option>
                 ))}
               </select>

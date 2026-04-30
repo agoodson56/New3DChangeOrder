@@ -50,7 +50,7 @@ export interface Office {
 export const OFFICES: Office[] = [
   {
     id: 'rancho-cordova',
-    name: 'Sacramento HQ',
+    name: '3D Rancho Cordova, California',
     address: '11365 Sunrise Gold Circle',
     cityState: 'Rancho Cordova, CA 95742',
     salesTaxRate: 0.0825,
@@ -58,7 +58,7 @@ export const OFFICES: Office[] = [
   },
   {
     id: 'livermore',
-    name: 'Bay Area',
+    name: '3D Livermore, California',
     address: '7616 Las Positas Road',
     cityState: 'Livermore, CA 94551',
     salesTaxRate: 0.1025,
@@ -66,7 +66,7 @@ export const OFFICES: Office[] = [
   },
   {
     id: 'sparks',
-    name: 'Northern Nevada',
+    name: '3D Sparks, Nevada',
     address: '1430 Greg Street, Suite 511',
     cityState: 'Sparks, NV 89431',
     salesTaxRate: 0.08265,
