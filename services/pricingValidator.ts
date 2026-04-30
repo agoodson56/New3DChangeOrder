@@ -245,17 +245,29 @@ You MUST respond with ONLY a JSON object in this exact format (no markdown, no b
             data.materials.forEach((item, index) => {
                 const dbResult = isInDatabase(item.manufacturer, item.model, extractPartNumber(item.model));
                 if (dbResult.found) {
-                    // Use the DB price if the AI-generated price differs
                     const dbPrice = dbResult.dbProduct?.msrp ?? item.msrp;
+                    const delta = item.msrp > 0 ? Math.abs(dbPrice - item.msrp) / item.msrp * 100 : 0;
+
+                    // If the DB price diverges from the AI's quoted price by >25%, the DB
+                    // entry may be stale list MSRP. In that case prefer the LOWER price as
+                    // the validated value (we bid to win — never quote above what the
+                    // market shows) and lower confidence so coordinators inspect the line.
+                    const isLargeDelta = delta > 25;
+                    const validatedPrice = isLargeDelta ? Math.min(dbPrice, item.msrp) : dbPrice;
+                    const source = isLargeDelta
+                        ? 'Database (flagged: >25% delta from AI quote — verify)'
+                        : 'Verified Product Database';
+                    const confidence = isLargeDelta ? 75 : 100;
+
                     allValidations.push({
                         itemIndex: index,
                         manufacturer: item.manufacturer,
                         model: item.model,
                         originalMsrp: item.msrp,
-                        validatedMsrp: dbPrice,
-                        source: 'Verified Product Database',
-                        confidence: 100,
-                        delta: item.msrp > 0 ? Math.abs(dbPrice - item.msrp) / item.msrp * 100 : 0,
+                        validatedMsrp: validatedPrice,
+                        source,
+                        confidence,
+                        delta: Math.round(delta * 10) / 10,
                     });
                 } else {
                     const found = result.validations?.find((v: any) => v.itemIndex === index);

@@ -172,16 +172,60 @@ export async function generateChangeOrder(
     - When the product database returns a price that appears to be inflated list MSRP rather than street price,
       you may quote a lower competitive number — note the rationale in 'professionalNotes'.
 
-    REFERENCE STREET-PRICE BANDS (sanity check — exceed only with reason in notes):
-    - Entry IP cameras: $150-$500
-    - Pro fixed/dome IP cameras: $400-$1,500
-    - PTZ outdoor cameras (top tier): $1,500-$3,500 (rarely above $4,000)
-    - Cat6 cable: $0.15-0.40/ft; Cat6A: $0.30-1.20/ft
-    - Keystone jacks: $3-15; 24-port patch panels: $50-150
-    - 24-port managed PoE switches: $400-$1,200
+    REFERENCE STREET-PRICE BANDS (HARD CHECK — never exceed ceiling without explicit reason in 'professionalNotes').
+    These are LOWER-QUARTILE contractor street prices verified against current distributor/reseller listings.
+    A customer can Google any of these and verify within minutes — quoting above the ceiling destroys trust.
+
+    CCTV / Surveillance:
+      - Entry IP cameras (1080p basic): $150-$300
+      - Pro IP fixed/dome (4MP-8MP, WDR): $300-$1,000
+      - 4K dome (advanced analytics): $700-$1,500
+      - Outdoor IR bullets: $250-$700
+      - PTZ cameras (top tier outdoor): $2,000-$3,500 (rarely above $4,000)
+      - NVRs (16-ch commercial): $400-$700
+      - NVRs (16-ch enterprise w/ storage): $2,000-$4,000
+
+    Network / PoE Switches:
+      - Unmanaged PoE 8-port: $80-$200
+      - Managed PoE+ 24-port (370W): $600-$1,000 (Cisco SMB ~$895)
+      - Managed PoE+ 48-port (740W): $1,200-$1,800 (Cisco SMB ~$1,595)
+
+    Access Control:
+      - Card readers (HID Signo / iCLASS): $200-$500
+      - 2-door access controller (Mercury, Lenel): $400-$700
+      - Electric strikes (commercial): $150-$400
+      - Maglocks (1200lb): $200-$500
+      - Door contacts: $10-$30; REX sensors: $30-$80
+
+    Structured Cabling:
+      - Cat6 plenum cable: $0.20-$0.45/ft
+      - Cat6A plenum cable: $0.45-$1.20/ft (premium brands like Berk-Tek 10G2 hit ~$0.85/ft)
+      - Cat6 keystone jacks: $3-$8; Cat6A: $5-$15
+      - 24-port Cat6A patch panel: $300-$600 (Leviton ~$425)
+      - 48-port Cat6A patch panel: $500-$900 (Leviton ~$595)
+      - Cat6 patch cords (3-7ft): $4-$10
+
+    AV:
+      - Crestron CP4-R control processor: ~$3,000-$3,500
+      - Biamp DSP (TesiraFORTE-X): $2,000-$3,500
+      - Commercial display (55" 4K): $700-$1,400
+
+    Intrusion / Fire Alarm:
+      - Motion detector (PIR): $40-$100
+      - Glass break: $50-$150
+      - Smoke detector (addressable): $50-$120
+      - Pull station: $40-$90
+      - Horn/strobe: $80-$160
+
+    Pathway / Consumables:
+      - J-hooks (2"): $2-$6 each
+      - Beam clamps: $1-$4 each
+      - Firestop sealant (3M CP25WB+): $25-$45 per tube
+      - Cable ties (bag of 100): $5-$15
 
     The customer-facing price is built downstream by adding 15% markup + sales tax to your 'msrp'.
-    Quote LEAN — markup happens after.
+    Quote LEAN — markup happens after. The deterministic validator will FLAG any line >10% above
+    the band ceiling, so don't try to inflate.
     </conservative_pricing_policy>
 
     <sales_focused_summary>

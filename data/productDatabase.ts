@@ -373,7 +373,7 @@ export const ACCESS_PANELS: ProductDefinition[] = [
         partNumber: 'LP1502',
         category: 'Equipment',
         subcategory: 'Access Panel - 2 Door',
-        msrp: 595.00,
+        msrp: 475.00, // Lower-quartile street price (was $595 list MSRP)
         unitOfMeasure: 'ea',
         description: '2-door intelligent controller, PoE+, OSDP',
         installationRequirements: [
@@ -439,7 +439,7 @@ export const CABLING_PRODUCTS: ProductDefinition[] = [
         partNumber: '6A586-U24',
         category: 'Equipment',
         subcategory: 'Patch Panel - Cat6A 24-Port',
-        msrp: 533.99,
+        msrp: 425.00, // Lower-quartile street price (was $533.99 list MSRP)
         unitOfMeasure: 'ea',
         description: 'Cat6A+ 24-port patch panel with cable management bar',
         installationRequirements: [
@@ -457,7 +457,7 @@ export const CABLING_PRODUCTS: ProductDefinition[] = [
         partNumber: '6A586-U48',
         category: 'Equipment',
         subcategory: 'Patch Panel - Cat6A 48-Port',
-        msrp: 744.42,
+        msrp: 595.00, // Lower-quartile street price (was $744.42 list MSRP)
         unitOfMeasure: 'ea',
         description: 'Cat6A+ 48-port patch panel with cable management',
         installationRequirements: [
@@ -952,7 +952,7 @@ export const AV_PRODUCTS: ProductDefinition[] = [
         partNumber: 'CP4-R',
         category: 'Equipment',
         subcategory: 'AV Control Processor',
-        msrp: 3995.00,
+        msrp: 3195.00, // Lower-quartile street price (was $3,995 list MSRP)
         unitOfMeasure: 'ea',
         description: '4-Series rack mount control system processor',
         installationRequirements: [
@@ -1254,7 +1254,7 @@ export const INTRUSION_SENSORS: ProductDefinition[] = [
             { type: 'consumable', name: 'Drywall Anchors', quantityPerUnit: 4, msrp: 0.20 }
         ],
         accessories: [],
-        laborHours: 1.0,
+        laborHours: 1.5, // Touchscreen+Prox keypad NECA MLU is 1.5 hrs (was 1.0 hr — too low for this complexity)
         complexity: 'Medium'
     },
     {
@@ -1536,7 +1536,7 @@ export const POE_SWITCHES: ProductDefinition[] = [
         partNumber: 'CBS350-24FP-4G-NA',
         category: 'Equipment',
         subcategory: 'PoE Switch - 24 Port',
-        msrp: 1095.00,
+        msrp: 895.00, // Lower-quartile street price (was $1,095 list MSRP)
         unitOfMeasure: 'ea',
         description: '24-port PoE+ managed switch, 370W budget, 4x SFP',
         installationRequirements: [
@@ -1556,7 +1556,7 @@ export const POE_SWITCHES: ProductDefinition[] = [
         partNumber: 'CBS350-48FP-4G-NA',
         category: 'Equipment',
         subcategory: 'PoE Switch - 48 Port',
-        msrp: 1995.00,
+        msrp: 1595.00, // Lower-quartile street price (was $1,995 list MSRP)
         unitOfMeasure: 'ea',
         description: '48-port PoE+ managed switch, 740W budget, 4x SFP',
         installationRequirements: [

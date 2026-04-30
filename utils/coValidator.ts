@@ -196,7 +196,66 @@ export function validateChangeOrder(data: ChangeOrderData): ValidationOutput {
     });
 
     // =========================================================================
-    // RULE 1c: Duplicate detection — same manufacturer+model appearing twice
+    // RULE 1c: Category price-band sanity. Catches outliers regardless of
+    // source (AI hallucination, stale DB entry, user typo). Bands reflect
+    // current contractor street pricing (lower-quartile to upper bound).
+    // Only flags items SIGNIFICANTLY outside expected ranges — minor variance
+    // is fine. Goal: catch a $5,899 PTZ when street is $3K, not nitpick a $30
+    // difference.
+    // =========================================================================
+    type PriceBand = { floor: number; ceiling: number; description: string; matchers: RegExp[] };
+    const PRICE_BANDS: PriceBand[] = [
+        // CCTV
+        { floor: 100, ceiling: 1500, description: 'IP fixed/dome camera', matchers: [/\b(dome|bullet|fixed)\b.*\b(camera|ip)\b/i, /\b(ip|network)\s+camera\b/i] },
+        { floor: 1500, ceiling: 4500, description: 'PTZ camera (top tier)', matchers: [/\bPTZ\b/i] },
+        { floor: 400, ceiling: 6000, description: 'NVR / video recorder', matchers: [/\bNVR\b/i, /\bvideo recorder\b/i, /\bDVR\b/i] },
+        // Network
+        { floor: 200, ceiling: 3000, description: 'PoE / managed switch', matchers: [/\bPoE\b.*\bswitch\b/i, /\bmanaged switch\b/i] },
+        // Access control
+        { floor: 100, ceiling: 800, description: 'Access reader', matchers: [/\b(card |access )?reader\b/i] },
+        { floor: 200, ceiling: 1500, description: 'Access controller / panel', matchers: [/\baccess (controller|panel)\b/i, /\bdoor (controller|panel)\b/i] },
+        { floor: 100, ceiling: 600, description: 'Electric strike / maglock', matchers: [/\belectric strike\b/i, /\bmaglock\b/i, /\bmagnetic lock\b/i] },
+        // AV
+        { floor: 1500, ceiling: 5000, description: 'AV control processor', matchers: [/\bcontrol processor\b/i, /\bcrestron.*CP\d/i] },
+        // Structured cabling
+        { floor: 100, ceiling: 800, description: '24-port patch panel', matchers: [/\b24[- ]?port.*patch panel\b/i, /\bpatch panel.*24[- ]?port\b/i] },
+        { floor: 200, ceiling: 1200, description: '48-port patch panel', matchers: [/\b48[- ]?port.*patch panel\b/i, /\bpatch panel.*48[- ]?port\b/i] },
+        // Fire alarm
+        { floor: 1500, ceiling: 12000, description: 'Fire alarm control panel (FACP)', matchers: [/\b(FACP|fire alarm panel|fire alarm control)\b/i] },
+    ];
+
+    data.materials.forEach((item, idx) => {
+        if (item.unitOfMeasure === 'ft') return; // cable already handled in 1b
+        if (item.msrp <= 0) return;
+        const haystack = `${item.manufacturer} ${item.model} ${(item as any).subcategory || ''}`;
+        for (const band of PRICE_BANDS) {
+            const matched = band.matchers.some(rx => rx.test(haystack));
+            if (!matched) continue;
+            if (item.msrp > band.ceiling * 1.10) {
+                // 10% grace above ceiling before flagging
+                warnings.push({
+                    type: 'pricing',
+                    severity: 'warning',
+                    message: `${item.manufacturer} ${item.model}: $${item.msrp.toFixed(2)} is above the typical ${band.description} band ($${band.floor}–$${band.ceiling}). Verify against current distributor pricing — may be inflated list MSRP.`,
+                    itemIndex: idx
+                });
+                deductions += 2;
+            } else if (item.msrp < band.floor * 0.50) {
+                // 50% below floor = likely typo
+                warnings.push({
+                    type: 'pricing',
+                    severity: 'warning',
+                    message: `${item.manufacturer} ${item.model}: $${item.msrp.toFixed(2)} is below the typical ${band.description} floor ($${band.floor}). Verify this isn't a typo or wrong unit.`,
+                    itemIndex: idx
+                });
+                deductions += 2;
+            }
+            break; // first matching band wins
+        }
+    });
+
+    // =========================================================================
+    // RULE 1d: Duplicate detection — same manufacturer+model appearing twice
     // is almost always a data-entry mistake.
     // =========================================================================
     const seen = new Map<string, number>();
