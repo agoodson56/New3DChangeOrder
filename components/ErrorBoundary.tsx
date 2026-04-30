@@ -14,19 +14,25 @@ interface State {
  * in front of a customer. Shows a recoverable error UI with the error message.
  */
 export class ErrorBoundary extends React.Component<Props, State> {
-  state: State = { error: null };
+  constructor(props: Props) {
+    super(props);
+    this.state = { error: null };
+    this.reset = this.reset.bind(this);
+  }
 
   static getDerivedStateFromError(error: Error): State {
     return { error };
   }
 
-  componentDidCatch(error: Error, info: React.ErrorInfo) {
+  override componentDidCatch(error: Error, info: React.ErrorInfo) {
     console.error('ErrorBoundary caught:', error, info);
   }
 
-  reset = () => this.setState({ error: null });
+  reset() {
+    this.setState({ error: null });
+  }
 
-  render() {
+  override render() {
     if (this.state.error) {
       return (
         <div className="m-8 p-6 bg-red-900/20 border border-red-500 text-white rounded">

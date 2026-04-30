@@ -1,8 +1,12 @@
 
 import { ChangeOrderData, LaborRates, Financials } from '../types';
+import {
+  LABOR_MARKUP_RATE,
+  MATERIAL_MARKUP_RATE,
+  EQUIPMENT_MARKUP_RATE,
+  TAX_ON_MARKED_UP_PRICE,
+} from '../constants';
 
-const LABOR_MARKUP_RATE = 0.15;
-const ASSET_MARKUP_RATE = 0.15;
 const DEFAULT_SALES_TAX_RATE = 0.0825; // 8.25% Rancho Cordova fallback
 
 /**
@@ -32,6 +36,9 @@ function rateLookup(rates: LaborRates, rateType: string): number {
 /**
  * Single source of truth for all financial calculations.
  * Used by both ChangeOrderView (display) and App (proposal generation).
+ *
+ * Markup rates and tax-base policy come from constants.tsx so business
+ * decisions don't require touching this file.
  */
 export function calculateFinancials(
     data: ChangeOrderData,
@@ -48,7 +55,7 @@ export function calculateFinancials(
     taxBase: number;
 } {
     // Labor (deducts contribute negative values)
-    const laborSubtotal = round2(data.labor.reduce((acc, task) => {
+    const laborSubtotal = round2((data.labor || []).reduce((acc, task) => {
         const rate = rateLookup(rates, task.rateType);
         const sign = task.isDeduct === true ? -1 : 1;
         const hours = Number.isFinite(task.hours) ? task.hours : 0;
@@ -58,7 +65,7 @@ export function calculateFinancials(
     const laborTotal = round2(laborSubtotal + laborMarkup);
 
     // Materials (passive infrastructure — deducts contribute negative values)
-    const materialSubtotal = round2(data.materials
+    const materialSubtotal = round2((data.materials || [])
         .filter(m => m.category === 'Material')
         .reduce((acc, item) => {
             const sign = item.isDeduct === true ? -1 : 1;
@@ -66,10 +73,10 @@ export function calculateFinancials(
             const msrp = Number.isFinite(item.msrp) ? item.msrp : 0;
             return acc + (sign * msrp * qty);
         }, 0));
-    const materialMarkup = round2(materialSubtotal * ASSET_MARKUP_RATE);
+    const materialMarkup = round2(materialSubtotal * MATERIAL_MARKUP_RATE);
 
     // Equipment (active devices — deducts contribute negative values)
-    const equipmentSubtotal = round2(data.materials
+    const equipmentSubtotal = round2((data.materials || [])
         .filter(m => m.category === 'Equipment')
         .reduce((acc, item) => {
             const sign = item.isDeduct === true ? -1 : 1;
@@ -77,14 +84,16 @@ export function calculateFinancials(
             const msrp = Number.isFinite(item.msrp) ? item.msrp : 0;
             return acc + (sign * msrp * qty);
         }, 0));
-    const equipmentMarkup = round2(equipmentSubtotal * ASSET_MARKUP_RATE);
+    const equipmentMarkup = round2(equipmentSubtotal * EQUIPMENT_MARKUP_RATE);
 
     const materialsTotal = round2(materialSubtotal + equipmentSubtotal + materialMarkup + equipmentMarkup);
 
-    // Tax on raw material + equipment cost (before markup).
-    // NOTE: For California contractors, this may need to be on POST-markup price.
-    // Verify with accountant. Toggle by changing the line below.
-    const taxBase = round2(materialSubtotal + equipmentSubtotal);
+    // Tax base — pre or post markup depending on policy flag.
+    const taxBase = round2(
+      TAX_ON_MARKED_UP_PRICE
+        ? materialSubtotal + materialMarkup + equipmentSubtotal + equipmentMarkup
+        : materialSubtotal + equipmentSubtotal
+    );
     const salesTax = round2(taxBase * salesTaxRate);
 
     const grandTotal = round2(laborTotal + materialsTotal + salesTax);

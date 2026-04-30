@@ -82,3 +82,37 @@ export const getOffice = (id?: string): Office =>
 export const COMPANY_PHONE = '(916) 853-9111';
 export const COMPANY_FAX = '(916) 853-9118';
 export const COMPANY_LICENSE = '#875745';
+
+// =============================================================================
+// FINANCIAL POLICY — change these without touching the math.
+// =============================================================================
+
+/**
+ * Markup applied to billable labor hours. 0.15 = 15%.
+ */
+export const LABOR_MARKUP_RATE = 0.15;
+
+/**
+ * Markup applied to passive materials (cabling, jacks, conduit, etc.).
+ * Industry norm is 25–35%; using 15% leaves money on the table on
+ * cabling-heavy jobs. Confirm with sales/management before changing.
+ */
+export const MATERIAL_MARKUP_RATE = 0.15;
+
+/**
+ * Markup applied to active equipment (cameras, switches, panels).
+ * Industry norm is 15–20%.
+ */
+export const EQUIPMENT_MARKUP_RATE = 0.15;
+
+/**
+ * Sales tax base policy.
+ *  - false (default): tax on PRE-markup material+equipment cost.
+ *    Matches the legacy behavior. Lower tax billed to customer.
+ *  - true: tax on POST-markup material+equipment price.
+ *    Matches CDTFA Reg. 1521 for many CA contractor situations.
+ *    On a $50K materials job at 8.25%, post-markup adds ~$619.
+ *
+ * **VERIFY WITH YOUR ACCOUNTANT** before flipping this.
+ */
+export const TAX_ON_MARKED_UP_PRICE = false;

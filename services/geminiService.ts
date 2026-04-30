@@ -1,6 +1,6 @@
 
 import { Type } from "@google/genai";
-import { ChangeOrderData, ProposalData, LaborRates, AdminData, Financials, ValidationResult, DEFAULT_ADMIN_DATA } from "../types";
+import { ChangeOrderData, ProposalData, LaborRates, AdminData, Financials, ValidationResult, PricingValidation, DEFAULT_ADMIN_DATA } from "../types";
 import { buildProductReference } from "../utils/productReference";
 import { validateChangeOrder } from "../utils/coValidator";
 import { validatePricing } from "./pricingValidator";
@@ -930,7 +930,7 @@ export async function generateValidatedChangeOrder(
 
   // ===== BRAIN 2: Pricing Validation =====
   onProgress?.('🧠 Brain 2: Verifying pricing...', 55);
-  let pricingValidations;
+  let pricingValidations: PricingValidation[];
   try {
     pricingValidations = await validatePricing(coData);
     onProgress?.('✅ Pricing verified', 70);
@@ -942,7 +942,14 @@ export async function generateValidatedChangeOrder(
 
   // ===== BRAIN 3: QA Audit =====
   onProgress?.('🧠 Brain 3: QA Audit...', 75);
-  let qaResult;
+  let qaResult: {
+    overallScore: number;
+    issues: string[];
+    recommendations: string[];
+    missingItems: string[];
+    brandingIssues: string[];
+    complianceNotes: string[];
+  };
   try {
     qaResult = await auditChangeOrder(coData);
     onProgress?.(`✅ QA Score: ${qaResult.overallScore}/100`, 90);

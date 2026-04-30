@@ -8,6 +8,13 @@
  * Required Pages env var: GEMINI_API_KEY (no VITE_ prefix — server-only).
  */
 
+// Cloudflare Pages Function context type — declared inline to avoid pulling in
+// @cloudflare/workers-types as a dependency just for one type.
+type PagesContext<EnvT> = {
+  request: Request;
+  env: EnvT;
+};
+
 interface Env {
   GEMINI_API_KEY?: string;
 }
@@ -24,7 +31,7 @@ const json = (body: unknown, status = 200) =>
     headers: { 'Content-Type': 'application/json' },
   });
 
-export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
+export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promise<Response> => {
   if (!env.GEMINI_API_KEY) {
     return json({ error: { code: 500, status: 'CONFIG_ERROR', message: 'GEMINI_API_KEY not configured on server' } }, 500);
   }
