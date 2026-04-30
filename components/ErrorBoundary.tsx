@@ -65,6 +65,25 @@ export class ErrorBoundary extends React.Component<Props, State> {
       userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
       fallbackTitle: this.props.fallbackTitle,
     });
+
+    // Stale-chunk auto-recovery: when a deploy lands while a tab is open,
+    // dynamically imported chunks (lazy components) get 404'd because their
+    // hash-named filenames no longer exist on the server. React catches the
+    // import error and re-throws it through componentDidCatch — which means
+    // the global window.onerror handler doesn't see it. Detect and reload
+    // here, guarded by sessionStorage so we never loop.
+    const msg = error.message || '';
+    const looksLikeStaleChunk = /Failed to fetch dynamically imported module|Loading chunk \d+ failed|Importing a module script failed|Expected a JavaScript-or-Wasm module script/i.test(msg);
+    if (looksLikeStaleChunk) {
+      try {
+        const reloadKey = 'co_chunk_reload_attempted';
+        if (!sessionStorage.getItem(reloadKey)) {
+          sessionStorage.setItem(reloadKey, String(Date.now()));
+          console.warn('[ErrorBoundary] Stale chunk detected — reloading once to pick up the latest deploy.');
+          window.location.reload();
+        }
+      } catch { /* sessionStorage unavailable — fall through to error UI */ }
+    }
   }
 
   reset() {

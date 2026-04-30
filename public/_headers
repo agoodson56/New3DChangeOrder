@@ -1,0 +1,19 @@
+# Cloudflare Pages — cache control
+#
+# Prevents the "stale tab + new deploy" failure where a user's open tab
+# tries to fetch a hash-named chunk that no longer exists on the server.
+#
+# Strategy:
+#   - index.html: never cache. The browser revalidates on every load so
+#     it always sees the latest chunk hashes.
+#   - /assets/* (hash-named JS/CSS from Vite): cache forever. Their hash
+#     changes on every code change, so the URL itself is the version key.
+
+/
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
