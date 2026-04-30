@@ -49,20 +49,43 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
 
   // Look up MSRP for an existing item
   const handleLookupMSRP = async (index: number, manufacturer: string, model: string) => {
+    if (!manufacturer.trim() && !model.trim()) {
+      alert('Add a manufacturer or model name first, then click the lookup icon.');
+      return;
+    }
     setLookupLoadingIndex(index);
     try {
       const result = await lookupMSRP(manufacturer, model);
       if (result) {
+        const previousPrice = data.materials[index].msrp;
+        const newPrice = result.msrp;
+        const deltaPct = previousPrice > 0
+          ? Math.round(Math.abs(newPrice - previousPrice) / previousPrice * 100)
+          : 0;
+        const direction = newPrice > previousPrice ? 'higher' : 'lower';
+        const confirmMsg = previousPrice > 0
+          ? `Found: ${result.manufacturer} ${result.model} (${result.partNumber})\n\n`
+            + `Current price: $${previousPrice.toFixed(2)}\n`
+            + `Looked-up price: $${newPrice.toFixed(2)} (${deltaPct}% ${direction})\n`
+            + `Source confidence: ${result.confidence}\n\n`
+            + `Apply the looked-up price?`
+          : `Found: ${result.manufacturer} ${result.model} (${result.partNumber}) at $${newPrice.toFixed(2)}.\nApply this price?`;
+        if (!window.confirm(confirmMsg)) {
+          return;
+        }
         const newMaterials = [...data.materials];
         newMaterials[index] = {
           ...newMaterials[index],
           msrp: result.msrp,
-          model: `${result.model} (${result.partNumber})`
+          model: `${result.model} (${result.partNumber})`,
         };
         onDataChange({ ...data, materials: newMaterials });
+      } else {
+        alert(`No pricing data found for "${manufacturer} ${model}". Try a more specific manufacturer + model name, or use the Search Products button to browse the catalog.`);
       }
     } catch (error) {
       console.error('MSRP lookup error:', error);
+      alert(`Lookup failed: ${error instanceof Error ? error.message : 'Unknown error'}\n\nThis may be a temporary AI service issue — try again in a moment.`);
     } finally {
       setLookupLoadingIndex(null);
     }
@@ -160,21 +183,26 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
             className={`${editableTextClass} flex-1 uppercase ${isDeduct ? 'text-red-600 font-bold' : ''}`}
           />
           {isCable && <span className="ml-1 whitespace-nowrap">(PER FT)</span>}
-          {/* Lookup MSRP button - hidden on print */}
+          {/* Lookup current street price — always visible (was hover-only, missed on touch devices) */}
           <button
             onClick={() => handleLookupMSRP(safeIndex, item.manufacturer, item.model)}
-            className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity text-[#D4AF37] hover:text-[#FFD700] print:hidden"
-            title="Look up current MSRP"
+            className={`ml-1.5 shrink-0 p-1 rounded-sm transition-all print:hidden ${
+              isLoading
+                ? 'bg-[#D4AF37]/20 text-[#D4AF37] cursor-wait'
+                : 'bg-[#D4AF37]/10 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black'
+            }`}
+            title="Look up current street price for this item (uses live web search)"
+            aria-label="Look up current price"
             disabled={isLoading}
           >
             {isLoading ? (
-              <svg className="w-3 h-3 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
+              <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
                 <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" className="opacity-75" />
               </svg>
             ) : (
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             )}
           </button>
