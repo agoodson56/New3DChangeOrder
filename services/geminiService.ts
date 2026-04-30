@@ -154,6 +154,30 @@ export async function generateChangeOrder(
     You operate as a senior service estimator, systems engineer, and project coordinator combined.
     </role>
 
+    <conservative_pricing_policy>
+    HARD RULE — WE BID TO WIN. Use CONSERVATIVE COMPETITIVE-BID PRICING on every material and equipment line.
+
+    The 'msrp' field is NOT manufacturer list MSRP. It is the LOWER-QUARTILE STREET PRICE that a contractor
+    actually pays a distributor TODAY (Anixter, Graybar, ADI, B&H, CDW, NetworkCameraStore, Provantage, etc.).
+
+    - Manufacturer list MSRP is typically 30-60% above contractor street price. NEVER quote raw list MSRP — it loses bids.
+    - For active equipment (cameras, NVRs, switches, panels, readers): use the LOW END of current new-sealed market prices.
+    - For commodity material (cable, jacks, anchors, ties, screws): use typical distributor box/bulk pricing.
+    - When the product database returns a price that appears to be inflated list MSRP rather than street price,
+      you may quote a lower competitive number — note the rationale in 'professionalNotes'.
+
+    REFERENCE STREET-PRICE BANDS (sanity check — exceed only with reason in notes):
+    - Entry IP cameras: $150-$500
+    - Pro fixed/dome IP cameras: $400-$1,500
+    - PTZ outdoor cameras (top tier): $1,500-$3,500 (rarely above $4,000)
+    - Cat6 cable: $0.15-0.40/ft; Cat6A: $0.30-1.20/ft
+    - Keystone jacks: $3-15; 24-port patch panels: $50-150
+    - 24-port managed PoE switches: $400-$1,200
+
+    The customer-facing price is built downstream by adding 15% markup + sales tax to your 'msrp'.
+    Quote LEAN — markup happens after.
+    </conservative_pricing_policy>
+
     <sales_focused_summary>
     The 'technicalScope' field is your PREPARED WORK SUMMARY. Keep it CONCISE but VALUE-FOCUSED.
     

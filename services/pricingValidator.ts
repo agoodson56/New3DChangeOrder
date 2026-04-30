@@ -183,27 +183,35 @@ export async function validatePricing(data: ChangeOrderData): Promise<PricingVal
         `[${index}] ${sanitize(item.manufacturer)} ${sanitize(item.model)} — listed MSRP: $${item.msrp.toFixed(2)}`
     ).join('\n');
 
-    const prompt = `You are a professional low-voltage pricing analyst. Your task is to find the MANUFACTURER'S SUGGESTED RETAIL PRICE (MSRP) for these products.
+    const prompt = `You are a professional low-voltage pricing analyst working for a contractor that MUST WIN COMPETITIVE BIDS. Your task is to find the COMPETITIVE STREET PRICE — what a contractor actually pays a distributor today, NOT inflated list MSRP.
 
-PRICING PRIORITY ORDER (use only ONE source per product — highest priority wins):
-1. MANUFACTURER WEBSITE — Official MSRP / list price from the manufacturer's own site
-2. AUTHORIZED DISTRIBUTOR — Price from Anixter, Graybar, ADI Global, Wesco, TEC
-3. PROFESSIONAL RESELLER — Price from B&H Photo, CDW, SHI, or other authorized resellers
-4. NEVER use eBay, Amazon consumer listings, Walmart, or auction sites — these are NOT MSRP
+PRICING PHILOSOPHY:
+- We are bidding to win. Use CONSERVATIVE (low-end) market pricing.
+- Find the LOWER QUARTILE of current selling prices for new, sealed, US-stock product.
+- Manufacturer list MSRP is usually 30-60% above what contractors actually pay. NEVER quote raw list MSRP for active equipment (cameras, panels, switches) — it will lose us the bid.
 
-For each product, return the MSRP (not street price, not sale price, not auction price).
+PREFERRED SOURCES (use the LOWEST verifiable price among new-sealed listings):
+1. Authorized professional distributors: Anixter, Graybar, ADI Global, Wesco, TEC, B&H Photo, CDW, SHI
+2. Authorized resellers with new/sealed stock: NetworkCameraStore, Southern Electronics, Provantage, Newegg Business
+3. Amazon Business / Amazon (only if listing is "new" from a verified business seller)
+4. Manufacturer direct e-commerce if available
+
+DO NOT USE: eBay used/auction listings, refurbished, "open box", or international gray-market sources.
+
+For each product, return the LOWER-QUARTILE STREET PRICE — if you see prices ranging $2,849, $2,849, $3,139, $3,520 — return ~$2,900 (lower quartile), not the average and never the highest.
 
 Products to verify:
 ${itemList}
 
 RULES:
-- Return the per-unit MSRP in USD
-- If the product is sold in bulk (e.g., box of 100), return the PRICE PER BOX, not per individual unit
-- If you cannot find an exact match, find the closest comparable product from the same manufacturer
-- Set confidence 92-99 if you found MSRP on the manufacturer website or an authorized distributor (Anixter, Graybar, ADI, Wesco, TEC)
-- Set confidence 85-91 if you found MSRP on a professional reseller (B&H Photo, CDW, SHI)
-- Set confidence 70-84 if you're using a comparable product or secondary source
-- Set confidence below 70 ONLY if you cannot find any reliable pricing at all
+- Return the per-unit price in USD
+- If sold in bulk (e.g., box of 100), return PRICE PER BOX
+- If you cannot find an exact match, find the closest comparable from the same manufacturer
+- For commodity items (cable, jacks, screws, anchors, ties) the listed price is likely already street — trust it unless it's clearly off
+- Set confidence 92-99 if you found multiple corroborating distributor/reseller prices
+- Set confidence 85-91 if you found a single reliable distributor price
+- Set confidence 70-84 if using a comparable product or single secondary source
+- Set confidence below 70 ONLY if no reliable pricing exists
 
 You MUST respond with ONLY a JSON object in this exact format (no markdown, no backticks):
 {"validations":[{"itemIndex":0,"manufacturer":"Brand","model":"Model","validatedMsrp":123.45,"source":"Where found","confidence":95}]}`;

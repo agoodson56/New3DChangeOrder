@@ -27,7 +27,7 @@ const PRODUCT_SEARCH_SCHEMA = {
           manufacturer: { type: Type.STRING, description: "Product manufacturer/brand name" },
           model: { type: Type.STRING, description: "Complete model number or product name" },
           partNumber: { type: Type.STRING, description: "Official manufacturer part number or SKU" },
-          msrp: { type: Type.NUMBER, description: "Manufacturer's Suggested Retail Price in USD. Use realistic market pricing." },
+          msrp: { type: Type.NUMBER, description: "Conservative competitive-bid unit price in USD — lower-quartile current street price, NOT inflated list MSRP." },
           description: { type: Type.STRING, description: "Brief product description" },
           category: { type: Type.STRING, enum: ['Material', 'Equipment'], description: "Material for passive items (cables, jacks), Equipment for active devices (cameras, switches)" },
           unitOfMeasure: { type: Type.STRING, description: "Unit of measure: 'ft' for cables, 'ea' for individual items" },
@@ -49,34 +49,46 @@ export async function searchProducts(query: string): Promise<ProductSearchResult
   const model = 'gemini-2.5-flash';
 
   const systemInstruction = `
-    You are a professional low-voltage systems product research specialist.
-    Your job is to find accurate product information, part numbers, and MSRP pricing for:
+    You are a professional low-voltage systems product research specialist working for a contractor that MUST WIN COMPETITIVE BIDS.
+    Your job is to find accurate product information, part numbers, and CONSERVATIVE STREET PRICING (NOT inflated list MSRP) for:
     - CCTV cameras and video surveillance equipment
     - Access control systems (readers, panels, credentials)
     - Structured cabling components (Cat6/6A cable, jacks, patch panels, faceplates)
     - Fire alarm and intrusion detection devices
     - Audio/Visual equipment
     - Network infrastructure (switches, PoE injectors)
-    
-    CRITICAL PRICING RULES:
-    1. Use REAL, CURRENT market prices from authorized distributors
-    2. For cameras: Professional IP cameras typically range $200-$2000+ depending on features
-    3. For cabling: Cat6 is typically $0.15-0.40/ft, Cat6A is $0.30-0.60/ft
-    4. For jacks: Quality keystones are typically $3-15 each
-    5. For patch panels: 24-port panels typically $50-150
-    6. NEVER use placeholder or rounded prices like $0, $100, $1000
-    7. Use prices accurate to the cent when possible
-    
+
+    CRITICAL PRICING PHILOSOPHY — WE BID TO WIN:
+    - Return the LOWER QUARTILE of current new-sealed selling prices, NOT manufacturer list MSRP.
+    - Manufacturer list MSRP is typically 30-60% above what contractors actually pay. Quoting list will lose bids.
+    - If you see prices like $2,849 / $2,849 / $3,139 / $3,520, return ~$2,900 (low end), never the highest.
+
+    PREFERRED PRICE SOURCES (use LOWEST among new-sealed listings):
+    1. Pro distributors: Anixter, Graybar, ADI Global, Wesco, TEC, B&H Photo, CDW, SHI, Provantage
+    2. Authorized resellers with new/sealed stock: NetworkCameraStore, Southern Electronics, Newegg Business
+    3. Amazon Business / Amazon (new from verified business seller only)
+    DO NOT USE: eBay used/auction, refurbished, "open box", gray-market sources.
+
+    REASONABLE STREET-PRICE RANGES (use as sanity check):
+    - Entry IP cameras: $150-$500
+    - Pro fixed/dome IP cameras: $400-$1,500
+    - PTZ cameras: $1,500-$3,500 (top-tier outdoor PTZ rarely exceeds $4,000 contractor price)
+    - Cat6 cable: $0.15-0.40/ft, Cat6A: $0.30-1.20/ft (premium brands like Berk-Tek 10G2 can hit $1.20)
+    - Quality keystone jacks: $3-15
+    - 24-port patch panels: $50-150
+    - PoE switches (24-port managed): $400-$1,200
+
     SEARCH STRATEGY:
-    - Search for products from major professional brands: Axis, Hanwha, Verkada, Panduit, Leviton, Berk-Tek, CommScope, HID, Lenel
+    - Major brands: Axis, Hanwha, Verkada, Panduit, Leviton, Berk-Tek, CommScope, HID, Lenel
     - Include the official manufacturer part number
-    - Provide pricing from distributor sites like ADI, Anixter, Graybar, or manufacturer MSRP sheets
-    
-    Return structured JSON with accurate product data.
+    - Cross-reference 2-3 sources and return the LOWER-QUARTILE price
+    - NEVER use placeholder or rounded prices like $0, $100, $1000
+
+    Return structured JSON with conservative competitive-bid pricing.
   `;
 
   const prompt = `
-    Search for the following product(s) and provide accurate pricing information:
+    Search for the following product(s) and provide CONSERVATIVE COMPETITIVE-BID pricing:
 
     "${safeQuery}"
 
@@ -84,12 +96,12 @@ export async function searchProducts(query: string): Promise<ProductSearchResult
     - Official manufacturer name
     - Complete model/product name
     - Manufacturer part number or SKU
-    - Current MSRP or typical distributor pricing in USD
+    - LOWER-QUARTILE current street price in USD (what a contractor actually pays — NOT list MSRP)
     - Brief product description
     - Category (Material for passive components, Equipment for active devices)
     - Unit of measure (ft for cables, ea for individual items)
-    
-    Use your knowledge grounded in real product data from manufacturer websites, distributor catalogs, and industry pricing guides.
+
+    Cross-reference 2-3 distributor/reseller listings and return the lower-quartile price.
   `;
 
   try {
