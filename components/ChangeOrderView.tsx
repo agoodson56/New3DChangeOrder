@@ -590,26 +590,31 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
       </div>
 
       {/* Non-Printable Actions */}
-      <div className="p-10 flex gap-6 print:hidden bg-gray-100 border-t-4 border-gray-300">
-        <GoldButton
-          onClick={() => {
-            // Defer print so any pending React state from a final keystroke flushes to the DOM first.
-            setTimeout(() => window.print(), 50);
-          }}
-          className="flex-1 h-16 text-lg shadow-xl tracking-[0.15em] font-black"
-        >
-          🖨️ PRINT CHANGE ORDER
-        </GoldButton>
-        <GoldButton
-          onClick={onGenerateProposal}
-          loading={isGeneratingProposal}
-          className="flex-1 h-16 text-lg shadow-xl tracking-[0.15em] font-black bg-gradient-to-r from-[#008a8a] to-[#006666] hover:from-[#009a9a] hover:to-[#007777]"
-        >
-          ✨ GENERATE PROPOSAL
-        </GoldButton>
-        <GoldButton onClick={onReset} variant="outline" className="flex-1 h-16 text-lg font-black">
-          New Intake Session
-        </GoldButton>
+      <div className="p-10 print:hidden bg-gray-100 border-t-4 border-gray-300 space-y-5">
+        <div className="flex gap-6">
+          <GoldButton
+            onClick={() => {
+              // Defer print so any pending React state from a final keystroke flushes to the DOM first.
+              setTimeout(() => window.print(), 50);
+            }}
+            className="flex-1 h-16 text-lg shadow-xl tracking-[0.15em] font-black"
+          >
+            🖨️ PRINT CHANGE ORDER
+          </GoldButton>
+          <GoldButton
+            onClick={onGenerateProposal}
+            loading={isGeneratingProposal}
+            className="flex-1 h-16 text-lg shadow-xl tracking-[0.15em] font-black bg-gradient-to-r from-[#008a8a] to-[#006666] hover:from-[#009a9a] hover:to-[#007777]"
+          >
+            ✨ GENERATE PROPOSAL
+          </GoldButton>
+          <GoldButton onClick={onReset} variant="outline" className="flex-1 h-16 text-lg font-black">
+            New Intake Session
+          </GoldButton>
+        </div>
+        <p className="text-[10px] text-center text-gray-700 tracking-widest font-bold uppercase border-t border-gray-300 pt-4 leading-relaxed">
+          <span className="text-[#B8860B]">Estimator Verification —</span> Prior to issuing this change order, the estimator is responsible for validating all high-priced material and equipment line items against current distributor pricing. Use the magnifying-glass icon adjacent to each line to confirm street-price accuracy.
+        </p>
       </div>
       {/* Product Search Modal */}
       <ProductSearchModal
