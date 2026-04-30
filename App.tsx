@@ -1,15 +1,21 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AppStatus, LaborRates, ChangeOrderData, ProposalData } from './types';
 import { LaborRateModal } from './components/LaborRateModal';
 import { COGenerator } from './components/COGenerator';
 import { ChangeOrderView } from './components/ChangeOrderView';
 import { ProposalView } from './components/ProposalView';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { HistoryModal } from './components/HistoryModal';
 import { generateProposal } from './services/geminiService';
 import { describeAiError } from './services/geminiClient';
 import { calculateFinancials } from './utils/financials';
 import { Icons, getOffice } from './constants';
+import {
+  saveDraft, loadDraft, clearDraft,
+  saveRates as persistRates, loadRates,
+  saveToHistory,
+} from './utils/persistence';
 
 const App: React.FC = () => {
   const [status, setStatus] = useState<AppStatus>(AppStatus.IDLE);
@@ -17,22 +23,57 @@ const App: React.FC = () => {
   const [coData, setCoData] = useState<ChangeOrderData | null>(null);
   const [proposalData, setProposalData] = useState<ProposalData | null>(null);
   const [isGeneratingProposal, setIsGeneratingProposal] = useState(false);
+  const [draftPrompt, setDraftPrompt] = useState<{ found: true } | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [savedCoId, setSavedCoId] = useState<string | null>(null);
+  const draftSaveTimer = useRef<number | null>(null);
 
+  // ── On mount: try to restore labor rates and check for saved draft ────────
   useEffect(() => {
-    // Force rate entry on load
-    if (!rates) {
+    const persistedRates = loadRates();
+    if (persistedRates) {
+      setRates(persistedRates);
+    } else {
       setStatus(AppStatus.SETUP);
     }
-  }, [rates]);
+    const draft = loadDraft();
+    if (draft) {
+      setDraftPrompt({ found: true });
+    }
+    // Run only on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Debounced auto-save of in-progress CO ─────────────────────────────────
+  useEffect(() => {
+    if (!coData) return;
+    if (draftSaveTimer.current) {
+      window.clearTimeout(draftSaveTimer.current);
+    }
+    draftSaveTimer.current = window.setTimeout(() => {
+      saveDraft({
+        coData,
+        stage: status === AppStatus.PROPOSAL ? 'proposal' : 'review',
+      });
+    }, 1500);
+    return () => {
+      if (draftSaveTimer.current) {
+        window.clearTimeout(draftSaveTimer.current);
+        draftSaveTimer.current = null;
+      }
+    };
+  }, [coData, status]);
 
   const handleSaveRates = (newRates: LaborRates) => {
     setRates(newRates);
+    persistRates(newRates);
     setStatus(AppStatus.IDLE);
   };
 
   const handleGeneratedResult = (data: ChangeOrderData) => {
     setCoData(data);
     setStatus(AppStatus.RESULT);
+    setSavedCoId(null);
   };
 
   const handleReset = () => {
@@ -41,14 +82,39 @@ const App: React.FC = () => {
     }
     setCoData(null);
     setProposalData(null);
+    setSavedCoId(null);
     setStatus(AppStatus.IDLE);
+    clearDraft();
   };
 
   const handleDataChange = (newData: ChangeOrderData) => {
     setCoData(newData);
   };
 
+  const handleRestoreDraft = () => {
+    const draft = loadDraft();
+    if (!draft) {
+      setDraftPrompt(null);
+      return;
+    }
+    setCoData(draft.coData);
+    setStatus(draft.stage === 'proposal' ? AppStatus.RESULT : AppStatus.RESULT);
+    setDraftPrompt(null);
+  };
 
+  const handleDismissDraft = () => {
+    clearDraft();
+    setDraftPrompt(null);
+  };
+
+  // Save snapshot to history (called on print or when explicitly archived)
+  const handleSnapshotToHistory = () => {
+    if (!coData || !rates || savedCoId) return;
+    const office = getOffice(coData.officeId);
+    const financials = calculateFinancials(coData, rates, office.salesTaxRate);
+    const entry = saveToHistory(coData, financials.grandTotal);
+    setSavedCoId(entry.id);
+  };
 
   const handleGenerateProposal = async () => {
     if (!coData || !rates) return;
@@ -75,7 +141,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-black text-white selection:bg-[#D4AF37] selection:text-black">
       {/* Rate Intake Modal (Global Lock) */}
-      {status === AppStatus.SETUP && <LaborRateModal onSave={handleSaveRates} />}
+      {status === AppStatus.SETUP && <LaborRateModal onSave={handleSaveRates} initialRates={rates ?? undefined} />}
 
       {/* Main Layout */}
       <div className="relative z-10">
@@ -91,17 +157,27 @@ const App: React.FC = () => {
               <p className="text-[10px] text-gray-500 uppercase font-bold tracking-[0.4em] mt-1">3DTSI Service Estimator</p>
             </div>
           </div>
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-4">
             {rates && (
-              <div className="text-right hidden sm:block border-r border-gray-800 pr-8">
+              <div className="text-right hidden sm:block border-r border-gray-800 pr-6">
                 <div className="text-[10px] text-gray-600 uppercase font-black tracking-[0.2em] mb-1">Session Base Rate</div>
                 <div className="text-[#D4AF37] font-black text-xl font-mono">${rates.base.toFixed(2)}/hr</div>
               </div>
             )}
             <button
+              onClick={() => setHistoryOpen(true)}
+              className="group flex items-center gap-2 bg-white/5 hover:bg-white/10 px-4 py-2 border border-gray-800 transition-all rounded-sm"
+              title="Change Order History & Win Rate"
+            >
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-[#D4AF37]">History</span>
+              <svg className="w-5 h-5 text-gray-500 group-hover:text-[#D4AF37] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              </svg>
+            </button>
+            <button
               onClick={() => setStatus(AppStatus.SETUP)}
-              className="group flex items-center gap-3 bg-white/5 hover:bg-white/10 px-4 py-2 border border-gray-800 transition-all rounded-sm"
-              title="System Configuration"
+              className="group flex items-center gap-2 bg-white/5 hover:bg-white/10 px-4 py-2 border border-gray-800 transition-all rounded-sm"
+              title="Labor Rates"
             >
               <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-[#D4AF37]">Rates</span>
               <svg className="w-5 h-5 text-gray-500 group-hover:text-[#D4AF37] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,6 +189,35 @@ const App: React.FC = () => {
         </header>
 
         <main className="container mx-auto px-6 py-16">
+          {/* Draft restore banner */}
+          {draftPrompt && (
+            <div className="mb-8 max-w-3xl mx-auto bg-[#D4AF37]/10 border border-[#D4AF37]/40 rounded-sm p-4 flex items-center justify-between gap-4 print:hidden">
+              <div className="flex items-center gap-3">
+                <svg className="w-6 h-6 text-[#D4AF37] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <p className="text-sm font-bold text-[#D4AF37] uppercase tracking-widest">Unsaved draft found</p>
+                  <p className="text-xs text-gray-400">A change order was in progress when you last closed the tab. Restore it?</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleRestoreDraft}
+                  className="bg-[#D4AF37] hover:bg-[#FFD700] text-black px-4 py-2 text-xs font-black uppercase tracking-widest transition-all"
+                >
+                  Restore
+                </button>
+                <button
+                  onClick={handleDismissDraft}
+                  className="bg-white/5 hover:bg-white/10 border border-gray-800 text-gray-400 px-4 py-2 text-xs font-black uppercase tracking-widest transition-all"
+                >
+                  Discard
+                </button>
+              </div>
+            </div>
+          )}
+
           {status === AppStatus.IDLE && (
             <div className="space-y-16 animate-in fade-in zoom-in-95 duration-1000">
               <div className="text-center max-w-3xl mx-auto space-y-6">
@@ -138,6 +243,8 @@ const App: React.FC = () => {
                   onDataChange={handleDataChange}
                   onGenerateProposal={handleGenerateProposal}
                   isGeneratingProposal={isGeneratingProposal}
+                  onArchive={handleSnapshotToHistory}
+                  archivedId={savedCoId}
                 />
               </ErrorBoundary>
             </div>
@@ -156,6 +263,11 @@ const App: React.FC = () => {
           )}
         </main>
       </div>
+
+      {/* History modal */}
+      {historyOpen && (
+        <HistoryModal onClose={() => setHistoryOpen(false)} />
+      )}
 
       {/* Cinematic Background Ambience */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden print:hidden">

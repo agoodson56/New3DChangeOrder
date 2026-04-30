@@ -1,10 +1,11 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { GoldButton } from './GoldButton';
 import { generateValidatedChangeOrder } from '../services/geminiService';
 import { describeAiError } from '../services/geminiClient';
 import { ChangeOrderData } from '../types';
 import { OFFICES, DEFAULT_OFFICE_ID } from '../constants';
+import { loadRecentCustomers, rememberCustomer, type SavedCustomer } from '../utils/persistence';
 
 const MAX_IMAGE_BYTES = 5_000_000; // 5MB per image
 const MAX_IMAGES = 10;
@@ -37,8 +38,32 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
     officeId: DEFAULT_OFFICE_ID
   });
 
+  // Customer autocomplete: lazy-loaded list, filtered by current input
+  const [customerFocused, setCustomerFocused] = useState(false);
+  const recentCustomers = useMemo<SavedCustomer[]>(() => loadRecentCustomers(20), [customerFocused]);
+  const customerSuggestions = useMemo(() => {
+    const q = adminData.customer.trim().toLowerCase();
+    if (!q) return recentCustomers.slice(0, 8);
+    return recentCustomers
+      .filter(c => c.customer.toLowerCase().includes(q))
+      .slice(0, 8);
+  }, [adminData.customer, recentCustomers]);
+
   const handleAdminChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setAdminData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handlePickCustomer = (customer: SavedCustomer) => {
+    setAdminData(prev => ({
+      ...prev,
+      customer: customer.customer,
+      contact: customer.contact || prev.contact,
+      address: customer.address || prev.address,
+      phone: customer.phone || prev.phone,
+      projectName: customer.projectName || prev.projectName,
+      officeId: customer.officeId || prev.officeId,
+    }));
+    setCustomerFocused(false);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,6 +117,10 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
           setPipelinePercent(percent);
         }
       );
+      // Remember this customer for future auto-fill (only if generation succeeded)
+      if (adminData.customer.trim()) {
+        rememberCustomer(adminData);
+      }
       onResult(result);
     } catch (error) {
       console.error(error);
@@ -113,9 +142,39 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
         <h3 className="text-xs font-black text-[#D4AF37] uppercase tracking-[0.3em] border-b border-gray-800 pb-2">Administrative Intake</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
           <div className="space-y-4">
-            <div>
+            <div className="relative">
               <label className={labelClasses}>Customer Name</label>
-              <input name="customer" value={adminData.customer} onChange={handleAdminChange} className={inputClasses} placeholder="e.g. Warehouse Client" />
+              <input
+                name="customer"
+                value={adminData.customer}
+                onChange={handleAdminChange}
+                onFocus={() => setCustomerFocused(true)}
+                onBlur={() => setTimeout(() => setCustomerFocused(false), 150)}
+                className={inputClasses}
+                placeholder="e.g. Warehouse Client"
+                autoComplete="off"
+              />
+              {customerFocused && customerSuggestions.length > 0 && (
+                <div className="absolute z-20 left-0 right-0 mt-1 bg-[#0a0a0a] border border-[#D4AF37]/40 shadow-2xl max-h-64 overflow-y-auto">
+                  <div className="text-[8px] text-gray-500 uppercase font-bold tracking-widest px-3 py-1.5 border-b border-gray-900">
+                    Recent customers — click to autofill
+                  </div>
+                  {customerSuggestions.map(c => (
+                    <button
+                      key={c.customer}
+                      type="button"
+                      onMouseDown={() => handlePickCustomer(c)}
+                      className="w-full text-left px-3 py-2 hover:bg-[#D4AF37]/10 transition-colors border-b border-gray-900 last:border-b-0"
+                    >
+                      <div className="text-sm text-white font-bold truncate">{c.customer}</div>
+                      <div className="text-[10px] text-gray-500 truncate">
+                        {c.contact && <span>{c.contact} · </span>}
+                        {c.address || 'no address'}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <div>
               <label className={labelClasses}>Contact Person</label>

@@ -6,14 +6,13 @@ import { Icons } from '../constants';
 
 interface LaborRateModalProps {
   onSave: (rates: LaborRates) => void;
+  initialRates?: LaborRates;
 }
 
-export const LaborRateModal: React.FC<LaborRateModalProps> = ({ onSave }) => {
-  const [rates, setRates] = useState<LaborRates>({
-    base: 165,
-    afterHours: 247.50,
-    emergency: 330
-  });
+export const LaborRateModal: React.FC<LaborRateModalProps> = ({ onSave, initialRates }) => {
+  const [rates, setRates] = useState<LaborRates>(
+    initialRates ?? { base: 165, afterHours: 247.50, emergency: 330 }
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

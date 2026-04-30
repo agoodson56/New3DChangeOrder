@@ -17,9 +17,11 @@ interface ChangeOrderViewProps {
   onDataChange: (data: ChangeOrderData) => void;
   onGenerateProposal: () => void;
   isGeneratingProposal: boolean;
+  onArchive?: () => void;
+  archivedId?: string | null;
 }
 
-export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, onReset, onDataChange, onGenerateProposal, isGeneratingProposal }) => {
+export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, onReset, onDataChange, onGenerateProposal, isGeneratingProposal, onArchive, archivedId }) => {
   // Product search modal state
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [searchInitialQuery, setSearchInitialQuery] = useState('');
@@ -611,6 +613,8 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
         <div className="flex gap-6">
           <GoldButton
             onClick={() => {
+              // Auto-save to history on first print so win-rate tracking captures every CO sent out.
+              if (onArchive && !archivedId) onArchive();
               // Defer print so any pending React state from a final keystroke flushes to the DOM first.
               setTimeout(() => window.print(), 50);
             }}
