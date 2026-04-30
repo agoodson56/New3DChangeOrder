@@ -142,7 +142,15 @@ export async function generateContent(req: GenerateRequest): Promise<GenerateRes
 /** Translate any error from generateContent into a user-friendly message. */
 export function describeAiError(err: unknown): string {
   if (err instanceof ApiKeyError) return 'AI service key is missing, invalid, or suspended. Contact your administrator.';
-  if (err instanceof RateLimitError) return 'AI service is rate-limited. Wait a minute and try again.';
+  if (err instanceof RateLimitError) {
+    // Surface the specific quota source — Google API rate limit vs our
+    // per-IP throttle have different remediation paths.
+    const msg = err.message || '';
+    if (/from this network|RATE_LIMIT_PER_MINUTE/i.test(msg)) {
+      return 'Your office network has hit the per-minute request limit. Wait 60 seconds and try again. If this happens often, ask your admin to raise RATE_LIMIT_PER_MINUTE in Cloudflare Pages.';
+    }
+    return 'Google\'s AI service rate limit reached. Wait 60 seconds and try again.';
+  }
   if (err instanceof UnavailableError) return 'Google\'s AI service is overloaded right now. We retried 3 times. Please try again in a minute or two.';
   if (err instanceof NetworkError) return 'Network error. Check your connection and try again.';
   if (err instanceof Error) return err.message;

@@ -36,7 +36,11 @@ interface GeminiProxyBody {
 }
 
 const DEFAULT_MAX_BYTES = 1_000_000;
-const DEFAULT_RATE_LIMIT = 30;
+// 200 req/min/IP — generous enough for an office of 10 coordinators sharing one
+// external IP via NAT (each generating ~15 req/min for a CO + a few lookups),
+// while still blocking automated abuse (a scraper hammering /api/gemini at this
+// rate would still burn meaningful prepaid quota and warrant edge throttling).
+const DEFAULT_RATE_LIMIT = 200;
 
 const json = (body: unknown, status = 200, extraHeaders: Record<string, string> = {}) =>
   new Response(JSON.stringify(body), {
@@ -76,13 +80,26 @@ function isAllowedOrigin(request: Request, env: Env): boolean {
 
   const origin = request.headers.get('Origin') || '';
   const referer = request.headers.get('Referer') || '';
+  const secFetchSite = request.headers.get('Sec-Fetch-Site') || '';
   const requestUrl = new URL(request.url);
 
-  // Default allowlist: same host that served the function.
+  // Modern browsers send Sec-Fetch-Site=same-origin for fetches initiated by
+  // the page itself. This is a strong signal the request came from our own
+  // app and bypasses the need for Origin/Referer (which some privacy browsers
+  // strip). If the browser explicitly says same-origin, trust it.
+  if (secFetchSite === 'same-origin') return true;
+
+  // Default allowlist: same host that served the function. Custom domains
+  // (e.g., co.3dtsi.com) work automatically because the page is served from
+  // that host and the function lives at that host's /api/gemini.
   if (!allowedRaw) {
-    const sameHost = origin === requestUrl.origin
-      || (referer && new URL(referer).origin === requestUrl.origin);
-    return Boolean(sameHost);
+    if (origin && origin === requestUrl.origin) return true;
+    if (referer) {
+      try {
+        if (new URL(referer).origin === requestUrl.origin) return true;
+      } catch { /* malformed referer */ }
+    }
+    return false;
   }
 
   const allowedList = allowedRaw.split(',').map(s => s.trim()).filter(Boolean);
@@ -103,7 +120,15 @@ export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promis
 
   // ── Security: Origin allowlist ─────────────────────────────────────────────
   if (!isAllowedOrigin(request, env)) {
-    return json({ error: { code: 403, status: 'FORBIDDEN', message: 'Origin not allowed' } }, 403);
+    const origin = request.headers.get('Origin') || '(none)';
+    const referer = request.headers.get('Referer') || '(none)';
+    return json({
+      error: {
+        code: 403,
+        status: 'FORBIDDEN',
+        message: `Origin not allowed. Origin=${origin}, Referer=${referer}. If you're using a custom domain, set ALLOWED_ORIGINS in Cloudflare Pages env vars.`
+      }
+    }, 403);
   }
 
   // ── Security: Request size cap ─────────────────────────────────────────────
@@ -120,7 +145,13 @@ export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promis
     || 'unknown';
   if (!rateLimitOk(ip, perMinute)) {
     return json(
-      { error: { code: 429, status: 'RATE_LIMITED', message: `Too many requests. Limit: ${perMinute}/minute.` } },
+      {
+        error: {
+          code: 429,
+          status: 'RATE_LIMITED',
+          message: `Too many requests from this network in the past minute (limit: ${perMinute}). If your office shares an external IP, raise RATE_LIMIT_PER_MINUTE in Cloudflare Pages env vars. Retry in 60 seconds.`
+        }
+      },
       429,
       { 'Retry-After': '60' }
     );
