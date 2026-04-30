@@ -850,7 +850,7 @@ export async function generateProposal(
     - CONFIDENT - position 3D Technology Services as the clear best choice
     
     ABOUT 3D TECHNOLOGY SERVICES:
-    - California C-7 Licensed contractor (#875745)
+    - Licensed contractor in California (CSLB# 757157), Nevada (NV# 0049045), and Arizona (AZ# 332533)
     - Located in Rancho Cordova, CA (Sacramento region)
     - Specializes in: CCTV, Access Control, Structured Cabling, Fire Alarm, AV Systems
     - BICSI certified technicians

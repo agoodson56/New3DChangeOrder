@@ -81,7 +81,7 @@ export const getOffice = (id?: string): Office =>
 
 export const COMPANY_PHONE = '(916) 853-9111';
 export const COMPANY_FAX = '(916) 853-9118';
-export const COMPANY_LICENSE = '#875745';
+export const COMPANY_LICENSE = 'CSLB# 757157 – NV# 0049045 – AZ# 332533';
 
 // =============================================================================
 // FINANCIAL POLICY — change these without touching the math.
