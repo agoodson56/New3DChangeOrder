@@ -16,6 +16,12 @@ export interface GenerateRequest {
    *  is exhausted by UnavailableError after all retries. Lives on a different
    *  Google compute pool, so its load is uncorrelated with the primary. */
   fallbackModels?: string[];
+  /** Mark this call as non-essential (validation/audit pass). When true, the
+   *  client makes ONE attempt against the primary model and throws on any
+   *  failure — no retries, no fallback chain. The caller's try/catch handles
+   *  graceful degradation. Saves quota and latency on calls where producing
+   *  no result is acceptable. */
+  nonEssential?: boolean;
 }
 
 export interface GenerateResponse {
@@ -111,7 +117,13 @@ async function tryModel(req: GenerateRequest, model: string): Promise<GenerateRe
 }
 
 export async function generateContent(req: GenerateRequest): Promise<GenerateResponse> {
-  // Try primary model with retries; on persistent UnavailableError, fall through to fallbacks.
+  // Non-essential calls (validation/audit): one attempt, primary model only,
+  // throw immediately on any failure. Saves quota and latency.
+  if (req.nonEssential) {
+    return await attemptOnce({ ...req, model: req.model });
+  }
+  // Essential calls: try primary model with retries; on persistent UnavailableError
+  // or RateLimitError, fall through to fallback models (different quota pools).
   const models = [req.model, ...(req.fallbackModels ?? [])];
   let lastErr: unknown;
   for (let i = 0; i < models.length; i++) {
@@ -119,8 +131,6 @@ export async function generateContent(req: GenerateRequest): Promise<GenerateRes
       return await tryModel(req, models[i]);
     } catch (e) {
       lastErr = e;
-      // Only fall through to the next model on capacity issues. Auth, schema, etc. won't
-      // be fixed by a different model.
       const fallthroughable = e instanceof UnavailableError || e instanceof RateLimitError;
       if (!fallthroughable || i === models.length - 1) throw e;
       console.warn(`Model ${models[i]} unavailable; falling back to ${models[i + 1]}`);

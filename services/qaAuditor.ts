@@ -174,68 +174,47 @@ Return:
 - brandingIssues: manufacturer mixing or warranty concerns
 - complianceNotes: code/standard violations`;
 
-    const MAX_RETRIES = 3;
-    const BASE_DELAY_MS = 2000;
-
-    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-        try {
-            const response = await generateContent({
-                model: 'gemini-2.5-flash',
-                fallbackModels: ['gemini-2.0-flash', 'gemini-2.5-flash-lite'],
-                contents: { parts: [{ text: prompt }] },
-                config: {
-                    temperature: 0,
-                    responseMimeType: 'application/json',
-                    responseSchema: QA_SCHEMA,
-                }
-            });
-
-            const text = response.text || '{}';
-            const result = JSON.parse(text);
-
-            return {
-                overallScore: result.overallScore || 70,
-                issues: result.issues || [],
-                recommendations: result.recommendations || [],
-                missingItems: result.missingItems || [],
-                brandingIssues: result.brandingIssues || [],
-                complianceNotes: result.complianceNotes || [],
-            };
-
-        } catch (error: any) {
-            if (error instanceof ApiKeyError) {
-                console.error('QA audit: API key error', error);
-                throw error;
+    // Single attempt, fail fast. QA audit is non-essential — if it doesn't
+    // succeed, the change order still ships with deterministic validation
+    // (coValidator) and any pricing checks that did succeed.
+    try {
+        const response = await generateContent({
+            model: 'gemini-2.5-flash',
+            nonEssential: true,
+            contents: { parts: [{ text: prompt }] },
+            config: {
+                temperature: 0,
+                responseMimeType: 'application/json',
+                responseSchema: QA_SCHEMA,
             }
-            const is429 = error instanceof RateLimitError ||
-                error?.message?.includes('429') || error?.message?.includes('RESOURCE_EXHAUSTED');
+        });
 
-            if (is429 && attempt < MAX_RETRIES - 1) {
-                const delay = BASE_DELAY_MS * Math.pow(2, attempt); // 2s, 4s, 8s
-                console.warn(`QA audit rate limited (429). Retrying in ${delay / 1000}s... (attempt ${attempt + 1}/${MAX_RETRIES})`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-                continue;
-            }
+        const text = response.text || '{}';
+        const result = JSON.parse(text);
 
-            console.error('QA audit error:', error);
-            return {
-                overallScore: 60,
-                issues: [is429 ? 'QA audit skipped — API rate limit reached. Try again in a moment.' : 'QA audit failed — please review manually'],
-                recommendations: [],
-                missingItems: [],
-                brandingIssues: [],
-                complianceNotes: []
-            };
+        return {
+            overallScore: result.overallScore || 70,
+            issues: result.issues || [],
+            recommendations: result.recommendations || [],
+            missingItems: result.missingItems || [],
+            brandingIssues: result.brandingIssues || [],
+            complianceNotes: result.complianceNotes || [],
+        };
+    } catch (error: any) {
+        if (error instanceof ApiKeyError) {
+            console.error('QA audit: API key error', error);
+            throw error;
         }
+        const reason = error instanceof RateLimitError ? 'rate limit reached'
+            : (error?.name === 'UnavailableError' ? 'AI service overloaded' : 'failed');
+        console.warn(`QA audit skipped: ${reason}`);
+        return {
+            overallScore: 70,
+            issues: [`QA audit skipped — ${reason}. The deterministic validator still ran. Review the line items manually before issuing.`],
+            recommendations: [],
+            missingItems: [],
+            brandingIssues: [],
+            complianceNotes: []
+        };
     }
-
-    // Fallback (shouldn't reach here)
-    return {
-        overallScore: 60,
-        issues: ['QA audit did not complete'],
-        recommendations: [],
-        missingItems: [],
-        brandingIssues: [],
-        complianceNotes: []
-    };
 }

@@ -218,130 +218,110 @@ RULES:
 
 You MUST respond with ONLY a JSON object in this exact format (no markdown, no backticks):
 {"validations":[{"itemIndex":0,"manufacturer":"Brand","model":"Model","validatedMsrp":123.45,"source":"Where found","confidence":95}]}`;
-    const MAX_RETRIES = 3;
-    const BASE_DELAY_MS = 2000;
 
-    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-        try {
-            const response = await generateContent({
-                model: 'gemini-2.5-flash',
-                fallbackModels: ['gemini-2.0-flash', 'gemini-2.5-flash-lite'],
-                contents: { parts: [{ text: prompt }] },
-                config: {
-                    temperature: 0,
-                    tools: [{ googleSearch: {} }]
-                }
-            });
-
-            const rawText = response.text || '';
-            // Extract JSON from the response (it may be wrapped in markdown code blocks)
-            const jsonMatch = rawText.match(/\{[\s\S]*"validations"[\s\S]*\}/);
-            const text = jsonMatch ? jsonMatch[0] : '{"validations":[]}';
-            const result = JSON.parse(text);
-
-            // Combine DB-verified items with search-verified items
-            const allValidations: PricingValidation[] = [];
-
-            data.materials.forEach((item, index) => {
-                const dbResult = isInDatabase(item.manufacturer, item.model, extractPartNumber(item.model));
-                if (dbResult.found) {
-                    const dbPrice = dbResult.dbProduct?.msrp ?? item.msrp;
-                    const delta = item.msrp > 0 ? Math.abs(dbPrice - item.msrp) / item.msrp * 100 : 0;
-
-                    // If the DB price diverges from the AI's quoted price by >25%, the DB
-                    // entry may be stale list MSRP. In that case prefer the LOWER price as
-                    // the validated value (we bid to win — never quote above what the
-                    // market shows) and lower confidence so coordinators inspect the line.
-                    const isLargeDelta = delta > 25;
-                    const validatedPrice = isLargeDelta ? Math.min(dbPrice, item.msrp) : dbPrice;
-                    const source = isLargeDelta
-                        ? 'Database (flagged: >25% delta from AI quote — verify)'
-                        : 'Verified Product Database';
-                    const confidence = isLargeDelta ? 75 : 100;
-
-                    allValidations.push({
-                        itemIndex: index,
-                        manufacturer: item.manufacturer,
-                        model: item.model,
-                        originalMsrp: item.msrp,
-                        validatedMsrp: validatedPrice,
-                        source,
-                        confidence,
-                        delta: Math.round(delta * 10) / 10,
-                    });
-                } else {
-                    const found = result.validations?.find((v: any) => v.itemIndex === index);
-                    if (found) {
-                        const delta = item.msrp > 0
-                            ? Math.abs(found.validatedMsrp - item.msrp) / item.msrp * 100
-                            : 100;
-                        allValidations.push({
-                            itemIndex: index,
-                            manufacturer: item.manufacturer,
-                            model: item.model,
-                            originalMsrp: item.msrp,
-                            validatedMsrp: found.validatedMsrp,
-                            source: found.source || 'Google Search',
-                            confidence: found.confidence || 50,
-                            delta: Math.round(delta * 10) / 10,
-                        });
-                    } else {
-                        allValidations.push({
-                            itemIndex: index,
-                            manufacturer: item.manufacturer,
-                            model: item.model,
-                            originalMsrp: item.msrp,
-                            validatedMsrp: item.msrp,
-                            source: 'Not Verified',
-                            confidence: 30,
-                            delta: 0,
-                        });
-                    }
-                }
-            });
-
-            return allValidations;
-
-        } catch (error: any) {
-            // Don't retry auth errors — the key is bad.
-            if (error instanceof ApiKeyError) {
-                console.error('Pricing validation: API key error', error);
-                throw error;
+    // Single attempt, fail fast. Pricing validation is non-essential — if it
+    // doesn't succeed, the change order still ships with DB-verified prices
+    // for known items and the AI's quoted prices for unknown items.
+    let result: { validations?: any[] };
+    try {
+        const response = await generateContent({
+            model: 'gemini-2.5-flash',
+            nonEssential: true,
+            contents: { parts: [{ text: prompt }] },
+            config: {
+                temperature: 0,
+                tools: [{ googleSearch: {} }]
             }
-            const is429 = error instanceof RateLimitError ||
-                error?.message?.includes('429') || error?.message?.includes('RESOURCE_EXHAUSTED');
+        });
 
-            if (is429 && attempt < MAX_RETRIES - 1) {
-                const delay = BASE_DELAY_MS * Math.pow(2, attempt);
-                console.warn(`Pricing validation rate limited (429). Retrying in ${delay / 1000}s... (attempt ${attempt + 1}/${MAX_RETRIES})`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-                continue;
-            }
-
-            console.error('Pricing validation error:', error);
-            // Return items with low confidence if search fails
-            return data.materials.map((item, index) => ({
+        const rawText = response.text || '';
+        const jsonMatch = rawText.match(/\{[\s\S]*"validations"[\s\S]*\}/);
+        const text = jsonMatch ? jsonMatch[0] : '{"validations":[]}';
+        result = JSON.parse(text);
+    } catch (error: any) {
+        if (error instanceof ApiKeyError) {
+            console.error('Pricing validation: API key error', error);
+            throw error;
+        }
+        // Any other failure (429, 503, parse error): degrade gracefully. Return DB-only validations.
+        const reason = error instanceof RateLimitError ? 'rate-limited'
+            : (error?.name === 'UnavailableError' ? 'unavailable' : 'failed');
+        console.warn(`Pricing validation skipped (${reason}); using DB-only validations.`);
+        return data.materials.map((item, index) => {
+            const dbResult = isInDatabase(item.manufacturer, item.model, extractPartNumber(item.model));
+            return {
                 itemIndex: index,
                 manufacturer: item.manufacturer,
                 model: item.model,
                 originalMsrp: item.msrp,
                 validatedMsrp: item.msrp,
-                source: isInDatabase(item.manufacturer, item.model, extractPartNumber(item.model)).found ? 'Verified Product Database' : 'Validation Failed',
-                confidence: isInDatabase(item.manufacturer, item.model, extractPartNumber(item.model)).found ? 100 : 20,
+                source: dbResult.found ? 'Verified Product Database' : `Validation skipped (${reason})`,
+                confidence: dbResult.found ? 100 : 50,
                 delta: 0,
-            }));
-        }
+            };
+        });
     }
 
-    // Fallback
-    return data.materials.map((item, index) => ({
-        itemIndex: index,
-        manufacturer: item.manufacturer,
-        model: item.model,
-        originalMsrp: item.msrp,
-        validatedMsrp: item.msrp,
-        source: 'Validation Incomplete',
-        confidence: 20,
-        delta: 0,
-    }));
+    // Combine DB-verified items with search-verified items
+    const allValidations: PricingValidation[] = [];
+
+    data.materials.forEach((item, index) => {
+        const dbResult = isInDatabase(item.manufacturer, item.model, extractPartNumber(item.model));
+        if (dbResult.found) {
+            const dbPrice = dbResult.dbProduct?.msrp ?? item.msrp;
+            const delta = item.msrp > 0 ? Math.abs(dbPrice - item.msrp) / item.msrp * 100 : 0;
+
+            // If the DB price diverges from the AI's quoted price by >25%, the DB
+            // entry may be stale list MSRP. In that case prefer the LOWER price as
+            // the validated value (we bid to win — never quote above what the
+            // market shows) and lower confidence so coordinators inspect the line.
+            const isLargeDelta = delta > 25;
+            const validatedPrice = isLargeDelta ? Math.min(dbPrice, item.msrp) : dbPrice;
+            const source = isLargeDelta
+                ? 'Database (flagged: >25% delta from AI quote — verify)'
+                : 'Verified Product Database';
+            const confidence = isLargeDelta ? 75 : 100;
+
+            allValidations.push({
+                itemIndex: index,
+                manufacturer: item.manufacturer,
+                model: item.model,
+                originalMsrp: item.msrp,
+                validatedMsrp: validatedPrice,
+                source,
+                confidence,
+                delta: Math.round(delta * 10) / 10,
+            });
+        } else {
+            const found = result.validations?.find((v: any) => v.itemIndex === index);
+            if (found) {
+                const delta = item.msrp > 0
+                    ? Math.abs(found.validatedMsrp - item.msrp) / item.msrp * 100
+                    : 100;
+                allValidations.push({
+                    itemIndex: index,
+                    manufacturer: item.manufacturer,
+                    model: item.model,
+                    originalMsrp: item.msrp,
+                    validatedMsrp: found.validatedMsrp,
+                    source: found.source || 'Google Search',
+                    confidence: found.confidence || 50,
+                    delta: Math.round(delta * 10) / 10,
+                });
+            } else {
+                allValidations.push({
+                    itemIndex: index,
+                    manufacturer: item.manufacturer,
+                    model: item.model,
+                    originalMsrp: item.msrp,
+                    validatedMsrp: item.msrp,
+                    source: 'Not Verified',
+                    confidence: 30,
+                    delta: 0,
+                });
+            }
+        }
+    });
+
+    return allValidations;
 }
