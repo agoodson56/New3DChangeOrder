@@ -49,13 +49,21 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
 
   // Look up MSRP for an existing item
   const handleLookupMSRP = async (index: number, manufacturer: string, model: string) => {
-    if (!manufacturer.trim() && !model.trim()) {
+    console.log('[Lookup] Click → index=%d, manufacturer=%o, model=%o', index, manufacturer, model);
+    if (!manufacturer?.trim() && !model?.trim()) {
       alert('Add a manufacturer or model name first, then click the lookup icon.');
       return;
     }
+    if (!data.materials[index]) {
+      console.error('[Lookup] Invalid index — material at index', index, 'does not exist. data.materials.length=', data.materials.length);
+      alert(`Internal error: could not locate this line item (index ${index}). Please refresh the page and try again.`);
+      return;
+    }
     setLookupLoadingIndex(index);
+    console.log('[Lookup] Calling lookupMSRP service…');
     try {
       const result = await lookupMSRP(manufacturer, model);
+      console.log('[Lookup] Service returned:', result);
       if (result) {
         const previousPrice = data.materials[index].msrp;
         const newPrice = result.msrp;

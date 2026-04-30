@@ -108,20 +108,30 @@ export async function searchProducts(query: string): Promise<ProductSearchResult
     {"products":[{"manufacturer":"Brand","model":"Model","partNumber":"PN123","msrp":123.45,"description":"Brief","category":"Equipment","unitOfMeasure":"ea","confidence":"high"}]}
   `;
 
+  console.log('[ProductSearch] Sending lookup query:', safeQuery);
   try {
     // NOTE: Gemini API rejects responseMimeType/responseSchema combined with
     // Google Search grounding. We keep grounding (more valuable for live
     // pricing) and parse JSON manually from the text response.
-    const response = await generateContent({
-      model,
-      fallbackModels: ['gemini-2.0-flash', 'gemini-2.5-flash-lite'],
-      contents: { parts: [{ text: prompt }] },
-      config: {
-        systemInstruction,
-        temperature: 0,
-        tools: [{ googleSearch: {} }]
-      }
-    });
+    // Hard timeout so a hung Cloudflare Function or upstream stall surfaces
+    // as a real error instead of an indefinite spinner.
+    const TIMEOUT_MS = 25_000;
+    const response = await Promise.race([
+      generateContent({
+        model,
+        fallbackModels: ['gemini-2.0-flash', 'gemini-2.5-flash-lite'],
+        contents: { parts: [{ text: prompt }] },
+        config: {
+          systemInstruction,
+          temperature: 0,
+          tools: [{ googleSearch: {} }]
+        }
+      }),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`Lookup timed out after ${TIMEOUT_MS / 1000}s — the AI service didn't respond in time.`)), TIMEOUT_MS)
+      ),
+    ]);
+    console.log('[ProductSearch] AI response received, length:', response?.text?.length || 0);
 
     const rawText = response.text;
     if (!rawText) throw new Error("No response from AI");
