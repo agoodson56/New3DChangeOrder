@@ -36,9 +36,9 @@ export const CATALOG_POWER_UPS: CompactProduct[] = [
     ['Altronix', 'BT124', 'BT124', 'M', 'Battery', 15, 'ea', '12V 4Ah SLA Battery', 0.1, 'L'],
     ['Altronix', 'BT127', 'BT127', 'M', 'Battery', 19, 'ea', '12V 7Ah SLA Battery', 0.1, 'L'],
     ['Altronix', 'BT1240', 'BT1240', 'M', 'Battery', 59, 'ea', '12V 40Ah SLA Battery', 0.1, 'M'],
-    ['Power-Sonic', 'PS-1270', 'PS-1270', 'M', 'Battery', 17, 'ea', '12V 7.0Ah SLA Battery', 0.1, 'L'],
-    ['Power-Sonic', 'PS-12120', 'PS-12120', 'M', 'Battery', 29, 'ea', '12V 12Ah SLA Battery', 0.1, 'L'],
-    ['Power-Sonic', 'PS-12180', 'PS-12180', 'M', 'Battery', 42, 'ea', '12V 18Ah SLA Battery', 0.1, 'L'],
+    ['Power-Sonic', 'PS-1270', 'PS-1270', 'M', 'Battery', 20, 'ea', '12V 7.0Ah SLA Battery', 0.1, 'L'],
+    ['Power-Sonic', 'PS-12120', 'PS-12120', 'M', 'Battery', 32, 'ea', '12V 12Ah SLA Battery', 0.1, 'L'],
+    ['Power-Sonic', 'PS-12180', 'PS-12180', 'M', 'Battery', 55, 'ea', '12V 18Ah SLA Battery', 0.1, 'L'],
     // ── UPS ──
     ['APC', 'SMT1500RM2U', 'SMT1500RM2U', 'E', 'UPS', 899, 'ea', 'Smart-UPS 1500VA 2U Rackmount', 1.5, 'H'],
     ['APC', 'SMT3000RM2U', 'SMT3000RM2U', 'E', 'UPS', 1799, 'ea', 'Smart-UPS 3000VA 2U Rackmount', 1.5, 'H'],

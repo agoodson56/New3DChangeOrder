@@ -94,7 +94,7 @@ export const CATALOG_AV_SYSTEMS: CompactProduct[] = [
     ['Shure', 'MX412', 'MX412/C', 'E', 'AV Microphone', 299, 'ea', 'Gooseneck Microphone 12"', 0.5, 'M'],
     ['Shure', 'MX418', 'MX418/C', 'E', 'AV Microphone', 329, 'ea', 'Gooseneck Microphone 18"', 0.5, 'M'],
     ['Shure', 'P300', 'P300-IMX', 'E', 'AV DSP', 1499, 'ea', 'IntelliMix P300 Audio Conferencing Processor', 2.0, 'H'],
-    ['Shure', 'ANIUSB-MATRIX', 'ANIUSB-MATRIX', 'E', 'AV DSP', 999, 'ea', 'Dante/USB Audio Network Interface', 1.0, 'H'],
+    ['Shure', 'ANIUSB-MATRIX', 'ANIUSB-MATRIX', 'E', 'AV DSP', 799, 'ea', 'Dante/USB Audio Network Interface', 1.0, 'H'],
 
     // ── SAMSUNG — Displays ──
     ['Samsung', 'QM55B', 'LH55QMCEBGCXZA', 'E', 'AV Display', 1299, 'ea', '55" 4K Smart Signage Display', 2.0, 'M'],

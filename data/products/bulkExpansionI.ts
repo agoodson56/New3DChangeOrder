@@ -65,7 +65,7 @@ export const CATALOG_BULK_EXPANSION_I: CompactProduct[] = [
     ['Velcro', 'ONE-WRAP 12" 25-pk', 'VEL-OW-12-25', 'M', 'Velcro', 12, 'ea', 'ONE-WRAP Cable Ties 12" 25-pk', 0, 'L'],
     // ── Cable Ties Extended ──
     ['Panduit', 'PLT1M-M0', 'PLT1M-M0', 'M', 'Cable Tie', 19, 'ea', 'Cable Tie 4" Black 1000-pk', 0, 'L'],
-    ['Panduit', 'PLT2S-M0', 'PLT2S-M0', 'M', 'Cable Tie', 22, 'ea', 'Cable Tie 8" Black 1000-pk', 0, 'L'],
+    ['Panduit', 'PLT2S-M0', 'PLT2S-M0', 'M', 'Cable Tie', 8.50, 'ea', 'Cable Tie 8" Black 100-pk', 0, 'L'],
     ['Panduit', 'PLT3S-M0', 'PLT3S-M0', 'M', 'Cable Tie', 29, 'ea', 'Cable Tie 11" Black 1000-pk', 0, 'L'],
     ['Panduit', 'PLT4S-M0', 'PLT4S-M0', 'M', 'Cable Tie', 39, 'ea', 'Cable Tie 14" Black 1000-pk', 0, 'L'],
     ['Panduit', 'PLT1M-C', 'PLT1M-C', 'M', 'Cable Tie', 29, 'ea', 'Cable Tie 4" Natural 1000-pk', 0, 'L'],

@@ -98,7 +98,7 @@ export const CATALOG_CCTV_BATCH2: CompactProduct[] = [
     ['WD', 'Purple Pro 12TB', 'WD121PURP', 'M', 'HDD', 329, 'ea', 'Surveillance HDD 12TB 7200rpm', 0.25, 'M'],
     ['WD', 'Purple Pro 14TB', 'WD141PURP', 'M', 'HDD', 389, 'ea', 'Surveillance HDD 14TB 7200rpm', 0.25, 'H'],
     ['WD', 'Purple Pro 18TB', 'WD181PURP', 'M', 'HDD', 449, 'ea', 'Surveillance HDD 18TB 7200rpm', 0.25, 'H'],
-    ['Seagate', 'SkyHawk AI 8TB', 'ST8000VE001', 'M', 'HDD', 249, 'ea', 'Surveillance AI HDD 8TB', 0.25, 'M'],
+    ['Seagate', 'SkyHawk AI 8TB', 'ST8000VE001', 'M', 'HDD', 185, 'ea', 'Surveillance AI HDD 8TB', 0.25, 'M'],
     ['Seagate', 'SkyHawk AI 10TB', 'ST10000VE001', 'M', 'HDD', 299, 'ea', 'Surveillance AI HDD 10TB', 0.25, 'M'],
     ['Seagate', 'SkyHawk AI 12TB', 'ST12000VE001', 'M', 'HDD', 349, 'ea', 'Surveillance AI HDD 12TB', 0.25, 'H'],
     ['Seagate', 'SkyHawk AI 16TB', 'ST16000VE002', 'M', 'HDD', 429, 'ea', 'Surveillance AI HDD 16TB', 0.25, 'H'],

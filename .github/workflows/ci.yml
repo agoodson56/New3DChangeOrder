@@ -29,6 +29,9 @@ jobs:
       - name: Accuracy audit
         run: node scripts/accuracyAudit.cjs
 
+      - name: Price consistency check
+        run: node scripts/checkPriceConsistency.cjs
+
       - name: Build
         run: npm run build
 

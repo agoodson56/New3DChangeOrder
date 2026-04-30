@@ -384,7 +384,7 @@ export const ACCESS_PANELS: ProductDefinition[] = [
         ],
         accessories: [
             { type: 'required', name: 'Power Supply 12VDC 5A', manufacturer: 'Altronix', partNumber: 'AL600ULACM', msrp: 285.00, reason: 'Lock power' },
-            { type: 'required', name: 'Battery Backup 12V 7Ah', manufacturer: 'Power Sonic', partNumber: 'PS-1270', msrp: 25.00, reason: 'Backup power' }
+            { type: 'required', name: 'Battery Backup 12V 7Ah', manufacturer: 'Power Sonic', partNumber: 'PS-1270', msrp: 20.00, reason: 'Backup power' }
         ],
         laborHours: 4.0,
         complexity: 'High'
@@ -1089,7 +1089,7 @@ export const AV_PRODUCTS: ProductDefinition[] = [
             { type: 'consumable', name: 'Safety Wire', quantityPerUnit: 1, msrp: 5.00 }
         ],
         accessories: [
-            { type: 'required', name: 'PoE Injector', manufacturer: 'Shure', partNumber: 'ANIUSB-MATRIX', msrp: 125.00, reason: 'Required PoE power' }
+            { type: 'required', name: 'Dante/USB Audio Network Interface', manufacturer: 'Shure', partNumber: 'ANIUSB-MATRIX', msrp: 799.00, reason: 'Required for Dante/USB audio bridging' }
         ],
         laborHours: 1.5,
         complexity: 'Medium'
@@ -1118,7 +1118,7 @@ export const INTRUSION_PANELS: ProductDefinition[] = [
         ],
         accessories: [
             { type: 'required', name: 'Transformer 16.5VAC', manufacturer: 'Altronix', partNumber: 'T1656', msrp: 24.00, reason: 'Panel power' },
-            { type: 'required', name: 'Battery 12V 7Ah', manufacturer: 'Power Sonic', partNumber: 'PS-1270', msrp: 25.00, reason: 'Backup power' }
+            { type: 'required', name: 'Battery 12V 7Ah', manufacturer: 'Power Sonic', partNumber: 'PS-1270', msrp: 20.00, reason: 'Backup power' }
         ],
         laborHours: 3.0,
         complexity: 'High'
@@ -1140,7 +1140,7 @@ export const INTRUSION_PANELS: ProductDefinition[] = [
         ],
         accessories: [
             { type: 'required', name: 'Transformer 16.5VAC 40VA', manufacturer: 'Altronix', partNumber: 'T2428', msrp: 32.00, reason: 'Panel power' },
-            { type: 'required', name: 'Battery 12V 12Ah', manufacturer: 'Power Sonic', partNumber: 'PS-12120', msrp: 38.00, reason: 'Backup power' }
+            { type: 'required', name: 'Battery 12V 12Ah', manufacturer: 'Power Sonic', partNumber: 'PS-12120', msrp: 32.00, reason: 'Backup power' }
         ],
         laborHours: 5.0,
         complexity: 'High'
@@ -1161,7 +1161,7 @@ export const INTRUSION_PANELS: ProductDefinition[] = [
         ],
         accessories: [
             { type: 'required', name: 'Transformer 16.5VAC', manufacturer: 'DSC', partNumber: 'PTD1640U', msrp: 18.00, reason: 'Panel power' },
-            { type: 'required', name: 'Battery 12V 7Ah', manufacturer: 'Power Sonic', partNumber: 'PS-1270', msrp: 25.00, reason: 'Backup power' }
+            { type: 'required', name: 'Battery 12V 7Ah', manufacturer: 'Power Sonic', partNumber: 'PS-1270', msrp: 20.00, reason: 'Backup power' }
         ],
         laborHours: 3.0,
         complexity: 'High'
@@ -1298,7 +1298,7 @@ export const FIRE_ALARM_PRODUCTS: ProductDefinition[] = [
             { type: 'consumable', name: 'Red EMT 3/4"', quantityPerUnit: 100, msrp: 1.25, notes: 'Per foot' }
         ],
         accessories: [
-            { type: 'required', name: 'Battery Set 12V 18Ah', manufacturer: 'Power Sonic', partNumber: 'PS-12180', msrp: 65.00, reason: 'Backup power (2 required)' },
+            { type: 'required', name: 'Battery Set 12V 18Ah', manufacturer: 'Power Sonic', partNumber: 'PS-12180', msrp: 55.00, reason: 'Backup power (2 required)' },
             { type: 'required', name: 'Remote Annunciator', manufacturer: 'Notifier', partNumber: 'FDU-80', msrp: 895.00, reason: 'Fire command center' }
         ],
         laborHours: 8.0,
