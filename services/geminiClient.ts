@@ -12,6 +12,10 @@ export interface GenerateRequest {
   model: string;
   contents: unknown;
   config?: Record<string, unknown>;
+  /** Comma-or-space-separated list of fallback models to try if the primary model
+   *  is exhausted by UnavailableError after all retries. Lives on a different
+   *  Google compute pool, so its load is uncorrelated with the primary. */
+  fallbackModels?: string[];
 }
 
 export interface GenerateResponse {
@@ -85,17 +89,37 @@ async function attemptOnce(req: GenerateRequest): Promise<GenerateResponse> {
   return { text };
 }
 
-export async function generateContent(req: GenerateRequest): Promise<GenerateResponse> {
+async function tryModel(req: GenerateRequest, model: string): Promise<GenerateResponse> {
+  const reqWithModel = { ...req, model };
   let lastErr: unknown;
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
-      return await attemptOnce(req);
+      return await attemptOnce(reqWithModel);
     } catch (e) {
       lastErr = e;
       const retryable = e instanceof UnavailableError || e instanceof RateLimitError || e instanceof NetworkError;
       if (!retryable || attempt === MAX_RETRIES) throw e;
       const backoffMs = Math.round((2 ** attempt) * 1000 * (0.7 + Math.random() * 0.6));
       await sleep(backoffMs);
+    }
+  }
+  throw lastErr;
+}
+
+export async function generateContent(req: GenerateRequest): Promise<GenerateResponse> {
+  // Try primary model with retries; on persistent UnavailableError, fall through to fallbacks.
+  const models = [req.model, ...(req.fallbackModels ?? [])];
+  let lastErr: unknown;
+  for (let i = 0; i < models.length; i++) {
+    try {
+      return await tryModel(req, models[i]);
+    } catch (e) {
+      lastErr = e;
+      // Only fall through to the next model on capacity issues. Auth, schema, etc. won't
+      // be fixed by a different model.
+      const fallthroughable = e instanceof UnavailableError || e instanceof RateLimitError;
+      if (!fallthroughable || i === models.length - 1) throw e;
+      console.warn(`Model ${models[i]} unavailable; falling back to ${models[i + 1]}`);
     }
   }
   throw lastErr;

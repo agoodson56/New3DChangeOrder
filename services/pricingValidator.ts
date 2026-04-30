@@ -222,6 +222,7 @@ You MUST respond with ONLY a JSON object in this exact format (no markdown, no b
         try {
             const response = await generateContent({
                 model: 'gemini-2.5-flash',
+                fallbackModels: ['gemini-2.0-flash', 'gemini-2.5-flash-lite'],
                 contents: { parts: [{ text: prompt }] },
                 config: {
                     temperature: 0,

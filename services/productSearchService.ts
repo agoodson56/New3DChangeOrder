@@ -114,6 +114,7 @@ export async function searchProducts(query: string): Promise<ProductSearchResult
     // pricing) and parse JSON manually from the text response.
     const response = await generateContent({
       model,
+      fallbackModels: ['gemini-2.0-flash', 'gemini-2.5-flash-lite'],
       contents: { parts: [{ text: prompt }] },
       config: {
         systemInstruction,

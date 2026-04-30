@@ -8,6 +8,10 @@ import { auditChangeOrder } from "./qaAuditor";
 import { generateContent, ApiKeyError, RateLimitError } from "./geminiClient";
 
 const MODEL_NAME = 'gemini-2.5-flash';
+/** Fallback chain when primary model returns persistent UnavailableError.
+ *  Different model versions live on different compute pools, so a 503 spike
+ *  on one rarely correlates with another. Tried in order until one succeeds. */
+const FALLBACK_MODELS = ['gemini-2.0-flash', 'gemini-2.5-flash-lite'];
 
 /** Sanitize free-text user/AI strings before injection into prompts. */
 function sanitizeForPrompt(rawInput: string, maxLen = 8000): string {
@@ -680,6 +684,7 @@ ${buildProductReference()}
 
   const response = await callWithRetry(() => generateContent({
     model,
+    fallbackModels: FALLBACK_MODELS,
     contents,
     config: {
       systemInstruction,
@@ -905,6 +910,7 @@ export async function generateProposal(
 
   const response = await callWithRetry(() => generateContent({
     model,
+    fallbackModels: FALLBACK_MODELS,
     contents: { parts: [{ text: prompt }] },
     config: {
       systemInstruction,
