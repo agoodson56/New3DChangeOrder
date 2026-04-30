@@ -140,7 +140,24 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
         </div>
         <div className={`col-span-5 border-r border-black px-2 py-px uppercase flex items-center ${isDeduct ? 'text-red-600 font-bold' : ''}`}>
           {isDeduct && <span className="text-[8px] bg-red-600 text-white px-1 mr-1 rounded-sm font-black tracking-wider print:bg-red-600">DEDUCT</span>}
-          <span className="flex-1">{item.manufacturer} {item.model} {isCable ? '(PER FT)' : ''}</span>
+          <input
+            type="text"
+            value={`${item.manufacturer} ${item.model}`.trim()}
+            onChange={(e) => {
+              const value = e.target.value;
+              const firstSpace = value.indexOf(' ');
+              if (firstSpace > 0) {
+                updateMaterial(safeIndex, {
+                  manufacturer: value.slice(0, firstSpace),
+                  model: value.slice(firstSpace + 1),
+                });
+              } else {
+                updateMaterial(safeIndex, { manufacturer: '', model: value });
+              }
+            }}
+            className={`${editableTextClass} flex-1 uppercase ${isDeduct ? 'text-red-600 font-bold' : ''}`}
+          />
+          {isCable && <span className="ml-1 whitespace-nowrap">(PER FT)</span>}
           {/* Lookup MSRP button - hidden on print */}
           <button
             onClick={() => handleLookupMSRP(safeIndex, item.manufacturer, item.model)}
