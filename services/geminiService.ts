@@ -334,7 +334,8 @@ ${buildProductReference()}
          * IMPORTANT: If NO patch panel is in the scope, you MUST include 2 jacks per cable run
        - PATCH CORD 7ft: 1 per camera (switch to patch panel, only if patch panel included)
        - PATCH CORD 2ft: 1 per camera (patch panel daisy-chain/short run)
-       - J-HOOKS: 1 per every 5 feet of horizontal cable run (TIA-569 compliant)
+       - J-HOOKS: 1 per every 10 feet of horizontal cable run (3DTSI install standard)
+       - BEAM CLAMPS: 1 per J-hook, 1:1 ratio (each J-hook attaches to a beam clamp on overhead steel)
        - TIE WRAPS/VELCRO: 10 per cable run (bundling at J-hooks)
        - LABELS: 2 per cable run (both ends)
        - CABLE WASTE: Add 15% to stated footage for terminations and routing
@@ -368,9 +369,10 @@ ${buildProductReference()}
        - DATA DROPS (wall outlets): 2 jacks per drop (1 wall jack + 1 patch panel jack)
        - Do NOT add 2 jacks per camera - cameras terminate with RJ45 plugs, not jacks
 
-       J-HOOKS:
-       - Calculate: 1 J-hook per 5 feet of HORIZONTAL cable run
-       - Example: 400ft horizontal run = 80 J-hooks
+       J-HOOKS AND BEAM CLAMPS (3DTSI INSTALL STANDARD):
+       - Calculate: 1 J-hook per 10 feet of HORIZONTAL cable run
+       - Calculate: 1 beam clamp per J-hook (1:1 ratio — each hook attaches to a beam clamp)
+       - Example: 1000ft horizontal run = 100 J-hooks + 100 beam clamps (NOT 200 of each)
        - Vertical runs use different supports (not J-hooks)
        - Round up to nearest whole number
 
@@ -461,7 +463,7 @@ ${buildProductReference()}
        - Difficult (tight space): 0.75 hours
        - Very Difficult (existing walls): 1.00 hours
        
-       J-Hook Installation: 0.05 hours per hook (1 per 5ft)
+       J-Hook Installation: 0.05 hours per hook (1 per 10ft per 3DTSI standard)
        
        Data Drop/Outlet (complete with terminations):
        - Normal: 1.50 hours per drop
