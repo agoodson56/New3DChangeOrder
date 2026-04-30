@@ -615,12 +615,30 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
             onClick={() => {
               // Auto-save to history on first print so win-rate tracking captures every CO sent out.
               if (onArchive && !archivedId) onArchive();
+              // Build a useful filename so the browser's "Save as PDF" default name is clean:
+              //   CO-Acme_Corp-2026-04-30-PCO-12.pdf
+              // The browser uses document.title as the default PDF filename, so we mutate it
+              // briefly around the print call.
+              const customerSlug = (data.customer || 'change-order')
+                .replace(/[^a-z0-9]+/gi, '_')
+                .replace(/^_+|_+$/g, '')
+                .slice(0, 40) || 'change-order';
+              const today = new Date().toISOString().slice(0, 10);
+              const pco = data.pcoNumber ? `-PCO-${data.pcoNumber}` : '';
+              const filename = `CO-${customerSlug}-${today}${pco}`;
+              const previousTitle = document.title;
+              document.title = filename;
               // Defer print so any pending React state from a final keystroke flushes to the DOM first.
-              setTimeout(() => window.print(), 50);
+              setTimeout(() => {
+                window.print();
+                // Restore the title shortly after the print dialog opens so the tab name doesn't stay polluted.
+                setTimeout(() => { document.title = previousTitle; }, 1000);
+              }, 50);
             }}
             className="flex-1 h-16 text-lg shadow-xl tracking-[0.15em] font-black"
+            title="Print or save as PDF (Cmd/Ctrl+P → Save as PDF). Filename will default to the customer + date."
           >
-            🖨️ PRINT CHANGE ORDER
+            🖨️ PRINT / SAVE AS PDF
           </GoldButton>
           <GoldButton
             onClick={onGenerateProposal}

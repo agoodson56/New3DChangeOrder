@@ -19,8 +19,25 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                 <GoldButton onClick={onBack} variant="outline" className="px-8">
                     ← Back to Change Order
                 </GoldButton>
-                <GoldButton onClick={() => window.print()} className="px-8 flex-1">
-                    🖨️ PRINT PROPOSAL
+                <GoldButton
+                    onClick={() => {
+                        const customerSlug = (coData.customer || 'proposal')
+                            .replace(/[^a-z0-9]+/gi, '_')
+                            .replace(/^_+|_+$/g, '')
+                            .slice(0, 40) || 'proposal';
+                        const today = new Date().toISOString().slice(0, 10);
+                        const filename = `Proposal-${customerSlug}-${today}`;
+                        const previousTitle = document.title;
+                        document.title = filename;
+                        setTimeout(() => {
+                            window.print();
+                            setTimeout(() => { document.title = previousTitle; }, 1000);
+                        }, 50);
+                    }}
+                    className="px-8 flex-1"
+                    title="Print or save as PDF (Cmd/Ctrl+P → Save as PDF)"
+                >
+                    🖨️ PRINT / SAVE AS PDF
                 </GoldButton>
             </div>
 

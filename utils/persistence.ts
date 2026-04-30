@@ -30,7 +30,7 @@ const MAX_HISTORY = 200;
 
 // Defensive read — never throws, always returns a safe default.
 function readJson<T>(key: string, fallback: T): T {
-  if (typeof window === 'undefined' || !window.localStorage) return fallback;
+  if (typeof localStorage === 'undefined') return fallback;
   try {
     const raw = localStorage.getItem(key);
     if (!raw) return fallback;
@@ -41,7 +41,7 @@ function readJson<T>(key: string, fallback: T): T {
 }
 
 function writeJson(key: string, value: unknown): void {
-  if (typeof window === 'undefined' || !window.localStorage) return;
+  if (typeof localStorage === 'undefined') return;
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch (e) {
@@ -51,7 +51,7 @@ function writeJson(key: string, value: unknown): void {
 }
 
 function removeKey(key: string): void {
-  if (typeof window === 'undefined' || !window.localStorage) return;
+  if (typeof localStorage === 'undefined') return;
   try { localStorage.removeItem(key); } catch { /* noop */ }
 }
 
