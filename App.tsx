@@ -1,21 +1,12 @@
 
-import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { AppStatus, LaborRates, ChangeOrderData, ProposalData } from './types';
 import { LaborRateModal } from './components/LaborRateModal';
 import { COGenerator } from './components/COGenerator';
 import { ErrorBoundary } from './components/ErrorBoundary';
-
-// Code-split the post-generation views — they don't load until the user has
-// generated a CO, so keeping them out of the initial bundle speeds up first paint.
-const ChangeOrderView = lazy(() =>
-  import('./components/ChangeOrderView').then(m => ({ default: m.ChangeOrderView }))
-);
-const ProposalView = lazy(() =>
-  import('./components/ProposalView').then(m => ({ default: m.ProposalView }))
-);
-const HistoryModal = lazy(() =>
-  import('./components/HistoryModal').then(m => ({ default: m.HistoryModal }))
-);
+import { ChangeOrderView } from './components/ChangeOrderView';
+import { ProposalView } from './components/ProposalView';
+import { HistoryModal } from './components/HistoryModal';
 import { generateProposal } from './services/geminiService';
 import { describeAiError } from './services/geminiClient';
 import { calculateFinancials } from './utils/financials';
@@ -49,6 +40,27 @@ const App: React.FC = () => {
     if (draft) {
       setDraftPrompt({ found: true });
     }
+
+    // Defense-in-depth: if a tab was open during a deploy and any future
+    // dynamic import (or other module fetch) fails because the chunk no
+    // longer exists, auto-reload once to pick up the fresh index.html.
+    // Guarded with sessionStorage so we don't loop if reload doesn't help.
+    const onChunkLoadError = (event: PromiseRejectionEvent | ErrorEvent) => {
+      const msg = (event instanceof ErrorEvent ? event.message : String((event as PromiseRejectionEvent).reason)) || '';
+      const looksLikeStaleChunk = /Failed to fetch dynamically imported module|Loading chunk \d+ failed|Importing a module script failed|Expected a JavaScript-or-Wasm module script/i.test(msg);
+      if (!looksLikeStaleChunk) return;
+      const reloadKey = 'co_chunk_reload_attempted';
+      if (sessionStorage.getItem(reloadKey)) return; // already tried once this session
+      sessionStorage.setItem(reloadKey, String(Date.now()));
+      console.warn('[App] Detected stale chunk error — reloading to pick up the latest deploy.');
+      window.location.reload();
+    };
+    window.addEventListener('error', onChunkLoadError);
+    window.addEventListener('unhandledrejection', onChunkLoadError);
+    return () => {
+      window.removeEventListener('error', onChunkLoadError);
+      window.removeEventListener('unhandledrejection', onChunkLoadError);
+    };
     // Run only on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -245,18 +257,16 @@ const App: React.FC = () => {
           {status === AppStatus.RESULT && coData && rates && (
             <div className="animate-in slide-in-from-bottom-12 duration-700 ease-out">
               <ErrorBoundary fallbackTitle="Change order view failed">
-                <Suspense fallback={<LoadingShim label="Loading change order view…" />}>
-                  <ChangeOrderView
-                    data={coData}
-                    rates={rates}
-                    onReset={handleReset}
-                    onDataChange={handleDataChange}
-                    onGenerateProposal={handleGenerateProposal}
-                    isGeneratingProposal={isGeneratingProposal}
-                    onArchive={handleSnapshotToHistory}
-                    archivedId={savedCoId}
-                  />
-                </Suspense>
+                <ChangeOrderView
+                  data={coData}
+                  rates={rates}
+                  onReset={handleReset}
+                  onDataChange={handleDataChange}
+                  onGenerateProposal={handleGenerateProposal}
+                  isGeneratingProposal={isGeneratingProposal}
+                  onArchive={handleSnapshotToHistory}
+                  archivedId={savedCoId}
+                />
               </ErrorBoundary>
             </div>
           )}
@@ -264,13 +274,11 @@ const App: React.FC = () => {
           {status === AppStatus.PROPOSAL && proposalData && coData && (
             <div className="animate-in fade-in slide-in-from-right-12 duration-700 ease-out">
               <ErrorBoundary fallbackTitle="Proposal view failed">
-                <Suspense fallback={<LoadingShim label="Loading proposal…" />}>
-                  <ProposalView
-                    proposal={proposalData}
-                    coData={coData}
-                    onBack={handleBackToChangeOrder}
-                  />
-                </Suspense>
+                <ProposalView
+                  proposal={proposalData}
+                  coData={coData}
+                  onBack={handleBackToChangeOrder}
+                />
               </ErrorBoundary>
             </div>
           )}
@@ -279,9 +287,7 @@ const App: React.FC = () => {
 
       {/* History modal */}
       {historyOpen && (
-        <Suspense fallback={null}>
-          <HistoryModal onClose={() => setHistoryOpen(false)} />
-        </Suspense>
+        <HistoryModal onClose={() => setHistoryOpen(false)} />
       )}
 
       {/* Cinematic Background Ambience */}
@@ -293,12 +299,5 @@ const App: React.FC = () => {
     </div>
   );
 };
-
-const LoadingShim: React.FC<{ label: string }> = ({ label }) => (
-  <div className="flex flex-col items-center justify-center py-32 text-gray-500">
-    <div className="w-12 h-12 border-2 border-[#D4AF37]/30 border-t-[#D4AF37] rounded-full animate-spin mb-4"></div>
-    <p className="text-xs uppercase font-bold tracking-widest">{label}</p>
-  </div>
-);
 
 export default App;
