@@ -159,10 +159,12 @@ export async function generateChangeOrder(
     </role>
 
     <conservative_pricing_policy>
-    HARD RULE — WE BID TO WIN. Use CONSERVATIVE COMPETITIVE-BID PRICING on every material and equipment line.
+    HARD RULE — WE BID TO WIN. Use CONSERVATIVE / AVERAGE-INTERNET-PRICING on every material and equipment line.
 
-    The 'msrp' field is NOT manufacturer list MSRP. It is the LOWER-QUARTILE STREET PRICE that a contractor
-    actually pays a distributor TODAY (Anixter, Graybar, ADI, B&H, CDW, NetworkCameraStore, Provantage, etc.).
+    The 'msrp' field is NOT manufacturer list MSRP. It is the AVERAGE OF CURRENT INTERNET PRICING
+    (lower-quartile street price) that a contractor actually pays a distributor or pro reseller TODAY:
+    Anixter, Graybar, ADI Global, Wesco, B&H Photo, CDW, NetworkCameraStore, Provantage, Amazon Business,
+    Newegg Business. Cross-reference 2-3 listings and use the LOWER end.
 
     - Manufacturer list MSRP is typically 30-60% above contractor street price. NEVER quote raw list MSRP — it loses bids.
     - For active equipment (cameras, NVRs, switches, panels, readers): use the LOW END of current new-sealed market prices.
@@ -412,23 +414,33 @@ ${buildProductReference()}
        - Termination and Connections (based on number of terminations)
        - Programming and Configuration (per device, not flat rate)
        - Testing and Verification (per cable run / per device)
-        - System Commissioning and Startup (MANDATORY for all projects):
+       - System Commissioning and Startup (CONDITIONAL — see SCOPE-DRIVEN OVERHEAD RULE below):
           * Final system verification, end-to-end testing
           * Firmware updates, default password changes
           * Integration testing with existing systems
-          * Minimum 1.0 hour for simple jobs, 2.0+ hours for multi-device
-        - Documentation and Labeling (per cable run / per device)
-        - Customer Coordination and Sign-off
-       - PROJECT MANAGEMENT / COORDINATION (MANDATORY):
-         * Always include 8-12% of total install hours for PM
-         * Minimum 1.0 hour for small jobs, 2.0+ hours for multi-day jobs
-         * Includes: scheduling, material procurement, crew coordination,
-           GC coordination, site access arrangements, safety briefings
-       
+          * INCLUDE ONLY when scope brings a complete system online (cameras+NVR, readers+panel,
+            FACP+devices). DO NOT include on pure cabling/pathway jobs with no networked endpoints.
+       - Documentation and Labeling (per cable run / per device)
+       - Customer Coordination and Sign-off
+       - PROJECT MANAGEMENT / COORDINATION (CONDITIONAL — see SCOPE-DRIVEN OVERHEAD RULE below):
+         * Includes: scheduling, material procurement, crew coordination, GC coordination,
+           site access arrangements, safety briefings
+         * INCLUDE 8-12% of install hours ONLY when total install labor ≥ 8 hours OR job is
+           multi-day OR there is GC/site coordination required. SKIP entirely on small one-day
+           jobs (<8 install hours, single crew, no GC).
+
+       SCOPE-DRIVEN OVERHEAD RULE (HARD GATE — bid-winning policy):
+       Small/simple jobs MUST NOT carry overhead labor that doesn't apply:
+       - Pure cabling/pathway pulls (no devices commissioned) → NO commissioning line, NO PM line
+       - Single-day jobs under 8 install hours → NO PM line
+       - No network switch added or configured in scope → NO "Network Switch Programming" line
+       - No system being brought online → NO "System Commissioning" line
+       Auto-adding these on small bids loses competitive work. When in doubt for a small job, OMIT.
+
        HOUR CALCULATION RULE: For each labor line, MULTIPLY the per-device/per-unit
        time by the QUANTITY of devices. Do NOT use flat times for multiple devices.
        Example: 6 cameras x 1.5 hrs/camera = 9.0 hours (not 1.5 hours)
-       
+
        Even brief tasks must be included if they exist.
 
     5a. LABOR HOUR ESTIMATION - NECA MANUAL OF LABOR UNITS (MLU) ALIGNED
@@ -508,13 +520,20 @@ ${buildProductReference()}
        REX Sensor: 0.25 hours
        Power Supply: 0.50 hours
        Panel Programming: 0.50 hours per door
-              === FIXED OVERHEAD TASKS (per project, ALWAYS INCLUDE) ===
-        - Site Survey and Preparation: 1-2 hours
-        - Project Management/Coordination: 8-12% of total install hours (min 1.0 hour)
-        - Documentation and As-Builts: 0.50 hours per 5 devices
-        - Customer Walkthrough/Sign-off: 0.50 hours
+              === OVERHEAD TASKS (CONDITIONAL — apply scope-driven gates) ===
+        - Site Survey and Preparation: 1-2 hours (include on most jobs)
+        - Documentation and As-Builts: 0.50 hours per 5 devices (skip if zero devices)
+        - Customer Walkthrough/Sign-off: 0.50 hours (include when there is a system to walk through)
         - Cleanup/Debris Removal: 0.25 hours per 4 hours worked
-        - Network Switch Configuration (if adding PoE devices): 0.25 hours per port
+        - Project Management/Coordination: 8-12% of install hours — INCLUDE ONLY IF
+          total install labor ≥ 8 hours OR multi-day OR GC coordination needed.
+          SKIP on small same-day cabling jobs.
+        - Network Switch Configuration: 0.25 hours per port — INCLUDE ONLY IF a network
+          switch is being ADDED or RECONFIGURED in scope. SKIP if just terminating cable
+          to an existing switch (that's already covered by termination labor).
+        - System Commissioning and Startup: 1-2+ hours — INCLUDE ONLY IF a complete system
+          is being brought online (cameras+NVR, readers+panel, FACP+devices). SKIP on
+          pure cabling/pathway pulls.
         
         === CONDITION SELECTION RULES ===
         Use NORMAL when: New construction, open ceilings, easy access, standard height (<12ft)
