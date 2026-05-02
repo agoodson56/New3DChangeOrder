@@ -122,3 +122,50 @@ export const EQUIPMENT_MARKUP_RATE = 0.15;
  * **VERIFY WITH YOUR ACCOUNTANT** before flipping this.
  */
 export const TAX_ON_MARKED_UP_PRICE = false;
+
+// =============================================================================
+// COST & MARGIN POLICY — protects against underbidding (existential risk).
+//
+// MSRP is what 3DTSI bills. Cost is what 3DTSI pays. Margin = (bill - cost) / bill.
+// The factors below estimate cost as a fraction of MSRP — a sensible default
+// when you don't have hard wholesale data per item. Refine as you collect
+// distributor invoices.
+// =============================================================================
+
+/**
+ * Estimated wholesale cost of passive materials as a fraction of MSRP.
+ * 0.65 = $100 MSRP item costs ~$65 from your distributor.
+ * Industry typical: 0.55–0.70 (Cat6 cable, jacks, conduit, J-hooks).
+ */
+export const DEFAULT_MATERIAL_COST_FACTOR = 0.65;
+
+/**
+ * Estimated wholesale cost of active equipment as a fraction of MSRP.
+ * 0.70 = $1000 MSRP camera costs ~$700 from your distributor.
+ * Industry typical: 0.65–0.80 (cameras, NVRs, switches, panels).
+ */
+export const DEFAULT_EQUIPMENT_COST_FACTOR = 0.70;
+
+/**
+ * True loaded labor cost as a fraction of the BILLING rate.
+ * 0.55 = $165 billing rate corresponds to ~$91/hr loaded cost
+ *   (wage + payroll burden + tools + truck + overhead allocation).
+ * Adjust to your actual all-in labor cost. This is the most consequential
+ * lever in the margin calculation.
+ */
+export const DEFAULT_LABOR_COST_FACTOR = 0.55;
+
+/**
+ * Margin floor (gross profit / revenue ex-tax). Bids below this trigger a
+ * red banner and require explicit acknowledgment before print/proposal.
+ *
+ * Industry sustainable minimum is typically 18–25%. Going below 15% on a
+ * recurring basis is how contractors die — one bad job consumes margin
+ * from many good ones.
+ *
+ * Set to 0 to disable the guardrail.
+ */
+export const MARGIN_FLOOR_PCT = 0.20; // 20%
+
+/** Margin warning threshold — amber zone above the red floor. */
+export const MARGIN_WARN_PCT = 0.25; // 25%

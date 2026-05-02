@@ -22,11 +22,13 @@ const KEYS = {
   rates: 'co_labor_rates_v1',
   customers: 'co_customers_v1',
   history: 'co_history_v1',
+  templates: 'co_templates_v1',
 } as const;
 
 const DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const MAX_CUSTOMERS = 100;
 const MAX_HISTORY = 200;
+const MAX_TEMPLATES = 50;
 
 // Defensive read — never throws, always returns a safe default.
 function readJson<T>(key: string, fallback: T): T {
@@ -180,6 +182,31 @@ export function deleteCustomer(name: string): void {
 
 export type COStatus = 'pending' | 'accepted' | 'rejected' | 'withdrawn';
 
+/**
+ * Structured reason codes for closing a CO. Coupled with `notes` (free text)
+ * for context, these power the "why are we losing bids" feedback loop.
+ */
+export type CloseReason =
+  | 'price_too_high'
+  | 'too_slow'
+  | 'scope_wrong'
+  | 'competitor_won'
+  | 'customer_postponed'
+  | 'no_budget'
+  | 'duplicate_or_obsolete'
+  | 'other';
+
+export const CLOSE_REASON_LABELS: Record<CloseReason, string> = {
+  price_too_high: 'Price too high',
+  too_slow: 'We took too long',
+  scope_wrong: 'Scope didn\'t match the need',
+  competitor_won: 'Customer chose a competitor',
+  customer_postponed: 'Customer postponed the project',
+  no_budget: 'No budget',
+  duplicate_or_obsolete: 'Duplicate / obsolete',
+  other: 'Other',
+};
+
 export interface SavedCO {
   id: string;
   coData: ChangeOrderData;
@@ -188,6 +215,9 @@ export interface SavedCO {
   savedAt: number;
   updatedAt: number;
   notes?: string;
+  /** Structured reason for closing this CO (rejected/withdrawn). Powers
+   *  win/loss aggregate analysis. Optional — older saved COs may not have it. */
+  closeReason?: CloseReason;
 }
 
 function makeId(): string {
@@ -215,7 +245,12 @@ export function loadHistory(): SavedCO[] {
   return readJson<SavedCO[]>(KEYS.history, []);
 }
 
-export function updateHistoryStatus(id: string, status: COStatus, notes?: string): void {
+export function updateHistoryStatus(
+  id: string,
+  status: COStatus,
+  notes?: string,
+  closeReason?: CloseReason
+): void {
   const all = readJson<SavedCO[]>(KEYS.history, []);
   const idx = all.findIndex(c => c.id === id);
   if (idx === -1) return;
@@ -225,9 +260,118 @@ export function updateHistoryStatus(id: string, status: COStatus, notes?: string
     ...prev,
     status,
     notes: notes ?? prev.notes,
+    closeReason: closeReason ?? prev.closeReason,
     updatedAt: Date.now(),
   };
   writeJson(KEYS.history, all);
+}
+
+// =============================================================================
+// Templates — saved CO scopes for fast re-use on repetitive jobs.
+//
+// Templates strip customer-specific fields (name/contact/address/phone/PCO etc)
+// when saved, but keep materials, labor, scope, systems, assumptions, exclusions.
+// Loading a template into the intake bypasses the AI's Brain 1 (estimator) for
+// the matching scope — coordinator just fills in the new customer and submits.
+// Pricing freshness is the trade-off: re-run a per-line MSRP lookup on any
+// material that's been a while since update.
+// =============================================================================
+
+export interface SavedTemplate {
+  id: string;
+  name: string;
+  /** Optional one-line description of when to use this template. */
+  description?: string;
+  /** The CO data with customer-specific fields blanked. */
+  coData: ChangeOrderData;
+  savedAt: number;
+  /** Tracks how often the template has been applied — surface popular ones. */
+  useCount: number;
+  /** Last time it was applied. */
+  lastUsed?: number;
+}
+
+function templateId(): string {
+  return `tpl_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+/** Strip customer-specific fields so a template can be safely reused. */
+function stripCustomerFields(co: ChangeOrderData): ChangeOrderData {
+  return {
+    ...co,
+    customer: '',
+    contact: '',
+    projectName: '',
+    address: '',
+    phone: '',
+    projectNumber: '',
+    rfiNumber: '',
+    pcoNumber: '',
+    coordinatorIntent: '',
+    // Drop validation snapshot — it's about a specific historical CO, not the template.
+    validationResult: undefined,
+  };
+}
+
+export function saveTemplate(name: string, coData: ChangeOrderData, description?: string): SavedTemplate {
+  const all = readJson<SavedTemplate[]>(KEYS.templates, []);
+  const entry: SavedTemplate = {
+    id: templateId(),
+    name: name.trim() || 'Untitled template',
+    description: description?.trim() || undefined,
+    coData: stripCustomerFields(coData),
+    savedAt: Date.now(),
+    useCount: 0,
+  };
+  all.unshift(entry);
+  if (all.length > MAX_TEMPLATES) all.length = MAX_TEMPLATES;
+  writeJson(KEYS.templates, all);
+  return entry;
+}
+
+export function loadTemplates(): SavedTemplate[] {
+  return readJson<SavedTemplate[]>(KEYS.templates, []);
+}
+
+export function deleteTemplate(id: string): void {
+  const all = readJson<SavedTemplate[]>(KEYS.templates, []);
+  writeJson(KEYS.templates, all.filter(t => t.id !== id));
+}
+
+/** Mark a template as used — increments useCount and bumps lastUsed. */
+export function touchTemplate(id: string): void {
+  const all = readJson<SavedTemplate[]>(KEYS.templates, []);
+  const idx = all.findIndex(t => t.id === id);
+  if (idx === -1) return;
+  const prev = all[idx];
+  if (!prev) return;
+  all[idx] = { ...prev, useCount: prev.useCount + 1, lastUsed: Date.now() };
+  writeJson(KEYS.templates, all);
+}
+
+/**
+ * Aggregate close reasons across all closed COs. The feedback loop:
+ * "we keep losing because X" becomes data the team can act on.
+ */
+export function getCloseReasonStats(): Array<{ reason: CloseReason; label: string; count: number; lostRevenue: number }> {
+  const all = loadHistory();
+  const closed = all.filter(c => c.status === 'rejected' || c.status === 'withdrawn');
+  const buckets = new Map<CloseReason, { count: number; lostRevenue: number }>();
+  for (const co of closed) {
+    const reason = co.closeReason ?? 'other';
+    const cur = buckets.get(reason) ?? { count: 0, lostRevenue: 0 };
+    cur.count += 1;
+    cur.lostRevenue += co.grandTotal;
+    buckets.set(reason, cur);
+  }
+  return Array.from(buckets.entries())
+    .map(([reason, v]) => ({
+      reason,
+      label: CLOSE_REASON_LABELS[reason],
+      count: v.count,
+      lostRevenue: v.lostRevenue,
+    }))
+    .sort((a, b) => b.count - a.count);
 }
 
 export function deleteFromHistory(id: string): void {

@@ -5,7 +5,7 @@ import { generateValidatedChangeOrder } from '../services/geminiService';
 import { describeAiError } from '../services/geminiClient';
 import { ChangeOrderData } from '../types';
 import { OFFICES, DEFAULT_OFFICE_ID } from '../constants';
-import { loadRecentCustomers, rememberCustomer, type SavedCustomer } from '../utils/persistence';
+import { loadRecentCustomers, rememberCustomer, type SavedCustomer, loadTemplates, deleteTemplate, touchTemplate, type SavedTemplate } from '../utils/persistence';
 
 const MAX_IMAGE_BYTES = 5_000_000; // 5MB per image
 const MAX_IMAGES = 10;
@@ -41,6 +41,39 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
   // Customer autocomplete: lazy-loaded list, filtered by current input
   const [customerFocused, setCustomerFocused] = useState(false);
   const recentCustomers = useMemo<SavedCustomer[]>(() => loadRecentCustomers(20), [customerFocused]);
+
+  // Templates — re-read on demand so newly-saved templates appear without remount.
+  const [templatesVersion, setTemplatesVersion] = useState(0);
+  const templates = useMemo<SavedTemplate[]>(() => loadTemplates(), [templatesVersion]);
+
+  const handleApplyTemplate = (tpl: SavedTemplate) => {
+    if (!window.confirm(`Apply template "${tpl.name}"?\n\nThis fills the materials, labor, and scope from the template, then takes you straight to the change order view. Customer fields you've entered will be preserved.\n\nThe AI estimator step is skipped — pricing is what was saved with the template. Use the per-line MSRP lookup buttons to refresh prices.`)) {
+      return;
+    }
+    touchTemplate(tpl.id);
+    setTemplatesVersion(v => v + 1);
+    // Compose: template's scope/materials/labor + the user's customer/admin data.
+    const merged: ChangeOrderData = {
+      ...tpl.coData,
+      customer: adminData.customer,
+      contact: adminData.contact,
+      projectName: adminData.projectName,
+      address: adminData.address,
+      phone: adminData.phone,
+      projectNumber: adminData.projectNumber,
+      rfiNumber: adminData.rfiNumber,
+      pcoNumber: adminData.pcoNumber,
+      officeId: adminData.officeId,
+    };
+    rememberCustomer(adminData);
+    onResult(merged);
+  };
+
+  const handleDeleteTemplate = (tpl: SavedTemplate) => {
+    if (!window.confirm(`Delete template "${tpl.name}"? This cannot be undone.`)) return;
+    deleteTemplate(tpl.id);
+    setTemplatesVersion(v => v + 1);
+  };
   const customerSuggestions = useMemo(() => {
     const q = adminData.customer.trim().toLowerCase();
     if (!q) return recentCustomers.slice(0, 8);
@@ -137,6 +170,48 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-10">
+      {/* Templates — saved scopes for fast reuse on repetitive jobs */}
+      {templates.length > 0 && (
+        <div className="p-6 bg-white/5 border border-gray-900 shadow-xl">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xs font-black text-[#D4AF37] uppercase tracking-[0.3em]">Start from a saved scope</h3>
+            <span className="text-[10px] text-gray-500 uppercase tracking-widest">{templates.length} template{templates.length === 1 ? '' : 's'}</span>
+          </div>
+          <p className="text-[10px] text-gray-500 mb-3 leading-relaxed">
+            Skip the AI estimator and start from a known-good scope. Customer info you've entered above is preserved. Pricing is what was saved — use the per-line MSRP lookup on the next screen if a template is more than a couple months old.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {templates.slice(0, 8).map(tpl => (
+              <div
+                key={tpl.id}
+                className="group flex items-center justify-between bg-black/40 border border-gray-800 hover:border-[#D4AF37]/60 p-3 transition-all"
+              >
+                <button
+                  type="button"
+                  onClick={() => handleApplyTemplate(tpl)}
+                  className="flex-1 text-left"
+                >
+                  <div className="text-sm font-bold text-white truncate">{tpl.name}</div>
+                  <div className="text-[10px] text-gray-500 mt-0.5">
+                    {tpl.coData.materials?.length || 0} materials · {tpl.coData.labor?.length || 0} labor tasks
+                    {tpl.useCount > 0 ? ` · used ${tpl.useCount}×` : ''}
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteTemplate(tpl)}
+                  className="ml-2 opacity-0 group-hover:opacity-70 hover:opacity-100 text-red-400 text-xs transition-opacity"
+                  title="Delete template"
+                  aria-label={`Delete template ${tpl.name}`}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Administrative Intake Section */}
       <div className="p-6 bg-white/5 border border-gray-900 shadow-xl space-y-6">
         <h3 className="text-xs font-black text-[#D4AF37] uppercase tracking-[0.3em] border-b border-gray-800 pb-2">Administrative Intake</h3>

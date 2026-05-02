@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import {
   loadHistory, updateHistoryStatus, deleteFromHistory, getWinRateStats,
-  type SavedCO, type COStatus,
+  getCloseReasonStats, CLOSE_REASON_LABELS,
+  type SavedCO, type COStatus, type CloseReason,
 } from '../utils/persistence';
 import { fmtUSD } from '../utils/financials';
 
@@ -26,8 +27,13 @@ const STATUS_BG: Record<COStatus, string> = {
 export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
   const [items, setItems] = useState<SavedCO[]>(() => loadHistory());
   const [filter, setFilter] = useState<COStatus | 'all'>('all');
+  /** Tracks which CO is currently being closed and needs a reason. */
+  const [reasonPromptFor, setReasonPromptFor] = useState<{ id: string; targetStatus: COStatus } | null>(null);
+  const [reasonChoice, setReasonChoice] = useState<CloseReason>('price_too_high');
+  const [reasonNotes, setReasonNotes] = useState('');
 
   const stats = useMemo(() => getWinRateStats(), [items]);
+  const closeReasonStats = useMemo(() => getCloseReasonStats(), [items]);
 
   const visibleItems = useMemo(
     () => filter === 'all' ? items : items.filter(i => i.status === filter),
@@ -35,7 +41,30 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
   );
 
   const handleStatusChange = (id: string, status: COStatus) => {
+    // Closing the loop: any close-state status (rejected/withdrawn) prompts
+    // for a reason. Coordinator can dismiss and we'll save without one, but
+    // the prompt nudges the data-collection habit.
+    if (status === 'rejected' || status === 'withdrawn') {
+      setReasonPromptFor({ id, targetStatus: status });
+      setReasonChoice('price_too_high');
+      setReasonNotes('');
+      return;
+    }
     updateHistoryStatus(id, status);
+    setItems(loadHistory());
+  };
+
+  const confirmCloseWithReason = () => {
+    if (!reasonPromptFor) return;
+    updateHistoryStatus(reasonPromptFor.id, reasonPromptFor.targetStatus, reasonNotes || undefined, reasonChoice);
+    setReasonPromptFor(null);
+    setItems(loadHistory());
+  };
+
+  const skipReasonAndClose = () => {
+    if (!reasonPromptFor) return;
+    updateHistoryStatus(reasonPromptFor.id, reasonPromptFor.targetStatus);
+    setReasonPromptFor(null);
     setItems(loadHistory());
   };
 
@@ -54,7 +83,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-5xl max-h-[90vh] bg-black border-2 border-[#D4AF37] shadow-[0_0_80px_rgba(212,175,55,0.25)] flex flex-col"
+        className="relative w-full max-w-5xl max-h-[90vh] bg-black border-2 border-[#D4AF37] shadow-[0_0_80px_rgba(212,175,55,0.25)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header + stats */}
@@ -81,6 +110,25 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
             <StatCard label="Win Rate" value={`${stats.winRatePercent}%`} accent="gold" />
             <StatCard label="Accepted Revenue" value={fmtUSD(stats.totalAcceptedRevenue)} accent="emerald" />
           </div>
+
+          {/* Why we lose — feedback loop */}
+          {closeReasonStats.length > 0 && (
+            <div className="mt-4 bg-red-950/20 border border-red-900/40 p-3">
+              <h3 className="text-[10px] font-black text-red-300 uppercase tracking-[0.3em] mb-2">
+                Why bids are closing (top reasons)
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[10px]">
+                {closeReasonStats.slice(0, 4).map(r => (
+                  <div key={r.reason} className="bg-black/40 border border-gray-800 p-2">
+                    <div className="text-gray-400 uppercase tracking-wider mb-0.5">{r.label}</div>
+                    <div className="text-red-300 font-mono font-bold">
+                      {r.count} CO{r.count === 1 ? '' : 's'} · {fmtUSD(r.lostRevenue)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Filter */}
           <div className="flex gap-2 mt-6">
@@ -120,6 +168,55 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
             </div>
           )}
         </div>
+
+        {/* Close-reason prompt overlay — fires on rejected/withdrawn transition. */}
+        {reasonPromptFor && (
+          <div
+            className="absolute inset-0 z-10 bg-black/85 backdrop-blur-sm flex items-center justify-center p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-full max-w-md bg-black border-2 border-red-500 p-6 shadow-[0_0_60px_rgba(239,68,68,0.3)]">
+              <h3 className="text-sm font-black text-red-400 uppercase tracking-[0.2em] mb-2">
+                Why is this CO closing?
+              </h3>
+              <p className="text-[11px] text-gray-400 mb-4 leading-relaxed">
+                Two seconds of input now → useful win/loss analytics later. You'll see aggregate reasons in the stats panel.
+              </p>
+              <label className="block text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-1">Reason</label>
+              <select
+                value={reasonChoice}
+                onChange={(e) => setReasonChoice(e.target.value as CloseReason)}
+                className="w-full bg-[#0a0a0a] border border-gray-800 text-white p-2 mb-4 focus:border-[#D4AF37] outline-none text-sm"
+              >
+                {(Object.keys(CLOSE_REASON_LABELS) as CloseReason[]).map(k => (
+                  <option key={k} value={k}>{CLOSE_REASON_LABELS[k]}</option>
+                ))}
+              </select>
+              <label className="block text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-1">Notes (optional)</label>
+              <textarea
+                value={reasonNotes}
+                onChange={(e) => setReasonNotes(e.target.value)}
+                rows={3}
+                placeholder="Customer said they had a quote $2K lower from competitor X..."
+                className="w-full bg-[#0a0a0a] border border-gray-800 text-white p-2 mb-4 focus:border-[#D4AF37] outline-none text-xs resize-none"
+              />
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={skipReasonAndClose}
+                  className="text-[10px] font-bold uppercase tracking-widest px-4 py-2 bg-white/5 hover:bg-white/10 border border-gray-700 text-gray-400"
+                >
+                  Skip
+                </button>
+                <button
+                  onClick={confirmCloseWithReason}
+                  className="text-[10px] font-bold uppercase tracking-widest px-4 py-2 bg-red-600 hover:bg-red-700 text-white"
+                >
+                  Save Reason
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

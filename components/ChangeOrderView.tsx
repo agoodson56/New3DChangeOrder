@@ -2,10 +2,11 @@
 import React, { useState, useMemo } from 'react';
 import { ChangeOrderData, LaborRates, MaterialItem, LaborTask, ValidationResult } from '../types';
 import { GoldButton } from './GoldButton';
-import { Icons, getOffice, COMPANY_PHONE, COMPANY_FAX, COMPANY_LICENSE } from '../constants';
+import { Icons, getOffice, COMPANY_PHONE, COMPANY_FAX, COMPANY_LICENSE, MARGIN_FLOOR_PCT, MARGIN_WARN_PCT } from '../constants';
 import { ProductSearchModal } from './ProductSearchModal';
 import { lookupMSRP } from '../services/productSearchService';
 import { calculateFinancials, fmtUSD } from '../utils/financials';
+import { saveTemplate } from '../utils/persistence';
 
 const clampNonNeg = (n: number) => Math.max(0, Number.isFinite(n) ? n : 0);
 const round2OnCommit = (n: number) => Math.round(clampNonNeg(n) * 100) / 100;
@@ -27,6 +28,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
   const [searchInitialQuery, setSearchInitialQuery] = useState('');
   const [lookupLoadingIndex, setLookupLoadingIndex] = useState<number | null>(null);
   const [showValidationDetails, setShowValidationDetails] = useState(false);
+  const [marginAcknowledged, setMarginAcknowledged] = useState(false);
 
   // Helper to update a field and trigger recalculation
   const updateField = <K extends keyof ChangeOrderData>(field: K, value: ChangeOrderData[K]) => {
@@ -657,11 +659,93 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
         </div>
       </div>
 
+      {/* Margin Health — internal-only, hidden on print. The financial guardrail. */}
+      <div className="print:hidden mx-4 mb-4 mt-2">
+        {(() => {
+          const marginPct = financials.marginPct;
+          const belowFloor = marginPct < MARGIN_FLOOR_PCT;
+          const inWarnZone = !belowFloor && marginPct < MARGIN_WARN_PCT;
+          const tone = belowFloor
+            ? 'border-red-500 bg-red-50'
+            : inWarnZone
+              ? 'border-amber-500 bg-amber-50'
+              : 'border-emerald-500 bg-emerald-50';
+          const pctTone = belowFloor
+            ? 'text-red-700'
+            : inWarnZone
+              ? 'text-amber-700'
+              : 'text-emerald-700';
+          const badge = belowFloor
+            ? '🔴 BELOW MARGIN FLOOR'
+            : inWarnZone
+              ? '🟡 NEAR FLOOR'
+              : '🟢 HEALTHY';
+          return (
+            <div className={`border-2 ${tone} p-3 rounded-sm`}>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-700">Margin Health (internal — not printed)</h4>
+                <span className={`text-[10px] font-black uppercase tracking-wider ${pctTone}`}>{badge}</span>
+              </div>
+              <div className="grid grid-cols-4 gap-3 text-[10px]">
+                <div>
+                  <div className="text-gray-500 uppercase tracking-wider mb-0.5">Revenue (ex-tax)</div>
+                  <div className="font-mono font-bold text-gray-900">{fmtUSD(grandTotal - salesTax)}</div>
+                </div>
+                <div>
+                  <div className="text-gray-500 uppercase tracking-wider mb-0.5">Estimated Cost</div>
+                  <div className="font-mono font-bold text-gray-900">{fmtUSD(financials.estimatedCost)}</div>
+                </div>
+                <div>
+                  <div className="text-gray-500 uppercase tracking-wider mb-0.5">Gross Profit</div>
+                  <div className={`font-mono font-bold ${financials.grossProfit < 0 ? 'text-red-700' : 'text-gray-900'}`}>{fmtUSD(financials.grossProfit)}</div>
+                </div>
+                <div>
+                  <div className="text-gray-500 uppercase tracking-wider mb-0.5">Margin</div>
+                  <div className={`font-mono font-bold text-lg ${pctTone}`}>{(marginPct * 100).toFixed(1)}%</div>
+                </div>
+              </div>
+              <p className="text-[9px] text-gray-600 mt-2 italic leading-tight">
+                Cost estimated at {Math.round((1 - 0.55) * 100)}% labor margin, {Math.round((1 - 0.65) * 100)}% material margin, {Math.round((1 - 0.70) * 100)}% equipment margin (configurable in constants.tsx).
+                Floor {Math.round(MARGIN_FLOOR_PCT * 100)}% — adjust to your accountant's recommendation.
+              </p>
+              {belowFloor && (
+                <label className="mt-3 flex items-start gap-2 bg-white border border-red-300 p-2 rounded-sm cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={marginAcknowledged}
+                    onChange={(e) => setMarginAcknowledged(e.target.checked)}
+                    className="mt-0.5"
+                  />
+                  <span className="text-[10px] font-bold text-red-800 leading-tight">
+                    I acknowledge this bid's margin ({(marginPct * 100).toFixed(1)}%) is below the {Math.round(MARGIN_FLOOR_PCT * 100)}% company floor.
+                    I have manager approval to proceed. Print and Generate Proposal are blocked until this is checked.
+                  </span>
+                </label>
+              )}
+            </div>
+          );
+        })()}
+      </div>
+
       {/* Non-Printable Actions */}
       <div className="p-10 print:hidden bg-gray-100 border-t-4 border-gray-300 space-y-5">
+        {(() => {
+          // Margin guard wraps the action buttons. If the bid is below the
+          // floor and the user hasn't acknowledged, Print and Generate
+          // Proposal are disabled — preventing accidental loss-making bids.
+          const marginBlocked = financials.marginPct < MARGIN_FLOOR_PCT && !marginAcknowledged;
+          return marginBlocked ? (
+            <div className="bg-red-100 border-2 border-red-500 text-red-900 p-3 mb-2 text-[11px] font-bold uppercase tracking-wider text-center">
+              ⚠️ Print and Generate Proposal are blocked: margin below {Math.round(MARGIN_FLOOR_PCT * 100)}% floor.
+              Acknowledge in the Margin Health panel above (or improve pricing/scope) to unblock.
+            </div>
+          ) : null;
+        })()}
         <div className="flex gap-6">
           <GoldButton
+            disabled={financials.marginPct < MARGIN_FLOOR_PCT && !marginAcknowledged}
             onClick={() => {
+              if (financials.marginPct < MARGIN_FLOOR_PCT && !marginAcknowledged) return;
               // Auto-save to history on first print so win-rate tracking captures every CO sent out.
               if (onArchive && !archivedId) onArchive();
               // Build a useful filename so the browser's "Save as PDF" default name is clean:
@@ -690,7 +774,11 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
             🖨️ PRINT / SAVE AS PDF
           </GoldButton>
           <GoldButton
-            onClick={onGenerateProposal}
+            disabled={financials.marginPct < MARGIN_FLOOR_PCT && !marginAcknowledged}
+            onClick={() => {
+              if (financials.marginPct < MARGIN_FLOOR_PCT && !marginAcknowledged) return;
+              onGenerateProposal();
+            }}
             loading={isGeneratingProposal}
             className="flex-1 h-16 text-lg shadow-xl tracking-[0.15em] font-black bg-gradient-to-r from-[#008a8a] to-[#006666] hover:from-[#009a9a] hover:to-[#007777]"
           >
@@ -699,6 +787,27 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
           <GoldButton onClick={onReset} variant="outline" className="flex-1 h-16 text-lg font-black">
             New Intake Session
           </GoldButton>
+        </div>
+        <div className="flex justify-center">
+          <button
+            onClick={() => {
+              const name = window.prompt(
+                'Save this scope as a template for reuse on similar jobs?\n\nGive it a short name (e.g., "4-camera warehouse install" or "Single-door access kit").\nCustomer-specific fields will be cleared automatically.',
+                data.projectName ? `${data.projectName} (template)` : ''
+              );
+              if (name === null) return; // cancelled
+              if (!name.trim()) {
+                alert('Template name required.');
+                return;
+              }
+              const tpl = saveTemplate(name, data);
+              alert(`Saved "${tpl.name}" — load it from the intake screen on future jobs.`);
+            }}
+            className="text-[11px] uppercase tracking-widest font-bold text-gray-700 hover:text-[#B8860B] border border-gray-400 hover:border-[#D4AF37] px-5 py-2 transition-all"
+            title="Save the current materials/labor/scope as a reusable template. Customer info is stripped."
+          >
+            💾 Save scope as template
+          </button>
         </div>
         <p className="text-[10px] text-center text-gray-700 tracking-widest font-bold uppercase border-t border-gray-300 pt-4 leading-relaxed">
           <span className="text-[#B8860B]">Estimator Verification —</span> Prior to issuing this change order, the estimator is responsible for validating all high-priced material and equipment line items against current distributor pricing. Use the magnifying-glass icon adjacent to each line to confirm street-price accuracy.

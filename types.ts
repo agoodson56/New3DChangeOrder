@@ -131,6 +131,12 @@ export interface Financials {
   materialsTotal: number;
   taxTotal: number;
   grandTotal: number;
+  /** Estimated cost to 3DTSI to deliver the work (labor + material + equipment cost). */
+  estimatedCost: number;
+  /** Revenue ex-tax minus estimatedCost. Negative = bidding at a loss. */
+  grossProfit: number;
+  /** grossProfit / (grandTotal − salesTax). 0–1 scale. NaN-safe (returns 0). */
+  marginPct: number;
 }
 
 /** Single source of truth for AdminData defaults — keeps service & UI initializers in sync. */

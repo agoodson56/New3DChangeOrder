@@ -5,6 +5,9 @@ import {
   MATERIAL_MARKUP_RATE,
   EQUIPMENT_MARKUP_RATE,
   TAX_ON_MARKED_UP_PRICE,
+  DEFAULT_MATERIAL_COST_FACTOR,
+  DEFAULT_EQUIPMENT_COST_FACTOR,
+  DEFAULT_LABOR_COST_FACTOR,
 } from '../constants';
 
 const DEFAULT_SALES_TAX_RATE = 0.0825; // 8.25% Rancho Cordova fallback
@@ -98,6 +101,20 @@ export function calculateFinancials(
 
     const grandTotal = round2(laborTotal + materialsTotal + salesTax);
 
+    // ── Cost-side estimate (margin protection) ───────────────────────────
+    // Estimates 3DTSI's true delivered cost, so the UI can show margin and
+    // refuse loss-making bids. Tax is pass-through (collected and remitted
+    // to the state) — not part of contractor cost or revenue.
+    const laborCost = round2(laborSubtotal * DEFAULT_LABOR_COST_FACTOR);
+    const materialCost = round2(materialSubtotal * DEFAULT_MATERIAL_COST_FACTOR);
+    const equipmentCost = round2(equipmentSubtotal * DEFAULT_EQUIPMENT_COST_FACTOR);
+    const estimatedCost = round2(laborCost + materialCost + equipmentCost);
+    const revenueExTax = round2(grandTotal - salesTax);
+    const grossProfit = round2(revenueExTax - estimatedCost);
+    const marginPct = revenueExTax !== 0
+        ? grossProfit / revenueExTax
+        : 0;
+
     return {
         laborSubtotal,
         laborMarkup,
@@ -111,6 +128,9 @@ export function calculateFinancials(
         taxBase,
         taxTotal: salesTax,
         grandTotal,
+        estimatedCost,
+        grossProfit,
+        marginPct,
     };
 }
 
