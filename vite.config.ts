@@ -15,5 +15,29 @@ export default defineConfig(() => ({
     alias: {
       '@': path.resolve(__dirname, '.'),
     }
-  }
+  },
+  build: {
+    // Code-split the heaviest modules so first paint doesn't ship the
+    // entire product DB and AI service in one chunk. The product catalog
+    // alone is ~2,500 entries; we want it as a separate lazy chunk that
+    // only loads when the user actually opens the change-order view.
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('/data/products/') || id.includes('/data/productDatabase')) {
+            return 'product-db';
+          }
+          if (id.includes('/services/gemini') || id.includes('/services/pricing') || id.includes('/services/qaAuditor') || id.includes('/services/productSearch')) {
+            return 'ai-services';
+          }
+          if (id.includes('node_modules/react') || id.includes('node_modules/scheduler')) {
+            return 'react-vendor';
+          }
+        },
+      },
+    },
+    // Raise the warning threshold to a realistic number for this app —
+    // the AI services + product DB chunks are big by nature.
+    chunkSizeWarningLimit: 600,
+  },
 }));

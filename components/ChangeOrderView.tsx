@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { ChangeOrderData, LaborRates, MaterialItem, LaborTask, ValidationResult } from '../types';
 import { GoldButton } from './GoldButton';
 import { Icons, getOffice, COMPANY_PHONE, COMPANY_FAX, COMPANY_LICENSE, MARGIN_FLOOR_PCT, MARGIN_WARN_PCT, relevantComplianceItems } from '../constants';
@@ -7,6 +7,7 @@ import { ProductSearchModal } from './ProductSearchModal';
 import { lookupMSRP } from '../services/productSearchService';
 import { calculateFinancials, fmtUSD } from '../utils/financials';
 import { saveTemplate } from '../utils/persistence';
+import { sendForSignature, DocusignNotConfiguredError } from '../services/docusignService';
 
 const clampNonNeg = (n: number) => Math.max(0, Number.isFinite(n) ? n : 0);
 const round2OnCommit = (n: number) => Math.round(clampNonNeg(n) * 100) / 100;
@@ -31,6 +32,8 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
   const [marginAcknowledged, setMarginAcknowledged] = useState(false);
   /** Per-item map: { itemId: true } for items the coordinator has checked off. */
   const [complianceChecked, setComplianceChecked] = useState<Record<string, boolean>>({});
+  const [docusignSending, setDocusignSending] = useState(false);
+  const docusignFileRef = useRef<HTMLInputElement>(null);
 
   // Helper to update a field and trigger recalculation
   const updateField = <K extends keyof ChangeOrderData>(field: K, value: ChangeOrderData[K]) => {
@@ -261,7 +264,11 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto bg-white text-black shadow-2xl p-0 font-sans print:shadow-none mb-20 overflow-hidden border border-gray-300">
+    <div className="w-full max-w-5xl mx-auto bg-white text-black shadow-2xl p-0 font-sans print:shadow-none mb-20 overflow-x-auto md:overflow-hidden border border-gray-300"
+         style={{ // Min-width on small screens lets users pinch-zoom or h-scroll the document
+                  // grid without the layout collapsing. On md+ this is unset.
+                  minWidth: '0' }}>
+      <div className="min-w-[640px] md:min-w-0">
       {/* Edit Mode Banner - Hidden on Print */}
       <div className="bg-gradient-to-r from-[#D4AF37] to-[#B8962F] text-black px-4 py-2 flex items-center gap-3 print:hidden">
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -785,7 +792,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
       })()}
 
       {/* Non-Printable Actions */}
-      <div className="p-10 print:hidden bg-gray-100 border-t-4 border-gray-300 space-y-5">
+      <div className="p-4 md:p-10 print:hidden bg-gray-100 border-t-4 border-gray-300 space-y-5">
         {(() => {
           // Combined submit-block: margin floor + required compliance items.
           // Either failing condition disables Print + Generate Proposal.
@@ -801,7 +808,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
             </div>
           ) : null;
         })()}
-        <div className="flex gap-6">
+        <div className="flex flex-col md:flex-row gap-3 md:gap-6">
           <GoldButton
             disabled={(financials.marginPct < MARGIN_FLOOR_PCT && !marginAcknowledged) || relevantComplianceItems(data.officeId, data.systemsImpacted ?? []).some(i => i.required && !complianceChecked[i.id])}
             onClick={() => {
@@ -850,14 +857,14 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
             New Intake Session
           </GoldButton>
         </div>
-        <div className="flex justify-center">
+        <div className="flex justify-center gap-3 flex-wrap">
           <button
             onClick={() => {
               const name = window.prompt(
                 'Save this scope as a template for reuse on similar jobs?\n\nGive it a short name (e.g., "4-camera warehouse install" or "Single-door access kit").\nCustomer-specific fields will be cleared automatically.',
                 data.projectName ? `${data.projectName} (template)` : ''
               );
-              if (name === null) return; // cancelled
+              if (name === null) return;
               if (!name.trim()) {
                 alert('Template name required.');
                 return;
@@ -869,6 +876,52 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
             title="Save the current materials/labor/scope as a reusable template. Customer info is stripped."
           >
             💾 Save scope as template
+          </button>
+          <input
+            ref={docusignFileRef}
+            type="file"
+            accept="application/pdf"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              if (e.target) e.target.value = '';
+              const customerEmail = window.prompt(`Customer email to send the signature request to:\n(${data.customer || 'this customer'})`);
+              if (!customerEmail || !customerEmail.includes('@')) {
+                if (customerEmail !== null) alert('A valid email is required.');
+                return;
+              }
+              const customerName = window.prompt('Customer signer name:', data.contact || data.customer || '') || data.customer || 'Customer';
+              setDocusignSending(true);
+              try {
+                const result = await sendForSignature({
+                  pdfFile: file,
+                  filename: file.name,
+                  subject: `Signature Required: Change Order${data.pcoNumber ? ` #${data.pcoNumber}` : ''} — ${data.customer || data.projectName}`,
+                  message: `Please review and sign the attached change order. Total: $${grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.`,
+                  signer: { email: customerEmail.trim(), name: customerName.trim() },
+                  poNumber: data.pcoNumber,
+                });
+                alert(`Sent for signature.\nDocuSign envelope: ${result.envelopeId}\nThe customer will receive an email shortly.`);
+              } catch (err) {
+                if (err instanceof DocusignNotConfiguredError) {
+                  alert('DocuSign is not yet configured on the server. Ask your admin to set the DOCUSIGN_* env vars in Cloudflare Pages — see functions/api/docusign.ts for the steps.');
+                } else {
+                  console.error(err);
+                  alert(`Could not send for signature: ${err instanceof Error ? err.message : 'Unknown error'}`);
+                }
+              } finally {
+                setDocusignSending(false);
+              }
+            }}
+          />
+          <button
+            onClick={() => docusignFileRef.current?.click()}
+            disabled={docusignSending}
+            className="text-[11px] uppercase tracking-widest font-bold text-gray-700 hover:text-[#008a8a] border border-gray-400 hover:border-[#008a8a] px-5 py-2 transition-all disabled:opacity-50"
+            title="First save this CO as a PDF (Print → Save as PDF), then click here to upload that PDF and email it to the customer for e-signature."
+          >
+            {docusignSending ? '⏳ Sending…' : '✍️ Send for e-signature'}
           </button>
         </div>
         <p className="text-[10px] text-center text-gray-700 tracking-widest font-bold uppercase border-t border-gray-300 pt-4 leading-relaxed">
@@ -882,6 +935,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
         onAddProduct={handleAddProduct}
         initialQuery={searchInitialQuery}
       />
+      </div>{/* /min-width wrapper for mobile h-scroll */}
     </div>
   );
 };

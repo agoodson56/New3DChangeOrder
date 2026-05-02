@@ -46,9 +46,23 @@ function writeJson(key: string, value: unknown): void {
   if (typeof localStorage === 'undefined') return;
   try {
     localStorage.setItem(key, JSON.stringify(value));
+    // Tell cloud sync this key changed; it'll debounce-push to the server.
+    // Imported lazily so the persistence layer keeps working even if cloudSync
+    // is not initialized (e.g., in tests).
+    void notifyCloudSync(key);
   } catch (e) {
     // Quota exceeded or storage disabled — best effort, drop silently.
     console.warn(`localStorage write failed for ${key}:`, e);
+  }
+}
+
+/** Best-effort cloud sync notification. Imports lazily so tests / SSR don't break. */
+async function notifyCloudSync(key: string): Promise<void> {
+  try {
+    const mod = await import('./cloudSync');
+    mod.markDirty(key);
+  } catch {
+    // cloudSync not available — fine, we're in local-only mode.
   }
 }
 

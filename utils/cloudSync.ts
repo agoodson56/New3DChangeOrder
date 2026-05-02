@@ -1,0 +1,224 @@
+/**
+ * Cloud sync — keeps the localStorage cache aligned with the D1 backend.
+ *
+ * Strategy: hybrid.
+ *   - localStorage is read by all components synchronously (no React refactor).
+ *   - On boot, we pull all scopes from /api/data and write them into localStorage.
+ *   - After every persistence write, we mark the scope dirty and a debounced
+ *     pusher uploads it to /api/data/:scope.
+ *   - If the network is unavailable, writes still hit localStorage; dirty flags
+ *     remain set; the next online push catches up.
+ *
+ * Auth: relies on Cloudflare Access in front of /api/data*. If Access is not
+ * configured, the endpoint will 401 and sync stays disabled — the app continues
+ * to work in single-device mode.
+ *
+ * If you want to disable cloud sync temporarily (e.g., during a migration):
+ *   localStorage.setItem('co_cloud_sync_disabled', '1');
+ */
+
+export type SyncStatus = 'idle' | 'pulling' | 'pushing' | 'offline' | 'error' | 'disabled';
+
+interface SyncState {
+  status: SyncStatus;
+  lastPullAt: number | null;
+  lastPushAt: number | null;
+  lastError: string | null;
+  pendingScopes: Set<string>;
+}
+
+const state: SyncState = {
+  status: 'idle',
+  lastPullAt: null,
+  lastPushAt: null,
+  lastError: null,
+  pendingScopes: new Set(),
+};
+
+const listeners = new Set<(s: SyncState) => void>();
+
+export function subscribe(fn: (s: SyncState) => void): () => void {
+  listeners.add(fn);
+  fn(state);
+  return () => { listeners.delete(fn); };
+}
+
+function notify() {
+  for (const fn of listeners) fn({ ...state, pendingScopes: new Set(state.pendingScopes) });
+}
+
+function setStatus(status: SyncStatus, error?: string) {
+  state.status = status;
+  state.lastError = error ?? null;
+  notify();
+}
+
+// localStorage scope ↔ key mapping ────────────────────────────────────────────
+// Persistence module uses these keys; cloud uses the short scope name.
+
+const LS_KEY_BY_SCOPE: Record<string, string> = {
+  history: 'co_history_v1',
+  customers: 'co_customers_v1',
+  templates: 'co_templates_v1',
+  rates: 'co_labor_rates_v1',
+};
+
+// Per-user draft scope is computed at runtime from the authenticated email.
+let draftScope: string | null = null;
+
+function emailKey(email: string): string {
+  let h = 0;
+  for (let i = 0; i < email.length; i++) {
+    h = ((h << 5) - h + email.charCodeAt(i)) | 0;
+  }
+  return Math.abs(h).toString(36).padStart(6, '0');
+}
+
+function lsKeyForScope(scope: string): string | null {
+  if (LS_KEY_BY_SCOPE[scope]) return LS_KEY_BY_SCOPE[scope];
+  if (scope.startsWith('draft_')) return 'co_draft_v1';
+  return null;
+}
+
+function scopeForLsKey(key: string): string | null {
+  for (const [scope, k] of Object.entries(LS_KEY_BY_SCOPE)) {
+    if (k === key) return scope;
+  }
+  if (key === 'co_draft_v1' && draftScope) return draftScope;
+  return null;
+}
+
+// Pull / push primitives ──────────────────────────────────────────────────────
+
+async function pullAll(): Promise<void> {
+  if (typeof localStorage === 'undefined') return;
+  if (localStorage.getItem('co_cloud_sync_disabled') === '1') {
+    setStatus('disabled');
+    return;
+  }
+  setStatus('pulling');
+  try {
+    const res = await fetch('/api/data', { method: 'GET', credentials: 'same-origin' });
+    if (res.status === 503) {
+      // Backend not provisioned — fall back silently to local-only mode.
+      setStatus('disabled', 'Cloud sync not provisioned on server');
+      return;
+    }
+    if (res.status === 401) {
+      setStatus('disabled', 'Not authenticated (Cloudflare Access required)');
+      return;
+    }
+    if (!res.ok) {
+      setStatus('error', `Pull failed: HTTP ${res.status}`);
+      return;
+    }
+    const data = await res.json() as {
+      orgId: string;
+      email: string;
+      blobs: Record<string, { content: unknown; updatedAt: number }>;
+    };
+    if (data.email) draftScope = `draft_${emailKey(data.email)}`;
+
+    // Merge: server wins by default. Per-scope updated_at is checked against
+    // the last local push timestamp so we don't clobber pending local writes
+    // that haven't been pushed yet.
+    for (const [scope, payload] of Object.entries(data.blobs)) {
+      const lsKey = lsKeyForScope(scope);
+      if (!lsKey) continue;
+      const localPushedAt = Number(localStorage.getItem(`${lsKey}__pushed_at`) || '0');
+      // If the server's copy is newer than what we last pushed, accept it.
+      if (payload.updatedAt > localPushedAt) {
+        try {
+          localStorage.setItem(lsKey, JSON.stringify(payload.content));
+          localStorage.setItem(`${lsKey}__pushed_at`, String(payload.updatedAt));
+        } catch (e) {
+          console.warn(`Cloud sync: could not write ${lsKey}`, e);
+        }
+      }
+    }
+    state.lastPullAt = Date.now();
+    setStatus('idle');
+  } catch (e) {
+    setStatus('offline', e instanceof Error ? e.message : String(e));
+  }
+}
+
+async function pushScope(scope: string): Promise<void> {
+  if (typeof localStorage === 'undefined') return;
+  if (localStorage.getItem('co_cloud_sync_disabled') === '1') return;
+  const lsKey = lsKeyForScope(scope);
+  if (!lsKey) return;
+  const content = localStorage.getItem(lsKey);
+  if (content === null) return;
+  try {
+    const res = await fetch(`/api/data/${encodeURIComponent(scope)}`, {
+      method: 'PUT',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: content,
+    });
+    if (res.status === 503 || res.status === 401) {
+      setStatus('disabled');
+      return;
+    }
+    if (!res.ok) {
+      setStatus('error', `Push ${scope} failed: HTTP ${res.status}`);
+      return;
+    }
+    const data = await res.json() as { updatedAt: number };
+    localStorage.setItem(`${lsKey}__pushed_at`, String(data.updatedAt));
+    state.lastPushAt = Date.now();
+  } catch (e) {
+    setStatus('offline', e instanceof Error ? e.message : String(e));
+  }
+}
+
+// Debounced push queue ────────────────────────────────────────────────────────
+
+let pushTimer: ReturnType<typeof setTimeout> | null = null;
+const PUSH_DEBOUNCE_MS = 1500;
+
+async function flushQueue() {
+  pushTimer = null;
+  if (state.pendingScopes.size === 0) return;
+  setStatus('pushing');
+  const scopes = Array.from(state.pendingScopes);
+  state.pendingScopes.clear();
+  notify();
+  for (const scope of scopes) {
+    await pushScope(scope);
+  }
+  if (state.status === 'pushing') setStatus('idle');
+}
+
+/**
+ * Persistence layer calls this after each write. Mark the affected localStorage
+ * key as needing a push to the server. Idempotent and cheap.
+ */
+export function markDirty(lsKey: string): void {
+  const scope = scopeForLsKey(lsKey);
+  if (!scope) return;
+  state.pendingScopes.add(scope);
+  notify();
+  if (pushTimer) clearTimeout(pushTimer);
+  pushTimer = setTimeout(() => { void flushQueue(); }, PUSH_DEBOUNCE_MS);
+}
+
+/**
+ * Boot the sync: pull from server once, then keep watching for dirty scopes.
+ * Call once on app mount.
+ */
+export async function init(): Promise<void> {
+  if (typeof window === 'undefined') return;
+  await pullAll();
+  // Periodic re-pull to catch updates from other devices.
+  // 60s is a sensible cadence for an internal team app.
+  setInterval(() => { void pullAll(); }, 60_000);
+  // Push any pending writes when the window regains focus / network.
+  window.addEventListener('online', () => { void flushQueue(); });
+  window.addEventListener('focus', () => { void pullAll(); });
+}
+
+export function getState(): Readonly<SyncState> {
+  return { ...state, pendingScopes: new Set(state.pendingScopes) };
+}

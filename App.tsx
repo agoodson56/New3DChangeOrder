@@ -16,6 +16,7 @@ import {
   saveRates as persistRates, loadRates,
   saveToHistory,
 } from './utils/persistence';
+import * as cloudSync from './utils/cloudSync';
 
 const App: React.FC = () => {
   const [status, setStatus] = useState<AppStatus>(AppStatus.IDLE);
@@ -26,7 +27,15 @@ const App: React.FC = () => {
   const [draftPrompt, setDraftPrompt] = useState<{ found: true } | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [savedCoId, setSavedCoId] = useState<string | null>(null);
+  const [syncState, setSyncState] = useState<cloudSync.SyncStatus>('idle');
   const draftSaveTimer = useRef<number | null>(null);
+
+  // ── On mount: kick off cloud sync (pulls remote state into localStorage) ───
+  useEffect(() => {
+    void cloudSync.init();
+    const unsub = cloudSync.subscribe(s => setSyncState(s.status));
+    return unsub;
+  }, []);
 
   // ── On mount: try to restore labor rates and check for saved draft ────────
   useEffect(() => {
@@ -167,9 +176,9 @@ const App: React.FC = () => {
       {/* Main Layout */}
       <div className="relative z-10">
         {/* Persistent Sticky Header */}
-        <header className="sticky top-0 z-40 bg-black/90 backdrop-blur-xl border-b border-gray-900 px-8 py-4 flex items-center justify-between shadow-2xl">
-          <div className="flex items-center gap-6">
-            <div className="w-40">
+        <header className="sticky top-0 z-40 bg-black/90 backdrop-blur-xl border-b border-gray-900 px-4 md:px-8 py-3 md:py-4 flex items-center justify-between shadow-2xl">
+          <div className="flex items-center gap-3 md:gap-6 min-w-0">
+            <div className="w-24 md:w-40 shrink-0">
               <Icons.Logo className="w-full h-auto" />
             </div>
             <div className="h-10 w-px bg-gray-800 mx-2 hidden md:block"></div>
@@ -179,6 +188,32 @@ const App: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            {/* Cloud sync status — small dot, click for details. Hidden when "idle" to avoid noise. */}
+            {syncState !== 'idle' && (
+              <div
+                className="hidden md:flex items-center gap-1.5 text-[9px] uppercase tracking-widest font-bold"
+                title={
+                  syncState === 'pulling' ? 'Syncing from cloud…'
+                  : syncState === 'pushing' ? 'Saving to cloud…'
+                  : syncState === 'offline' ? 'Offline — changes saved locally, will sync when online'
+                  : syncState === 'disabled' ? 'Cloud sync not configured (single-device mode)'
+                  : syncState === 'error' ? 'Cloud sync error — see console'
+                  : ''
+                }
+              >
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    syncState === 'pulling' || syncState === 'pushing' ? 'bg-amber-400 animate-pulse'
+                    : syncState === 'offline' ? 'bg-gray-500'
+                    : syncState === 'disabled' ? 'bg-gray-600'
+                    : 'bg-red-500'
+                  }`}
+                />
+                <span className="text-gray-500">
+                  {syncState === 'pulling' ? 'syncing' : syncState === 'pushing' ? 'saving' : syncState === 'offline' ? 'offline' : syncState === 'disabled' ? 'local' : 'sync err'}
+                </span>
+              </div>
+            )}
             {rates && (
               <div className="text-right hidden sm:block border-r border-gray-800 pr-6">
                 <div className="text-[10px] text-gray-600 uppercase font-black tracking-[0.2em] mb-1">Session Base Rate</div>
@@ -187,20 +222,20 @@ const App: React.FC = () => {
             )}
             <button
               onClick={() => setHistoryOpen(true)}
-              className="group flex items-center gap-2 bg-white/5 hover:bg-white/10 px-4 py-2 border border-gray-800 transition-all rounded-sm"
+              className="group flex items-center gap-2 bg-white/5 hover:bg-white/10 px-2 md:px-4 py-2 border border-gray-800 transition-all rounded-sm"
               title="Change Order History & Win Rate"
             >
-              <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-[#D4AF37]">History</span>
+              <span className="hidden md:inline text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-[#D4AF37]">History</span>
               <svg className="w-5 h-5 text-gray-500 group-hover:text-[#D4AF37] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
               </svg>
             </button>
             <button
               onClick={() => setStatus(AppStatus.SETUP)}
-              className="group flex items-center gap-2 bg-white/5 hover:bg-white/10 px-4 py-2 border border-gray-800 transition-all rounded-sm"
+              className="group flex items-center gap-2 bg-white/5 hover:bg-white/10 px-2 md:px-4 py-2 border border-gray-800 transition-all rounded-sm"
               title="Labor Rates"
             >
-              <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-[#D4AF37]">Rates</span>
+              <span className="hidden md:inline text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-[#D4AF37]">Rates</span>
               <svg className="w-5 h-5 text-gray-500 group-hover:text-[#D4AF37] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -209,7 +244,7 @@ const App: React.FC = () => {
           </div>
         </header>
 
-        <main className="container mx-auto px-6 py-16">
+        <main className="container mx-auto px-3 md:px-6 py-6 md:py-16">
           {/* Draft restore banner */}
           {draftPrompt && (
             <div className="mb-8 max-w-3xl mx-auto bg-[#D4AF37]/10 border border-[#D4AF37]/40 rounded-sm p-4 flex items-center justify-between gap-4 print:hidden">
