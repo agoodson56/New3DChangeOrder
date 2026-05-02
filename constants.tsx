@@ -169,3 +169,122 @@ export const MARGIN_FLOOR_PCT = 0.20; // 20%
 
 /** Margin warning threshold — amber zone above the red floor. */
 export const MARGIN_WARN_PCT = 0.25; // 25%
+
+// =============================================================================
+// COMPLIANCE CHECKLIST — pre-submit acknowledgment of jurisdiction-specific
+// and scope-specific requirements. Required items must be checked before
+// the coordinator can print or generate a proposal. Catches "we forgot to
+// reference NFPA 72" before it becomes a failed inspection.
+// =============================================================================
+
+export interface ComplianceItem {
+  id: string;
+  label: string;
+  /** Code citation or doc reference shown beneath the label. */
+  reference?: string;
+  /** When true, this item must be checked before submit. */
+  required: boolean;
+  /** Limit visibility to these state codes (CA, NV, AZ). Empty = all states. */
+  states?: string[];
+  /** Limit visibility to scopes touching these systems. Empty = all scopes. */
+  systems?: string[];
+}
+
+/** Map office id to the state code used for compliance routing. */
+export const OFFICE_STATE: Record<string, string> = {
+  'rancho-cordova': 'CA',
+  'livermore': 'CA',
+  'sparks': 'NV',
+};
+
+export const COMPLIANCE_ITEMS: ComplianceItem[] = [
+  // California-specific
+  {
+    id: 'ca_t24',
+    label: 'Title 24 energy code reviewed',
+    reference: 'CA Energy Code (Title 24, Part 6) — applies to new construction & major retrofits affecting lighting/HVAC/AV',
+    required: true,
+    states: ['CA'],
+  },
+  {
+    id: 'ca_prevailing_wage',
+    label: 'Prevailing wage status determined (public works yes/no)',
+    reference: 'CA Labor Code §1771–§1815; required documentation if public works',
+    required: true,
+    states: ['CA'],
+  },
+  {
+    id: 'ca_calosha',
+    label: 'Cal/OSHA fall-protection plan in scope (if working at heights)',
+    reference: 'Cal/OSHA §1670 — fall arrest required at >7.5ft',
+    required: false,
+    states: ['CA'],
+  },
+  // Nevada-specific
+  {
+    id: 'nv_contractor_license',
+    label: 'Nevada State Contractors Board license in scope',
+    reference: 'NV NRS Chapter 624 — required for any contracting work in NV',
+    required: true,
+    states: ['NV'],
+  },
+  // System-specific (any state)
+  {
+    id: 'fire_nfpa72',
+    label: 'NFPA 72 compliance for fire alarm devices',
+    reference: 'AHJ permit + acceptance test required before energizing',
+    required: true,
+    systems: ['Fire Alarm'],
+  },
+  {
+    id: 'access_nfpa101',
+    label: 'NFPA 101 egress requirements for access-controlled doors',
+    reference: 'Maglocks must release on fire alarm + REX + power loss',
+    required: true,
+    systems: ['Access Control'],
+  },
+  {
+    id: 'access_ada',
+    label: 'ADA hardware compliance for access-controlled doors',
+    reference: 'Operating force ≤5 lbf, lever-style hardware, height 34–48"',
+    required: true,
+    systems: ['Access Control'],
+  },
+  {
+    id: 'cable_tia568',
+    label: 'TIA-568 cable terminations & Fluke certification in scope',
+    reference: 'Required for warranty on Berk-Tek/Panduit/Leviton structured cabling',
+    required: false,
+    systems: ['Structured Cabling'],
+  },
+  {
+    id: 'cctv_privacy',
+    label: 'Privacy notice/signage requirements reviewed for CCTV install',
+    reference: 'Some jurisdictions require posted notice; check local rules',
+    required: false,
+    systems: ['CCTV'],
+  },
+  // Universal
+  {
+    id: 'permits_pulled',
+    label: 'Permits identified and either pulled or quoted as separate line',
+    reference: 'Low-voltage permits vary by AHJ; not pulling = stop-work risk',
+    required: true,
+  },
+  {
+    id: 'documentation',
+    label: 'As-builts / labels / closeout documentation included in labor',
+    reference: 'Customer-required deliverable on most commercial jobs',
+    required: false,
+  },
+];
+
+/** Filter compliance items to those relevant for the current office + scope. */
+export function relevantComplianceItems(officeId: string | undefined, systems: string[]): ComplianceItem[] {
+  const state = OFFICE_STATE[officeId ?? ''] ?? 'CA';
+  return COMPLIANCE_ITEMS.filter(item => {
+    if (item.states && !item.states.includes(state)) return false;
+    if (item.systems && !item.systems.some(s => systems.includes(s))) return false;
+    return true;
+  });
+}

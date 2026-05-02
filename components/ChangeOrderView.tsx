@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { ChangeOrderData, LaborRates, MaterialItem, LaborTask, ValidationResult } from '../types';
 import { GoldButton } from './GoldButton';
-import { Icons, getOffice, COMPANY_PHONE, COMPANY_FAX, COMPANY_LICENSE, MARGIN_FLOOR_PCT, MARGIN_WARN_PCT } from '../constants';
+import { Icons, getOffice, COMPANY_PHONE, COMPANY_FAX, COMPANY_LICENSE, MARGIN_FLOOR_PCT, MARGIN_WARN_PCT, relevantComplianceItems } from '../constants';
 import { ProductSearchModal } from './ProductSearchModal';
 import { lookupMSRP } from '../services/productSearchService';
 import { calculateFinancials, fmtUSD } from '../utils/financials';
@@ -29,6 +29,8 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
   const [lookupLoadingIndex, setLookupLoadingIndex] = useState<number | null>(null);
   const [showValidationDetails, setShowValidationDetails] = useState(false);
   const [marginAcknowledged, setMarginAcknowledged] = useState(false);
+  /** Per-item map: { itemId: true } for items the coordinator has checked off. */
+  const [complianceChecked, setComplianceChecked] = useState<Record<string, boolean>>({});
 
   // Helper to update a field and trigger recalculation
   const updateField = <K extends keyof ChangeOrderData>(field: K, value: ChangeOrderData[K]) => {
@@ -727,25 +729,84 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
         })()}
       </div>
 
+      {/* Compliance Checklist — internal-only, hidden on print. Risk guardrail. */}
+      {(() => {
+        const items = relevantComplianceItems(data.officeId, data.systemsImpacted ?? []);
+        if (items.length === 0) return null;
+        const requiredItems = items.filter(i => i.required);
+        const requiredMissing = requiredItems.filter(i => !complianceChecked[i.id]);
+        const allRequiredOk = requiredMissing.length === 0;
+        return (
+          <div className="print:hidden mx-4 mb-4">
+            <div className={`border-2 ${allRequiredOk ? 'border-emerald-500 bg-emerald-50' : 'border-amber-500 bg-amber-50'} p-3 rounded-sm`}>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-700">
+                  Pre-Submit Compliance Check (internal — not printed)
+                </h4>
+                <span className={`text-[10px] font-black uppercase tracking-wider ${allRequiredOk ? 'text-emerald-700' : 'text-amber-700'}`}>
+                  {allRequiredOk ? `✓ ALL ${requiredItems.length} REQUIRED OK` : `${requiredMissing.length} REQUIRED MISSING`}
+                </span>
+              </div>
+              <p className="text-[9px] text-gray-600 mb-2 leading-tight italic">
+                Office state: <strong>{(data.officeId === 'sparks') ? 'NV' : 'CA'}</strong> · Systems: {(data.systemsImpacted ?? []).join(', ') || '(none)'}
+              </p>
+              <div className="space-y-1.5">
+                {items.map(item => {
+                  const checked = !!complianceChecked[item.id];
+                  return (
+                    <label
+                      key={item.id}
+                      className={`flex items-start gap-2 p-2 rounded-sm cursor-pointer transition-colors ${
+                        item.required && !checked ? 'bg-white border border-amber-300' : 'bg-white/60 hover:bg-white'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(e) => setComplianceChecked(prev => ({ ...prev, [item.id]: e.target.checked }))}
+                        className="mt-0.5"
+                      />
+                      <div className="flex-1">
+                        <div className="text-[10px] font-bold text-gray-900">
+                          {item.label}
+                          {item.required && <span className="ml-2 text-[8px] bg-red-600 text-white px-1 rounded-sm uppercase tracking-wider">required</span>}
+                        </div>
+                        {item.reference && (
+                          <div className="text-[9px] text-gray-500 italic mt-0.5">{item.reference}</div>
+                        )}
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Non-Printable Actions */}
       <div className="p-10 print:hidden bg-gray-100 border-t-4 border-gray-300 space-y-5">
         {(() => {
-          // Margin guard wraps the action buttons. If the bid is below the
-          // floor and the user hasn't acknowledged, Print and Generate
-          // Proposal are disabled — preventing accidental loss-making bids.
+          // Combined submit-block: margin floor + required compliance items.
+          // Either failing condition disables Print + Generate Proposal.
           const marginBlocked = financials.marginPct < MARGIN_FLOOR_PCT && !marginAcknowledged;
-          return marginBlocked ? (
+          const items = relevantComplianceItems(data.officeId, data.systemsImpacted ?? []);
+          const complianceBlocked = items.some(i => i.required && !complianceChecked[i.id]);
+          const blockers: string[] = [];
+          if (marginBlocked) blockers.push(`margin below ${Math.round(MARGIN_FLOOR_PCT * 100)}% floor`);
+          if (complianceBlocked) blockers.push('required compliance items unchecked');
+          return blockers.length > 0 ? (
             <div className="bg-red-100 border-2 border-red-500 text-red-900 p-3 mb-2 text-[11px] font-bold uppercase tracking-wider text-center">
-              ⚠️ Print and Generate Proposal are blocked: margin below {Math.round(MARGIN_FLOOR_PCT * 100)}% floor.
-              Acknowledge in the Margin Health panel above (or improve pricing/scope) to unblock.
+              ⚠️ Print and Generate Proposal are blocked: {blockers.join(' · ')}.
             </div>
           ) : null;
         })()}
         <div className="flex gap-6">
           <GoldButton
-            disabled={financials.marginPct < MARGIN_FLOOR_PCT && !marginAcknowledged}
+            disabled={(financials.marginPct < MARGIN_FLOOR_PCT && !marginAcknowledged) || relevantComplianceItems(data.officeId, data.systemsImpacted ?? []).some(i => i.required && !complianceChecked[i.id])}
             onClick={() => {
               if (financials.marginPct < MARGIN_FLOOR_PCT && !marginAcknowledged) return;
+              if (relevantComplianceItems(data.officeId, data.systemsImpacted ?? []).some(i => i.required && !complianceChecked[i.id])) return;
               // Auto-save to history on first print so win-rate tracking captures every CO sent out.
               if (onArchive && !archivedId) onArchive();
               // Build a useful filename so the browser's "Save as PDF" default name is clean:
@@ -774,9 +835,10 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
             🖨️ PRINT / SAVE AS PDF
           </GoldButton>
           <GoldButton
-            disabled={financials.marginPct < MARGIN_FLOOR_PCT && !marginAcknowledged}
+            disabled={(financials.marginPct < MARGIN_FLOOR_PCT && !marginAcknowledged) || relevantComplianceItems(data.officeId, data.systemsImpacted ?? []).some(i => i.required && !complianceChecked[i.id])}
             onClick={() => {
               if (financials.marginPct < MARGIN_FLOOR_PCT && !marginAcknowledged) return;
+              if (relevantComplianceItems(data.officeId, data.systemsImpacted ?? []).some(i => i.required && !complianceChecked[i.id])) return;
               onGenerateProposal();
             }}
             loading={isGeneratingProposal}
