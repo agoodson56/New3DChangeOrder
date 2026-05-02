@@ -27,6 +27,7 @@
     "noEmit": true,
     "strict": true,
     "noFallthroughCasesInSwitch": true,
-    "noImplicitOverride": true
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true
   }
 }

@@ -219,10 +219,12 @@ export function updateHistoryStatus(id: string, status: COStatus, notes?: string
   const all = readJson<SavedCO[]>(KEYS.history, []);
   const idx = all.findIndex(c => c.id === id);
   if (idx === -1) return;
+  const prev = all[idx];
+  if (!prev) return; // index guarded by findIndex above, but keeps strict mode happy
   all[idx] = {
-    ...all[idx],
+    ...prev,
     status,
-    notes: notes ?? all[idx].notes,
+    notes: notes ?? prev.notes,
     updatedAt: Date.now(),
   };
   writeJson(KEYS.history, all);

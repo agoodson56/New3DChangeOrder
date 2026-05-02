@@ -33,6 +33,11 @@ interface GeminiProxyBody {
   model?: string;
   contents?: unknown;
   config?: Record<string, unknown> | null;
+  /** When true and the systemInstruction is large enough, the proxy will
+   *  create (or reuse) a Gemini cachedContent so the system prompt is billed
+   *  at ~25% the input rate after the first call. Best-effort — silently
+   *  falls back to inline systemInstruction on any cache failure. */
+  useCache?: boolean;
 }
 
 const DEFAULT_MAX_BYTES = 1_000_000;
@@ -53,6 +58,81 @@ const json = (body: unknown, status = 200, extraHeaders: Record<string, string> 
 // edge POPs could exceed the limit — but it stops casual abuse. Pair with
 // Cloudflare's edge rate-limiting rules if you need a hard cap.
 const requestLog = new Map<string, number[]>();
+
+// In-memory cache registry: hash(model+systemInstruction) → { cacheName, expiresAt }.
+// Per-isolate; new isolates rebuild caches but Gemini's implicit caching also
+// kicks in for the same prefix, so the cost of a cold isolate is bounded.
+const cacheRegistry = new Map<string, { name: string; expiresAt: number }>();
+// Gemini's documented minimum for explicit caching is ~4096 tokens.
+// Conservative char threshold (~4 chars/token) below which we don't bother.
+const CACHE_MIN_CHARS = 16384;
+const CACHE_TTL_SECONDS = 3600;
+
+async function sha256Short(s: string): Promise<string> {
+  const enc = new TextEncoder().encode(s);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  return Array.from(new Uint8Array(buf))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('').slice(0, 32);
+}
+
+/** Get-or-create a Gemini cachedContent for the given systemInstruction.
+ *  Returns the cache resource name (e.g. "cachedContents/abc...") on success,
+ *  or null on any failure / when the prompt is too small to be cached. */
+async function getOrCreateSystemCache(
+  apiKey: string,
+  model: string,
+  systemInstructionRaw: unknown
+): Promise<string | null> {
+  if (!systemInstructionRaw) return null;
+  const sysObj = typeof systemInstructionRaw === 'string'
+    ? { parts: [{ text: systemInstructionRaw }] }
+    : systemInstructionRaw;
+  const sysJson = JSON.stringify(sysObj);
+  if (sysJson.length < CACHE_MIN_CHARS) return null;
+
+  const hash = await sha256Short(`${model}|${sysJson}`);
+  const now = Date.now();
+  const existing = cacheRegistry.get(hash);
+  // Reuse if it has at least 60s left — caches near expiry can race with the
+  // generateContent call and yield a NOT_FOUND error.
+  if (existing && existing.expiresAt > now + 60_000) return existing.name;
+
+  try {
+    const r = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/cachedContents',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
+        body: JSON.stringify({
+          model: `models/${model}`,
+          systemInstruction: sysObj,
+          ttl: `${CACHE_TTL_SECONDS}s`,
+        }),
+      }
+    );
+    if (!r.ok) {
+      console.warn('cachedContents create failed:', r.status, (await r.text()).slice(0, 200));
+      return null;
+    }
+    const data = await r.json() as { name?: string };
+    if (!data?.name) return null;
+    cacheRegistry.set(hash, { name: data.name, expiresAt: now + CACHE_TTL_SECONDS * 1000 });
+    // Bound the registry size — typical office uses 1-3 distinct prompts.
+    if (cacheRegistry.size > 64) {
+      for (const [k, v] of cacheRegistry.entries()) {
+        if (v.expiresAt < now) cacheRegistry.delete(k);
+      }
+    }
+    return data.name;
+  } catch (e) {
+    console.warn('cachedContents create errored:', e);
+    return null;
+  }
+}
 
 function rateLimitOk(ip: string, perMinute: number): boolean {
   const now = Date.now();
@@ -164,7 +244,7 @@ export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promis
     return json({ error: { code: 400, status: 'INVALID_JSON', message: 'Request body is not valid JSON' } }, 400);
   }
 
-  const { model, contents, config } = body;
+  const { model, contents, config, useCache } = body;
   if (!model || typeof model !== 'string') {
     return json({ error: { code: 400, status: 'INVALID_REQUEST', message: 'model is required' } }, 400);
   }
@@ -186,11 +266,24 @@ export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promis
     delete cfg.systemInstruction;
     const tools = cfg.tools;
     delete cfg.tools;
-    if (sysInstruction) {
+
+    // Try to swap a large systemInstruction for a cachedContent reference.
+    // Falls back silently to inline if caching fails (best-effort).
+    let cacheName: string | null = null;
+    if (useCache && sysInstruction && !tools /* cached + tools combo isn't supported */) {
+      cacheName = await getOrCreateSystemCache(env.GEMINI_API_KEY, model, sysInstruction);
+    }
+
+    if (cacheName) {
+      upstreamBody.cachedContent = cacheName;
+      // Don't send systemInstruction inline when using cache — it's redundant
+      // and may error.
+    } else if (sysInstruction) {
       upstreamBody.systemInstruction = typeof sysInstruction === 'string'
         ? { parts: [{ text: sysInstruction }] }
         : sysInstruction;
     }
+
     if (tools) {
       upstreamBody.tools = tools;
     }

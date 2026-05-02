@@ -139,8 +139,8 @@ describe('persistence — customer history', () => {
     while (Date.now() === before) { /* spin */ }
     rememberCustomer(admin({ customer: 'Second' }));
     const recent = loadRecentCustomers();
-    expect(recent[0].customer).toBe('Second');
-    expect(recent[1].customer).toBe('First');
+    expect(recent[0]?.customer).toBe('Second');
+    expect(recent[1]?.customer).toBe('First');
   });
 });
 
@@ -155,7 +155,7 @@ describe('persistence — CO history & win-rate', () => {
     saveToHistory({ ...sampleCo, customer: 'Beta' }, 8000);
     const all = loadHistory();
     expect(all).toHaveLength(2);
-    expect(all[0].coData.customer).toBe('Beta'); // newest first
+    expect(all[0]?.coData.customer).toBe('Beta'); // newest first
   });
 
   it('updates status', () => {

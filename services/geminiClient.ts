@@ -22,6 +22,12 @@ export interface GenerateRequest {
    *  graceful degradation. Saves quota and latency on calls where producing
    *  no result is acceptable. */
   nonEssential?: boolean;
+  /** Opt into Gemini context caching for this call. When true and the
+   *  systemInstruction is large enough (~4k tokens), the proxy creates a
+   *  cachedContent and bills the system prompt at ~25% the input rate after
+   *  the first call. Best-effort: silently falls back to inline if caching
+   *  fails. Don't enable for calls that use tools (incompatible). */
+  useCache?: boolean;
 }
 
 export interface GenerateResponse {
@@ -127,13 +133,15 @@ export async function generateContent(req: GenerateRequest): Promise<GenerateRes
   const models = [req.model, ...(req.fallbackModels ?? [])];
   let lastErr: unknown;
   for (let i = 0; i < models.length; i++) {
+    const m = models[i];
+    if (!m) continue; // defensive — shouldn't happen given how `models` is built
     try {
-      return await tryModel(req, models[i]);
+      return await tryModel(req, m);
     } catch (e) {
       lastErr = e;
       const fallthroughable = e instanceof UnavailableError || e instanceof RateLimitError;
       if (!fallthroughable || i === models.length - 1) throw e;
-      console.warn(`Model ${models[i]} unavailable; falling back to ${models[i + 1]}`);
+      console.warn(`Model ${m} unavailable; falling back to ${models[i + 1]}`);
     }
   }
   throw lastErr;

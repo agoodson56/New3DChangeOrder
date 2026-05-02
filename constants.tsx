@@ -76,8 +76,14 @@ export const OFFICES: Office[] = [
 
 export const DEFAULT_OFFICE_ID = 'rancho-cordova';
 
-export const getOffice = (id?: string): Office =>
-  OFFICES.find(o => o.id === id) || OFFICES[0];
+export const getOffice = (id?: string): Office => {
+  const found = OFFICES.find(o => o.id === id);
+  if (found) return found;
+  // OFFICES is non-empty by construction (it's a const array literal above).
+  // The bang is safe here; only triggers if someone empties OFFICES, which
+  // is itself a bug we'd want to surface.
+  return OFFICES[0]!;
+};
 
 export const COMPANY_PHONE = '(916) 853-9111';
 export const COMPANY_FAX = '(916) 853-9118';

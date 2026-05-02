@@ -82,8 +82,10 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
           return;
         }
         const newMaterials = [...data.materials];
+        const current = newMaterials[index];
+        if (!current) return; // index drifted between request start and response
         newMaterials[index] = {
-          ...newMaterials[index],
+          ...current,
           msrp: result.msrp,
           model: `${result.model} (${result.partNumber})`,
         };
@@ -107,13 +109,17 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
 
   const updateLaborTask = (index: number, updates: Partial<LaborTask>) => {
     const newLabor = [...data.labor];
-    newLabor[index] = { ...newLabor[index], ...updates };
+    const current = newLabor[index];
+    if (!current) return;
+    newLabor[index] = { ...current, ...updates };
     onDataChange({ ...data, labor: newLabor });
   };
 
   const updateMaterial = (index: number, updates: Partial<MaterialItem>) => {
     const newMaterials = [...data.materials];
-    newMaterials[index] = { ...newMaterials[index], ...updates };
+    const current = newMaterials[index];
+    if (!current) return;
+    newMaterials[index] = { ...current, ...updates };
     onDataChange({ ...data, materials: newMaterials });
   };
 

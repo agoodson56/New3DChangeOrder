@@ -58,9 +58,10 @@ function isInDatabase(manufacturer: string, model: string, partNumber?: string):
         const pSub = p[4].toLowerCase();
         const pDesc = p[7].toLowerCase();
         const mfrMatch = pMfr === mfrLower || mfrLower === 'generic' || pMfr === 'generic';
+        const firstWord = pModel.split(' ')[0] || pModel;
         const keyMatch = pSub.includes(modelLower) || pDesc.includes(modelLower) ||
             modelLower.includes(pSub) || pModel.includes(modelLower) ||
-            modelLower.includes(pModel.split(' ')[0]);
+            modelLower.includes(firstWord);
         return mfrMatch && keyMatch;
     });
     if (catalogFuzzy) {
@@ -131,7 +132,7 @@ function isInDatabase(manufacturer: string, model: string, partNumber?: string):
 /** Extract part number from model string if present in parentheses, e.g. 'P3245-V (02326-001)' → '02326-001' */
 function extractPartNumber(model: string): string {
     const m = model.match(/\(([^)]+)\)/);
-    return m ? m[1] : '';
+    return (m && m[1]) ? m[1] : '';
 }
 
 const PRICING_SCHEMA = {

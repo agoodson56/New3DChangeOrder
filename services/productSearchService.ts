@@ -157,7 +157,7 @@ export async function searchProducts(query: string): Promise<ProductSearchResult
  */
 export async function lookupMSRP(manufacturer: string, model: string): Promise<ProductSearchResult | null> {
   const results = await searchProducts(`${manufacturer} ${model} price MSRP`);
-  return results.length > 0 ? results[0] : null;
+  return results[0] ?? null;
 }
 
 /**

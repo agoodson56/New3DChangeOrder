@@ -750,6 +750,7 @@ ${buildProductReference()}
     model,
     fallbackModels: FALLBACK_MODELS,
     contents,
+    useCache: true, // System prompt is ~15-25K tokens of product DB — prime cache candidate.
     config: {
       systemInstruction,
       temperature: 0,
