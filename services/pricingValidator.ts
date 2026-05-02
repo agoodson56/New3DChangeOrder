@@ -325,3 +325,86 @@ You MUST respond with ONLY a JSON object in this exact format (no markdown, no b
 
     return allValidations;
 }
+
+/**
+ * Second-opinion pass for any line item priced below 95% confidence.
+ * Re-asks Gemini with a different framing (median across distributors with
+ * citations) at non-zero temperature. If both passes agree within 10%, the
+ * confidence is raised to 95. If they disagree by more than 25%, confidence
+ * drops to 50 and the item is flagged. Items already at ≥95% are skipped.
+ *
+ * Graceful degrade: if the second call fails for any reason, the initial
+ * validations are returned unchanged.
+ */
+export async function selfConsistencyCheck(
+    data: ChangeOrderData,
+    initialValidations: PricingValidation[]
+): Promise<PricingValidation[]> {
+    void data; // reserved for future per-item context lookup
+    const targets = initialValidations.filter(v => v.confidence < 95);
+    if (targets.length === 0) return initialValidations;
+
+    const sanitize = (s: string) => (s || '').replace(/[\x00-\x1f\x7f<>{}]/g, '').slice(0, 200);
+    const itemList = targets.map(v =>
+        `[${v.itemIndex}] ${sanitize(v.manufacturer)} ${sanitize(v.model)}`
+    ).join('\n');
+
+    const prompt = `Independent pricing verification for a competitive bid on low-voltage equipment. For each product below, look up the typical contractor purchase price from authorized distributors (Anixter, Graybar, ADI Global, Wesco, B&H, CDW, SHI). Report the MEDIAN price across at least 2 corroborating sources.
+
+Products to verify:
+${itemList}
+
+Return JSON only — no markdown, no backticks:
+{"verifications":[{"itemIndex":0,"medianPrice":123.45,"sourcesFound":3}]}
+
+If fewer than 2 corroborating sources exist for an item, return sourcesFound:0 and medianPrice:0. DO NOT guess.`;
+
+    let result: { verifications?: Array<{ itemIndex: number; medianPrice: number; sourcesFound: number }> };
+    try {
+        const response = await generateContent({
+            model: 'gemini-2.5-flash',
+            nonEssential: true,
+            contents: { parts: [{ text: prompt }] },
+            config: {
+                temperature: 0.3,
+                tools: [{ googleSearch: {} }]
+            }
+        });
+        const rawText = response.text || '';
+        const jsonMatch = rawText.match(/\{[\s\S]*"verifications"[\s\S]*\}/);
+        const text = jsonMatch ? jsonMatch[0] : '{"verifications":[]}';
+        result = JSON.parse(text);
+    } catch (error: any) {
+        if (error instanceof ApiKeyError) throw error;
+        console.warn('Self-consistency pass failed; using initial validations.');
+        return initialValidations;
+    }
+
+    return initialValidations.map(v => {
+        if (v.confidence >= 95) return v;
+        const verification = result.verifications?.find(x => x.itemIndex === v.itemIndex);
+        if (!verification || verification.sourcesFound === 0 || verification.medianPrice <= 0) {
+            return v;
+        }
+        if (v.validatedMsrp <= 0) return v;
+
+        const divergence = Math.abs(v.validatedMsrp - verification.medianPrice) /
+            Math.max(v.validatedMsrp, verification.medianPrice) * 100;
+
+        if (divergence <= 10) {
+            return {
+                ...v,
+                confidence: Math.max(v.confidence, 95),
+                source: `${v.source} · 2-pass verified`
+            };
+        }
+        if (divergence > 25) {
+            return {
+                ...v,
+                confidence: Math.min(v.confidence, 50),
+                source: `${v.source} · ⚠ 2-pass mismatch ${Math.round(divergence)}%`
+            };
+        }
+        return v;
+    });
+}

@@ -3,7 +3,7 @@ import { Type } from "@google/genai";
 import { ChangeOrderData, ProposalData, LaborRates, AdminData, Financials, ValidationResult, PricingValidation, DEFAULT_ADMIN_DATA } from "../types";
 import { buildProductReference } from "../utils/productReference";
 import { validateChangeOrder } from "../utils/coValidator";
-import { validatePricing } from "./pricingValidator";
+import { validatePricing, selfConsistencyCheck } from "./pricingValidator";
 import { auditChangeOrder } from "./qaAuditor";
 import { generateContent, ApiKeyError, RateLimitError } from "./geminiClient";
 
@@ -1029,11 +1029,28 @@ export async function generateValidatedChangeOrder(
   let pricingValidations: PricingValidation[];
   try {
     pricingValidations = await validatePricing(coData);
-    onProgress?.('✅ Pricing verified', 70);
+    onProgress?.('✅ Pricing verified', 65);
   } catch (error) {
     console.error('Pricing validation failed, continuing:', error);
     pricingValidations = [];
-    onProgress?.('⚠️ Pricing validation skipped', 70);
+    onProgress?.('⚠️ Pricing validation skipped', 65);
+  }
+
+  // Self-consistency pass on any line item below 95% confidence.
+  // Skip when the initial pricing pass already degraded — a second Gemini call
+  // against an unhealthy upstream just doubles the wait for no signal.
+  const pricingDegraded = pricingValidations.some(v =>
+    v.source.startsWith('Validation skipped') || v.source === 'Not Verified'
+  );
+  if (!pricingDegraded && pricingValidations.some(v => v.confidence < 95)) {
+    onProgress?.('🔁 Cross-checking low-confidence prices...', 68);
+    try {
+      pricingValidations = await selfConsistencyCheck(coData, pricingValidations);
+      onProgress?.('✅ Cross-check complete', 70);
+    } catch (error) {
+      console.warn('Self-consistency pass error, keeping initial validations:', error);
+      onProgress?.('⚠️ Cross-check skipped', 70);
+    }
   }
 
   // ===== BRAIN 3: QA Audit =====
@@ -1087,11 +1104,11 @@ export async function generateValidatedChangeOrder(
     codeScore * 0.3 + pricingConfidence * 0.3 + qaScore * 0.4
   );
 
-  // Determine status
+  // Customer-ready bar is 99 to push tail accuracy; 85-98 routes through human review.
   let status: 'customer_ready' | 'review_recommended' | 'manual_review_required';
-  if (overallConfidence >= 95) {
+  if (overallConfidence >= 99) {
     status = 'customer_ready';
-  } else if (overallConfidence >= 80) {
+  } else if (overallConfidence >= 85) {
     status = 'review_recommended';
   } else {
     status = 'manual_review_required';

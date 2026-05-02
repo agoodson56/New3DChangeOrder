@@ -207,7 +207,7 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
 
                                         <div className="text-right shrink-0">
                                             <div className="text-2xl font-black text-[#D4AF37] font-mono">
-                                                ${product.msrp.toFixed(2)}
+                                                ${(Number.isFinite(product.msrp) ? product.msrp : 0).toFixed(2)}
                                                 {product.unitOfMeasure === 'ft' && <span className="text-sm text-gray-500">/ft</span>}
                                             </div>
 

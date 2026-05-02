@@ -65,8 +65,8 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
       const result = await lookupMSRP(manufacturer, model);
       console.log('[Lookup] Service returned:', result);
       if (result) {
-        const previousPrice = data.materials[index].msrp;
-        const newPrice = result.msrp;
+        const previousPrice = Number.isFinite(data.materials[index].msrp) ? data.materials[index].msrp : 0;
+        const newPrice = Number.isFinite(result.msrp) ? result.msrp : 0;
         const deltaPct = previousPrice > 0
           ? Math.round(Math.abs(newPrice - previousPrice) / previousPrice * 100)
           : 0;
@@ -330,11 +330,18 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
                   <h4 className="text-blue-400 font-bold uppercase tracking-wider mb-1">💰 Pricing Verifications (Non-DB)</h4>
                   {(data.validationResult.pricingValidations ?? [])
                     .filter(p => p.source !== 'Verified Product Database')
-                    .map((p, i) => (
-                      <p key={i} className={p.delta > 15 ? 'text-red-400' : 'text-gray-400'}>
-                        • {p.manufacturer} {p.model}: ${p.originalMsrp.toFixed(2)} → ${p.validatedMsrp.toFixed(2)} ({p.source}, {p.confidence}% conf, Δ{p.delta}%)
-                      </p>
-                    ))}
+                    .map((p, i) => {
+                      // Defensive: AI / non-DB validations can return null/undefined for any numeric.
+                      const orig = Number.isFinite(p.originalMsrp) ? p.originalMsrp : 0;
+                      const valid = Number.isFinite(p.validatedMsrp) ? p.validatedMsrp : 0;
+                      const conf = Number.isFinite(p.confidence) ? p.confidence : 0;
+                      const delta = Number.isFinite(p.delta) ? p.delta : 0;
+                      return (
+                        <p key={i} className={delta > 15 ? 'text-red-400' : 'text-gray-400'}>
+                          • {p.manufacturer ?? '?'} {p.model ?? '?'}: ${orig.toFixed(2)} → ${valid.toFixed(2)} ({p.source ?? 'unknown'}, {conf}% conf, Δ{delta}%)
+                        </p>
+                      );
+                    })}
                 </div>
               )}
               {(data.validationResult.qaIssues?.length ?? 0) > 0 && (
