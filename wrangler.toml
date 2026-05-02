@@ -1,0 +1,28 @@
+# Wrangler configuration for the change-order app.
+#
+# This file declares the resources the app expects at runtime so they can be
+# managed in version control instead of clicked into the dashboard. After you
+# create the D1 database (npm run setup:d1) you'll paste its UUID into the
+# `database_id` field below and commit.
+#
+# Cloudflare Pages auto-discovers this file and applies bindings to the
+# Functions runtime on each deploy. No dashboard interaction required after
+# the initial database create.
+
+name = "new3dchangeorder"
+compatibility_date = "2024-09-23"
+pages_build_output_dir = "dist"
+
+# ── D1 binding (cloud sync backend) ───────────────────────────────────────────
+# Bound as `env.DB` inside functions/api/data.ts and functions/api/data/[scope].ts.
+# Replace `database_id` with the UUID printed by `wrangler d1 create co-storage`.
+[[d1_databases]]
+binding = "DB"
+database_name = "co-storage"
+database_id = "REPLACE_WITH_UUID_FROM_WRANGLER_D1_CREATE"
+
+# ── Optional: vars for non-sensitive config ───────────────────────────────────
+# Sensitive values (GEMINI_API_KEY, DOCUSIGN_RSA_PRIVATE_KEY, etc) live in the
+# Cloudflare Pages dashboard env vars, not here, so they're never committed.
+[vars]
+# Empty for now — add public flags here if needed.
