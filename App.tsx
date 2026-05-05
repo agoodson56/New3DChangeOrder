@@ -18,8 +18,10 @@ import {
   saveToHistory, onWriteFailure, onDraftFromOtherTab,
 } from './utils/persistence';
 import * as cloudSync from './utils/cloudSync';
+import { useAuth } from './contexts/AuthContext';
 
 const App: React.FC = () => {
+  const { token } = useAuth();
   const [status, setStatus] = useState<AppStatus>(AppStatus.IDLE);
   const [rates, setRates] = useState<LaborRates | null>(null);
   const [coData, setCoData] = useState<ChangeOrderData | null>(null);
@@ -32,6 +34,11 @@ const App: React.FC = () => {
   const [storageWarning, setStorageWarning] = useState<string | null>(null);
   const [otherTabWarning, setOtherTabWarning] = useState<boolean>(false);
   const draftSaveTimer = useRef<number | null>(null);
+
+  // ── Set JWT token for cloud sync ───────────────────────────────────────────
+  useEffect(() => {
+    cloudSync.setAuthToken(token);
+  }, [token]);
 
   // ── On mount: kick off cloud sync (pulls remote state into localStorage) ───
   useEffect(() => {

@@ -6,8 +6,11 @@
  * See ../data.ts for the GET-all endpoint and full docs on auth / setup.
  */
 
+import { verifyToken } from '../../lib/jwt';
+
 interface Env {
   DB?: D1Database;
+  JWT_SECRET?: string;
 }
 
 interface D1Database {
@@ -49,37 +52,29 @@ function requestId(): string {
 const KNOWN_SCOPES = ['history', 'customers', 'templates', 'rates'] as const;
 const MAX_BLOB_BYTES = 5_000_000;
 
-function authContext(request: Request): { email: string; orgId: string } | null {
-  const email = request.headers.get('Cf-Access-Authenticated-User-Email');
-  if (!email) return null;
-  const domain = email.split('@')[1] || 'default';
-  const orgId = domain.replace(/[^a-z0-9]/gi, '').toLowerCase() || 'default';
-  return { email, orgId };
+async function authContext(request: Request, secret: string): Promise<{ userId: number; email: string } | null> {
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) return null;
+
+  const token = authHeader.slice(7);
+  const payload = await verifyToken(token, secret);
+  if (!payload) return null;
+
+  return { userId: payload.userId, email: payload.email };
 }
 
-function emailKey(email: string): string {
-  let h = 0;
-  for (let i = 0; i < email.length; i++) {
-    h = ((h << 5) - h + email.charCodeAt(i)) | 0;
-  }
-  return Math.abs(h).toString(36).padStart(6, '0');
-}
-
-function isValidScope(scope: string, email: string): boolean {
-  if ((KNOWN_SCOPES as readonly string[]).includes(scope)) return true;
-  if (scope === `draft_${emailKey(email)}`) return true;
-  return false;
+function isValidScope(scope: string): boolean {
+  return (KNOWN_SCOPES as readonly string[]).includes(scope) || scope.startsWith('draft_');
 }
 
 export const onRequestPut = async ({ request, env, params }: PagesContext<Env, { scope?: string }>): Promise<Response> => {
-  if (!env.DB) return json({ error: 'Cloud sync not configured (DB binding missing).' }, 503);
-  const auth = authContext(request);
+  if (!env.DB || !env.JWT_SECRET) return json({ error: 'Server not configured.' }, 503);
+
+  const auth = await authContext(request, env.JWT_SECRET);
   if (!auth) return json({ error: 'Unauthenticated.' }, 401);
 
   const scope = params.scope || '';
-  // Don't echo the invalid scope back — could be used to enumerate other
-  // users' draft scope ids via timing/error-shape analysis.
-  if (!isValidScope(scope, auth.email)) return json({ error: 'Unknown scope.' }, 400);
+  if (!isValidScope(scope)) return json({ error: 'Unknown scope.' }, 400);
 
   let bodyText: string;
   try { bodyText = await request.text(); }
@@ -91,14 +86,14 @@ export const onRequestPut = async ({ request, env, params }: PagesContext<Env, {
   try {
     await env.DB
       .prepare(
-        `INSERT INTO blobs (org_id, scope, content, updated_at, updated_by)
-         VALUES (?, ?, ?, ?, ?)
+        `INSERT INTO blobs (user_id, scope, content, updated_at, updated_by, org_id)
+         VALUES (?, ?, ?, ?, ?, 'user')
          ON CONFLICT (org_id, scope) DO UPDATE SET
            content = excluded.content,
            updated_at = excluded.updated_at,
            updated_by = excluded.updated_by`
       )
-      .bind(auth.orgId, scope, bodyText, Date.now(), auth.email)
+      .bind(auth.userId, scope, bodyText, Date.now(), auth.email)
       .run();
     return json({ ok: true, scope, updatedAt: Date.now() });
   } catch (e) {

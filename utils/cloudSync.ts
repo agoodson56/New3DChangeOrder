@@ -36,6 +36,11 @@ const state: SyncState = {
 };
 
 const listeners = new Set<(s: SyncState) => void>();
+let authToken: string | null = null;
+
+export function setAuthToken(token: string | null) {
+  authToken = token;
+}
 
 export function subscribe(fn: (s: SyncState) => void): () => void {
   listeners.add(fn);
@@ -101,7 +106,9 @@ async function pullAll(): Promise<void> {
   // ultimate gate stays the response itself.
   setStatus('pulling');
   try {
-    const res = await fetch('/api/data', { method: 'GET', credentials: 'same-origin' });
+    const headers: HeadersInit = { 'Content-Type': 'application/json' };
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+    const res = await fetch('/api/data', { method: 'GET', credentials: 'same-origin', headers });
     if (res.status === 503) {
       // Backend not provisioned — fall back silently to local-only mode.
       // We DO retry on the next interval; if the backend comes back, the next
@@ -178,10 +185,12 @@ async function pushScope(scope: string): Promise<boolean> {
   const content = localStorage.getItem(lsKey);
   if (content === null) return false;
   try {
+    const headers: HeadersInit = { 'Content-Type': 'application/json' };
+    if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
     const res = await fetch(`/api/data/${encodeURIComponent(scope)}`, {
       method: 'PUT',
       credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: content,
     });
     if (res.status === 503 || res.status === 401) {

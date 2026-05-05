@@ -1,20 +1,11 @@
 /**
  * Cloud sync endpoint backed by Cloudflare D1.
  *
- *   GET  /api/data         → returns all scopes for caller's org as a single JSON blob
+ *   GET  /api/data         → returns all scopes for caller as a single JSON blob
  *   PUT  /api/data/:scope  → upserts the named scope's blob
  *
- * Auth: relies on Cloudflare Access in front of /api/data/*. The
- * `Cf-Access-Authenticated-User-Email` header is forwarded by Access on
- * every authenticated request. If the header is missing, the endpoint
- * refuses to serve. Setup:
- *   - Cloudflare Zero Trust → Access → Applications → Add Application
- *   - Self-hosted, app domain = your-domain/api/data*
- *   - Identity provider: Google Workspace, OTP-email, or whatever you prefer
- *   - Group: 3DTSI staff
- *
- * Org id derives from email domain (3dtsi.com → 3dtsi). All employees in
- * the same org share customers/templates/history. Drafts are per-user.
+ * Auth: requires valid JWT token in Authorization header (Bearer <token>).
+ * Token issued by /api/auth/login or /api/auth/register.
  *
  * Required Pages binding:  DB  → D1 database "co-storage" (see db/schema.sql)
  *
@@ -22,8 +13,11 @@
  * to localStorage-only mode — the app still works on a single device.
  */
 
+import { verifyToken } from '../lib/jwt';
+
 interface Env {
   DB?: D1Database;
+  JWT_SECRET?: string;
 }
 
 // Minimal D1 typings — declared inline so we don't depend on
@@ -64,14 +58,15 @@ function requestId(): string {
   return Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 }
 
-function authContext(request: Request): { email: string; orgId: string } | null {
-  const email = request.headers.get('Cf-Access-Authenticated-User-Email');
-  if (!email) return null;
-  // Derive org id from email domain — keeps multi-tenant simple without
-  // requiring an explicit org table.
-  const domain = email.split('@')[1] || 'default';
-  const orgId = domain.replace(/[^a-z0-9]/gi, '').toLowerCase() || 'default';
-  return { email, orgId };
+async function authContext(request: Request, secret: string): Promise<{ userId: number; email: string } | null> {
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) return null;
+
+  const token = authHeader.slice(7);
+  const payload = await verifyToken(token, secret);
+  if (!payload) return null;
+
+  return { userId: payload.userId, email: payload.email };
 }
 
 function emailKey(email: string): string {
@@ -88,36 +83,31 @@ function emailKey(email: string): string {
 // =============================================================================
 
 export const onRequestGet = async ({ request, env }: PagesContext<Env>): Promise<Response> => {
-  if (!env.DB) {
-    return json({ error: 'Cloud sync not configured (DB binding missing). App will fall back to local storage.' }, 503);
+  if (!env.DB || !env.JWT_SECRET) {
+    return json({ error: 'Server not configured.' }, 503);
   }
-  const auth = authContext(request);
+
+  const auth = await authContext(request, env.JWT_SECRET);
   if (!auth) {
-    return json({ error: 'Unauthenticated. Cloudflare Access must be enabled in front of /api/data.' }, 401);
+    return json({ error: 'Unauthenticated.' }, 401);
   }
 
   try {
     const { results } = await env.DB
-      .prepare('SELECT scope, content, updated_at FROM blobs WHERE org_id = ?')
-      .bind(auth.orgId)
+      .prepare('SELECT scope, content, updated_at FROM blobs WHERE user_id = ? ORDER BY updated_at DESC')
+      .bind(auth.userId)
       .all<{ scope: string; content: string; updated_at: number }>();
 
-    const myDraftScope = `draft_${emailKey(auth.email)}`;
     const blobs: Record<string, { content: unknown; updatedAt: number }> = {};
     for (const row of results) {
-      // Filter out other users' drafts — they're scoped to a specific user.
-      if (row.scope.startsWith('draft_') && row.scope !== myDraftScope) continue;
       try {
         blobs[row.scope] = { content: JSON.parse(row.content), updatedAt: row.updated_at };
       } catch {
-        // Corrupted row — skip rather than fail the whole sync.
+        // Corrupted row — skip
       }
     }
-    return json({ orgId: auth.orgId, email: auth.email, blobs });
+    return json({ userId: auth.userId, email: auth.email, blobs });
   } catch (e) {
-    // Log full error server-side; return generic message + correlation id.
-    // The previous version echoed schema/query info to clients which is
-    // reconnaissance value to attackers.
     const rid = requestId();
     console.error(`[data:GET ${rid}] db read failed:`, e instanceof Error ? e.message : String(e));
     return json({ error: 'Database read failed.', requestId: rid }, 500);

@@ -3,6 +3,13 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import LoginPage from './components/LoginPage';
+
+const AppWithAuth: React.FC = () => {
+  const { user } = useAuth();
+  return user ? <App /> : <LoginPage />;
+};
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -12,6 +19,8 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <App />
+    <AuthProvider>
+      <AppWithAuth />
+    </AuthProvider>
   </React.StrictMode>
 );
