@@ -31,10 +31,10 @@ describe('calculateFinancials — happy path', () => {
     expect(r.laborTotal).toBe(1897.5);            // 1650 + 247.50
     expect(r.materialSubtotal).toBe(150);         // 100 * 1.50
     expect(r.equipmentSubtotal).toBe(1000);       // 2 * 500
-    expect(r.materialsTotal).toBe(1322.5);        // (150+1000) + 0.15*(150+1000)
-    expect(r.taxBase).toBe(1150);                 // 150 + 1000 (pre-markup default)
+    expect(r.materialsTotal).toBe(1387.5);        // 150 + 0.25*150 + 1000 + 0.20*1000 = 187.50 + 1200
+    expect(r.taxBase).toBe(1150);                 // 150 + 1000 (pre-markup default; TAX_ON_MARKED_UP_PRICE=false)
     expect(r.salesTax).toBe(94.88);               // 1150 * 0.0825 → 94.875 → half-up 94.88
-    expect(r.grandTotal).toBe(3314.88);
+    expect(r.grandTotal).toBe(3379.88);           // 1897.5 + 1387.5 + 94.88
   });
 
   it('uses the specified sales tax rate, not the default', () => {

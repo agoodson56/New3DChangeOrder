@@ -47,7 +47,11 @@ export const CATALOG_CCTV_RECORDING: CompactProduct[] = [
     ['Dahua', 'NVR5432-16P-EI', 'N54B3P16', 'E', 'NVR', 1299, 'ea', '32ch NVR 4K PoE WizSense', 3.0, 'H'],
     ['Dahua', 'NVR5864-I', 'N58B4', 'E', 'NVR', 2499, 'ea', '64ch Enterprise NVR 4K', 3.0, 'H'],
     // ── VMS Software ──
-    ['Milestone', 'XProtect Essential+', 'XPESCL', 'E', 'NVR', 0, 'ea', 'Free VMS up to 8 cameras', 2.0, 'L'],
+    // Milestone Essential+ is INTENTIONALLY $0 — Milestone offers it as a
+    // free, time-unlimited VMS tier capped at 8 cameras. Don't "fix" the
+    // $0 thinking it's a missing price. The 2-hour install captures the
+    // licensing/configuration labor.
+    ['Milestone', 'XProtect Essential+', 'XPESCL', 'E', 'NVR', 0, 'ea', 'Free VMS up to 8 cameras (no license cost)', 2.0, 'L'],
     ['Milestone', 'XProtect Express+', 'XPEXCL', 'E', 'NVR', 67, 'ea', 'VMS per camera license', 1.0, 'M'],
     ['Milestone', 'XProtect Professional+', 'XPPCL', 'E', 'NVR', 175, 'ea', 'VMS per camera license Pro', 1.0, 'M'],
     ['Milestone', 'XProtect Expert', 'XPETCL', 'E', 'NVR', 300, 'ea', 'VMS per camera license Expert', 1.0, 'H'],

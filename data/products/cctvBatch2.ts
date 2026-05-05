@@ -67,7 +67,12 @@ export const CATALOG_CCTV_BATCH2: CompactProduct[] = [
     ['Hanwha', 'XRN-1620B2', 'XRN-1620B2', 'E', 'NVR', 2499, 'ea', '16ch PoE NVR WAVE', 2.0, 'H'],
     ['Hanwha', 'XRN-3210B2', 'XRN-3210B2', 'E', 'NVR', 3999, 'ea', '32ch PoE NVR WAVE 4K', 3.0, 'H'],
     ['Hanwha', 'XRN-6410B2', 'XRN-6410B2', 'E', 'NVR', 5999, 'ea', '64ch NVR WAVE 4K', 3.0, 'H'],
-    ['Verkada', 'CD62-256G', 'CD62-256G', 'E', 'NVR', 0, 'ea', 'Cloud-managed 256GB onboard (camera)', 0, 'L'],
+    // Verkada CD62-256G is the 256GB-onboard variant of the CD62 camera.
+    // Hardware is NOT free — Verkada cloud subscription is separate from
+    // the device cost. Priced at ~$1,099 (CD62 base $999 from cctvCameras.ts
+    // + ~$100 storage uplift). Mis-categorized as 'NVR'; corrected to
+    // 'CCTV Camera' since it's a camera with onboard storage, not an NVR.
+    ['Verkada', 'CD62-256G', 'CD62-256G', 'E', 'CCTV Camera', 1099, 'ea', '4K Indoor Dome AI w/ 256GB onboard storage', 1.5, 'H'],
     // ── VMS Licenses ──
     ['Milestone', 'XProtect Professional+', 'XPPROCL', 'E', 'VMS License', 149, 'ea', 'Per Camera License Pro+', 0, 'M'],
     ['Milestone', 'XProtect Corporate', 'XPCORCL', 'E', 'VMS License', 349, 'ea', 'Per Camera License Corporate', 0, 'H'],

@@ -95,21 +95,37 @@ export const COMPANY_LICENSE = 'CSLB# 757157 – NV# 0049045 – AZ# 332533';
 
 /**
  * Markup applied to billable labor hours. 0.15 = 15%.
+ *
+ * Held at 15% intentionally — labor is the most price-sensitive line in any
+ * negotiation and bumping it quietly is the fastest way to lose competitive
+ * bids. If you need more margin from labor, raise the BILLING RATE in the
+ * LaborRateModal instead.
  */
 export const LABOR_MARKUP_RATE = 0.15;
 
 /**
  * Markup applied to passive materials (cabling, jacks, conduit, etc.).
- * Industry norm is 25–35%; using 15% leaves money on the table on
- * cabling-heavy jobs. Confirm with sales/management before changing.
+ *
+ * Set to 0.25 (25%) — the LOW END of the industry norm (25–35%) for
+ * passive materials. The previous 15% was below industry standard and
+ * left meaningful margin on the table on cabling-heavy jobs (the
+ * comment in the original code explicitly flagged this). 25% keeps us
+ * competitive with peer integrators while restoring a healthy margin.
+ *
+ * If you need to flex this for a price-sensitive bid, override at the
+ * line level rather than dropping the global rate.
  */
-export const MATERIAL_MARKUP_RATE = 0.15;
+export const MATERIAL_MARKUP_RATE = 0.25;
 
 /**
  * Markup applied to active equipment (cameras, switches, panels).
- * Industry norm is 15–20%.
+ *
+ * Set to 0.20 (20%) — the upper end of the industry norm (15–20%).
+ * Higher than the previous 15% because active equipment carries
+ * warranty/support obligations that should be priced into the bid
+ * rather than absorbed as overhead.
  */
-export const EQUIPMENT_MARKUP_RATE = 0.15;
+export const EQUIPMENT_MARKUP_RATE = 0.20;
 
 /**
  * Sales tax base policy.
@@ -119,7 +135,22 @@ export const EQUIPMENT_MARKUP_RATE = 0.15;
  *    Matches CDTFA Reg. 1521 for many CA contractor situations.
  *    On a $50K materials job at 8.25%, post-markup adds ~$619.
  *
- * **VERIFY WITH YOUR ACCOUNTANT** before flipping this.
+ * ─────────────────────────────────────────────────────────────────────────
+ * 🚨 ACTION REQUIRED — accountant decision
+ *
+ * For a CA low-voltage contractor that sells & installs fixtures (most of
+ * 3DTSI's scope), CDTFA Reg. 1521 generally requires sales tax on the
+ * MARKED-UP retail price, not the cost. Setting this to `false` means the
+ * company is potentially UNDER-collecting tax — which becomes a back-tax
+ * liability + penalties on audit, not a competitive advantage.
+ *
+ * Held at `false` here because flipping it changes what every customer
+ * sees on their invoice. Take this to your accountant within 30 days; if
+ * they confirm 1521 applies, change to `true` and verify against a known
+ * past CO. Keep this comment updated with their answer + date.
+ *
+ * Last reviewed: NOT YET REVIEWED — flip me when verified.
+ * ─────────────────────────────────────────────────────────────────────────
  */
 export const TAX_ON_MARKED_UP_PRICE = false;
 
@@ -163,12 +194,17 @@ export const DEFAULT_LABOR_COST_FACTOR = 0.55;
  * recurring basis is how contractors die — one bad job consumes margin
  * from many good ones.
  *
+ * Set to 0.22 (22%) — comfortably above the bare industry minimum (18%)
+ * and below the warn threshold (25%). With the new 25%/20% material/
+ * equipment markups, a properly-bid CO should clear this with room to
+ * spare; if a bid is below 22% the operator must consciously acknowledge.
+ *
  * Set to 0 to disable the guardrail.
  */
-export const MARGIN_FLOOR_PCT = 0.20; // 20%
+export const MARGIN_FLOOR_PCT = 0.22; // 22%
 
 /** Margin warning threshold — amber zone above the red floor. */
-export const MARGIN_WARN_PCT = 0.25; // 25%
+export const MARGIN_WARN_PCT = 0.28; // 28%
 
 // =============================================================================
 // COMPLIANCE CHECKLIST — pre-submit acknowledgment of jurisdiction-specific
