@@ -811,23 +811,61 @@ ${buildProductReference()}
     </criteria>
 
     <output_format>
-    CRITICAL: Your response MUST be a single valid JSON object. NOTHING ELSE.
+    CRITICAL: Your response MUST be a single valid JSON object matching the EXACT schema below.
+    NO markdown code blocks, NO prose, NO commentary. Start with { and end with }.
 
-    DO NOT:
-    - Wrap the JSON in markdown code blocks (no \`\`\`json or \`\`\`)
-    - Add any prose, explanations, or commentary before or after the JSON
-    - Include any text outside the JSON object
-    - Use trailing commas in arrays or objects
-    - Include unescaped quotes, newlines, or control characters inside string values
+    REQUIRED SCHEMA — use these EXACT field names at the ROOT level (no nesting under "projectInfo" or any other wrapper):
 
-    DO:
-    - Start your response with the opening curly brace {
-    - End your response with the closing curly brace }
-    - Ensure all strings are properly escaped (use \\" for quotes inside strings, \\n for newlines)
-    - Ensure all arrays and objects are properly closed
-    - Output complete, parseable JSON that JSON.parse() can handle directly
+    {
+      "customer": string,                  // Customer/company name
+      "contact": string,                   // Contact person name
+      "projectName": string,               // Project name
+      "address": string,                   // Site address
+      "phone": string,                     // Phone number
+      "projectNumber": string,             // 3DTSI project number
+      "rfiNumber": string,                 // RFI number or "-"
+      "pcoNumber": string,                 // PCO number or "-"
+      "coordinatorIntent": string,         // Echo of the coordinator's intent text
+      "technicalScope": string,            // Detailed technical scope description
+      "systemsImpacted": string[],         // e.g., ["CCTV", "Structured Cabling"]
+      "materials": [                       // ARRAY at root — DO NOT nest under another key
+        {
+          "manufacturer": string,          // e.g., "Axis"
+          "model": string,                 // e.g., "P3245-V"
+          "category": "Material" | "Equipment",
+          "quantity": number,
+          "msrp": number,                  // Unit price (street price, see pricing policy)
+          "unitOfMeasure": string,         // "ea", "ft", "box", etc.
+          "complexity": "Low" | "Medium" | "High",
+          "notes": string                  // Optional installation notes
+        }
+      ],
+      "labor": [                           // ARRAY at root — DO NOT nest under another key
+        {
+          "class": string,                 // e.g., "Technician", "BICSI Tech"
+          "task": string,                  // Specific task description
+          "hours": number,                 // Estimated hours (use NECA MLU)
+          "rateType": "base" | "afterHours" | "emergency",
+          "notes": string                  // Optional notes
+        }
+      ],
+      "standardsReview": [                 // Array of compliance items
+        { "standard": string, "compliance": string, "action": string }
+      ],
+      "assumptions": string[],             // Array of project assumptions
+      "exclusions": string[],              // Array of explicit exclusions
+      "professionalNotes": string,         // Additional professional notes
+      "confidenceScore": number,           // 0-100 confidence in the estimate
+      "nextSteps": string[]                // Recommended next steps
+    }
 
-    The very first character of your response MUST be { and the very last character MUST be }.
+    CRITICAL RULES:
+    1. The "materials" and "labor" arrays MUST be at the ROOT of the object, NOT nested under "projectInfo" or any other key.
+    2. Every camera, cable, jack, j-hook, label, mount, etc. needed for the work MUST appear in "materials".
+    3. Every labor task (camera install, cable pulling, termination, testing, etc.) MUST appear in "labor" with realistic hour estimates per NECA MLU standards.
+    4. NEVER return empty "materials" or "labor" arrays — if the work requires equipment and labor, list it.
+    5. Field names are case-sensitive: use "projectName" (not "project"), "customer" (not "client"), "materials" (not "items" or "equipment"), "labor" (not "labour" or "work").
+    6. NO markdown wrappers. Response MUST start with { and end with }.
     </output_format>
   `;
 
@@ -1027,6 +1065,38 @@ ${buildProductReference()}
       throw new Error(`AI response JSON is invalid and could not be repaired. Length: ${rawText.length} chars. Error: ${parseErr}`);
     }
   }
+  // Defensive normalization: if AI nested fields under projectInfo/scope/etc., hoist them to root.
+  // This handles schema drift where Claude wraps fields in containers.
+  const dataAny = data as any;
+  if (dataAny.projectInfo && typeof dataAny.projectInfo === 'object') {
+    const pi = dataAny.projectInfo;
+    if (!dataAny.customer && pi.customer) dataAny.customer = pi.customer;
+    if (!dataAny.contact && pi.contact) dataAny.contact = pi.contact;
+    if (!dataAny.projectName && (pi.projectName || pi.project)) dataAny.projectName = pi.projectName || pi.project;
+    if (!dataAny.address && pi.address) dataAny.address = pi.address;
+    if (!dataAny.phone && pi.phone) dataAny.phone = pi.phone;
+    if (!dataAny.projectNumber && (pi.projectNumber || pi.projectNo)) dataAny.projectNumber = pi.projectNumber || pi.projectNo;
+    if (!dataAny.rfiNumber && (pi.rfiNumber || pi.rfi)) dataAny.rfiNumber = pi.rfiNumber || pi.rfi;
+    if (!dataAny.pcoNumber && (pi.pcoNumber || pi.pco)) dataAny.pcoNumber = pi.pcoNumber || pi.pco;
+  }
+  // If materials/labor were nested under common wrapper keys, hoist them too.
+  for (const wrapper of ['scope', 'changeOrder', 'data', 'estimate']) {
+    if (dataAny[wrapper] && typeof dataAny[wrapper] === 'object') {
+      const w = dataAny[wrapper];
+      if (!Array.isArray(dataAny.materials) && Array.isArray(w.materials)) dataAny.materials = w.materials;
+      if (!Array.isArray(dataAny.labor) && Array.isArray(w.labor)) dataAny.labor = w.labor;
+    }
+  }
+  // Common alt key names for materials/labor arrays
+  if (!Array.isArray(dataAny.materials)) {
+    if (Array.isArray(dataAny.equipment)) dataAny.materials = dataAny.equipment;
+    else if (Array.isArray(dataAny.items)) dataAny.materials = dataAny.items;
+  }
+  if (!Array.isArray(dataAny.labor)) {
+    if (Array.isArray(dataAny.laborTasks)) dataAny.labor = dataAny.laborTasks;
+    else if (Array.isArray(dataAny.work)) dataAny.labor = dataAny.work;
+  }
+
   data = defaultFillCO(data);
   // Force-merge admin data — AI is unreliable about echoing input fields.
   data.coordinatorIntent = intent;
