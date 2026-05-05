@@ -114,11 +114,19 @@ export async function auditChangeOrder(data: ChangeOrderData): Promise<QAAuditRe
 
 Review this Change Order for customer-presentability. Score it 0-100.
 
+IMPORTANT: SMALL-PROJECT PRICING CONTEXT
+Our pricing database reflects BULK rates from large projects (50+ cameras, complex enterprise installations). Small change orders (3-10 cameras, simple sites) naturally cost 20-30% MORE per unit due to:
+- No volume discounts from distributors
+- Higher overhead allocation per device
+- Specialized technician labor on small jobs
+Therefore, DO NOT flag pricing as incorrect if it's 20-30% above bulk database rates. This is expected and normal for small projects.
+
 IMPORTANT SCORING GUIDANCE:
 - If most materials are DB-VERIFIED and labor is properly broken down, start at 92+ and deduct only for genuine omissions
 - Only deduct points for items NOT marked [DB-VERIFIED]
 - Do NOT penalize for using 'Generic' manufacturer on commodity items (conduit, fittings, etc.) — this is standard industry practice
-- Focus on structural issues: missing labor categories, missing critical equipment, code violations
+- Do NOT penalize pricing that is 20-30% above database rates (small-project markup is legitimate)
+- Focus on structural issues: missing labor categories, missing critical equipment, code violations, dangerous omissions
 ${dbVerifiedSection}
 === CHANGE ORDER DETAILS ===
 Customer: ${data.customer}
@@ -159,20 +167,27 @@ Check each of these and report issues:
    - Are assumptions and exclusions listed?
    - Are standards/codes referenced (TIA-568, NFPA 72, NFPA 70)?
 
-5. MISSING STANDARD ITEMS:
-   - Documentation/as-builts labor
-   - Testing and commissioning labor
+5. MISSING STANDARD ITEMS (CRITICAL SAFETY/COMPLIANCE):
+   - Documentation/as-builts labor (CRITICAL for future service)
+   - Testing and commissioning labor (CRITICAL for warranty)
    - Project management / coordination
-   - Firestopping materials (if penetrating fire barriers)
-   - Lift rental (if ceiling height > 12ft)
+   - Firestopping materials (CRITICAL if penetrating fire barriers)
+   - Lift rental (if ceiling height > 12ft, CRITICAL safety)
+   - Cable support hardware (J-hooks, conduit) - STRUCTURAL REQUIREMENT for code compliance
+   - Cable labeling and documentation - REQUIRED by TIA-568 standards
+
+6. PRICING GUIDANCE FOR SMALL PROJECTS:
+   - Small-order markup of 20-30% above database rates is EXPECTED and NORMAL
+   - Only flag pricing as an issue if it exceeds 50% above bulk rates or appears to have calculation errors
+   - Database pricing assumes volume discounts not available on small COs
 
 Return:
 - overallScore: 0-100 (95+ = customer ready, 80-94 = needs minor fixes, <80 = needs major rework)
-- issues: specific problems found
+- issues: specific problems found (focus on structural/safety/compliance issues, not pricing variance)
 - recommendations: improvements to make it customer-ready
-- missingItems: materials or labor tasks that should be added
+- missingItems: materials or labor tasks that should be added (especially safety-critical items)
 - brandingIssues: manufacturer mixing or warranty concerns
-- complianceNotes: code/standard violations`;
+- complianceNotes: code/standard violations (firestopping, cable support, labeling requirements)`;
 
     // Single attempt, fail fast. QA audit is non-essential — if it doesn't
     // succeed, the change order still ships with deterministic validation
