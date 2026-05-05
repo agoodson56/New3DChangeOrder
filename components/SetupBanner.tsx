@@ -49,8 +49,8 @@ export const SetupBanner: React.FC = () => {
   if (gemini && !gemini.configured) {
     issues.push({
       severity: 'critical',
-      message: 'Gemini API key not configured — change-order generation will fail',
-      hint: 'Set GEMINI_API_KEY in Cloudflare Pages → Settings → Environment variables, then redeploy.',
+      message: 'AI API key not configured — change-order generation will fail',
+      hint: 'Set ANTHROPIC_API_KEY in Cloudflare Pages → Settings → Environment variables, then redeploy.',
     });
   }
   if (cloudSync && !cloudSync.ready) {

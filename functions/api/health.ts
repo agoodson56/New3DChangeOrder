@@ -12,7 +12,7 @@
  */
 
 interface Env {
-  GEMINI_API_KEY?: string;
+  ANTHROPIC_API_KEY?: string;
   DB?: unknown;
   ALLOWED_ORIGINS?: string;
 }
@@ -43,10 +43,10 @@ export const onRequestGet = async ({ request, env }: PagesContext<Env>): Promise
     userEmail: accessEmail || '(not authenticated)',
     integrations: {
       gemini: {
-        configured: !!env.GEMINI_API_KEY,
-        note: env.GEMINI_API_KEY
+        configured: !!env.ANTHROPIC_API_KEY,
+        note: env.ANTHROPIC_API_KEY
           ? 'AI service ready'
-          : 'Set GEMINI_API_KEY in Cloudflare Pages env vars',
+          : 'Set ANTHROPIC_API_KEY in Cloudflare Pages env vars',
       },
       cloudSync: {
         d1Bound: !!env.DB,
