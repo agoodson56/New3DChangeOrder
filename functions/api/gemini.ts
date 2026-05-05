@@ -40,7 +40,12 @@ interface GeminiProxyBody {
   useCache?: boolean;
 }
 
-const DEFAULT_MAX_BYTES = 1_000_000;
+// 30 MB request body cap — generous enough for a CO with several PDF plan
+// sheets + images attached as base64 inlineData (every 1 MB of file becomes
+// ~1.34 MB of base64 JSON). Override with env var MAX_REQUEST_BYTES if your
+// team uploads larger plan sets. The check is enforced AFTER reading the
+// body so a lying Content-Length header can't sneak past.
+const DEFAULT_MAX_BYTES = 30_000_000;
 // 200 req/min/IP — generous enough for an office of 10 coordinators sharing one
 // external IP via NAT (each generating ~15 req/min for a CO + a few lookups),
 // while still blocking automated abuse (a scraper hammering /api/gemini at this

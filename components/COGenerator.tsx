@@ -6,9 +6,7 @@ import { describeAiError } from '../services/geminiClient';
 import { ChangeOrderData } from '../types';
 import { OFFICES, DEFAULT_OFFICE_ID } from '../constants';
 import { loadRecentCustomers, rememberCustomer, type SavedCustomer, loadTemplates, deleteTemplate, touchTemplate, type SavedTemplate } from '../utils/persistence';
-
-const MAX_IMAGE_BYTES = 5_000_000; // 5MB per image
-const MAX_IMAGES = 10;
+import { intakeFile, LIMITS, type Attachment } from '../utils/attachments';
 
 interface COGeneratorProps {
   onResult: (data: ChangeOrderData) => void;
@@ -17,7 +15,8 @@ interface COGeneratorProps {
 export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
   const [intent, setIntent] = useState('');
   const [loading, setLoading] = useState(false);
-  const [images, setImages] = useState<string[]>([]);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [attachmentBusy, setAttachmentBusy] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [pipelineStatus, setPipelineStatus] = useState('');
   const [pipelinePercent, setPipelinePercent] = useState(0);
@@ -99,34 +98,50 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
     setCustomerFocused(false);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      if (!file) continue;
-      if (!file.type.startsWith('image/')) {
-        alert(`Skipped "${file.name}": not an image file.`);
-        continue;
+    setAttachmentBusy(true);
+    try {
+      const errors: string[] = [];
+      // Process serially. DOCX/XLSX text extraction lazy-loads parser libraries
+      // — running them in parallel would race the dynamic import.
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!file) continue;
+        // Cap on total attachment count (mirrors server-side and AI-context limits).
+        // Read the latest count from setState callback to handle batched uploads.
+        let stop = false;
+        await new Promise<void>(resolve => {
+          setAttachments(prev => {
+            if (prev.length >= LIMITS.maxFiles) {
+              errors.push(`Skipped "${file.name}": already at max ${LIMITS.maxFiles} files.`);
+              stop = true;
+            }
+            resolve();
+            return prev;
+          });
+        });
+        if (stop) continue;
+        const result = await intakeFile(file);
+        if (!result.ok) {
+          errors.push(result.reason);
+          continue;
+        }
+        setAttachments(prev => prev.length >= LIMITS.maxFiles ? prev : [...prev, result.attachment]);
       }
-      if (file.size > MAX_IMAGE_BYTES) {
-        alert(`Skipped "${file.name}": exceeds 5MB image size limit.`);
-        continue;
+      if (errors.length > 0) {
+        alert(errors.join('\n\n'));
       }
-      const reader = new FileReader();
-      reader.onerror = () => alert(`Failed to read "${file.name}".`);
-      reader.onloadend = () => {
-        setImages(prev => prev.length >= MAX_IMAGES ? prev : [...prev, reader.result as string]);
-      };
-      reader.readAsDataURL(file);
+    } finally {
+      setAttachmentBusy(false);
+      // Reset input so the same file can be re-selected if removed
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
-    // Reset input so the same file can be re-selected if removed
-    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
@@ -143,7 +158,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
     try {
       const result = await generateValidatedChangeOrder(
         trimmed,
-        images,
+        attachments,
         adminData,
         (stage, percent) => {
           setPipelineStatus(stage);
@@ -404,34 +419,53 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
           <p className="text-red-400 text-sm font-bold uppercase tracking-wider">{intentError}</p>
         )}
         <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <label className="cursor-pointer bg-white/5 hover:bg-white/10 border border-gray-800 px-3 py-1.5 text-xs uppercase font-bold tracking-wider text-gray-400 hover:text-[#D4AF37] transition-all">
-              + Attach Images
+          <div className="flex items-center gap-3 flex-wrap">
+            <label className={`cursor-pointer bg-white/5 hover:bg-white/10 border border-gray-800 px-3 py-1.5 text-xs uppercase font-bold tracking-wider text-gray-400 hover:text-[#D4AF37] transition-all ${attachmentBusy ? 'opacity-50 cursor-wait' : ''}`}>
+              {attachmentBusy ? '⌛ Processing…' : '+ Attach Files'}
               <input
                 ref={fileInputRef}
                 type="file"
                 multiple
-                accept="image/*"
+                // accept hint — browsers use this to filter the picker but
+                // we still validate every file in handleFileChange (intakeFile).
+                accept="image/*,application/pdf,.pdf,.docx,.xlsx,.txt,.csv,.tsv"
                 className="hidden"
                 onChange={handleFileChange}
+                disabled={attachmentBusy}
               />
             </label>
-            {images.length > 0 && (
-              <span className="text-[10px] text-gray-500 uppercase tracking-widest">
-                {images.length} of {MAX_IMAGES} attached
-              </span>
-            )}
+            <span className="text-[10px] text-gray-500 uppercase tracking-widest">
+              {attachments.length > 0
+                ? `${attachments.length} of ${LIMITS.maxFiles} attached`
+                : `Images · PDF · DOCX · XLSX · TXT · CSV (max ${LIMITS.maxFiles})`}
+            </span>
           </div>
-          {images.length > 0 && (
-            <div className="grid grid-cols-5 gap-2">
-              {images.map((src, i) => (
-                <div key={i} className="relative group">
-                  <img src={src} alt="" className="w-full h-20 object-cover border border-gray-800" />
+          {attachments.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+              {attachments.map((att, i) => (
+                <div key={`${att.name}-${i}`} className="relative group bg-black/40 border border-gray-800 p-2 flex flex-col items-center justify-center text-center min-h-[80px]">
+                  {att.kind === 'image' ? (
+                    <img src={att.content} alt={att.name} className="w-full h-20 object-cover" />
+                  ) : (
+                    <>
+                      <div className="text-2xl mb-1" aria-hidden="true">
+                        {att.kind === 'pdf' ? '📄'
+                          : att.mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ? '📊'
+                          : att.mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ? '📝'
+                          : '📃'}
+                      </div>
+                      <div className="text-[9px] text-gray-300 font-bold truncate w-full">{att.name}</div>
+                      <div className="text-[8px] text-gray-500 uppercase tracking-widest mt-0.5">
+                        {/* This block only renders when att.kind !== 'image' (handled above), so kind here is 'pdf' | 'text'. */}
+                        {att.kind === 'pdf' ? 'PDF' : 'TEXT'}
+                      </div>
+                    </>
+                  )}
                   <button
                     type="button"
-                    onClick={() => removeImage(i)}
-                    className="absolute top-0 right-0 bg-red-600 text-white w-5 h-5 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                    aria-label="Remove image"
+                    onClick={() => removeAttachment(i)}
+                    className="absolute top-0 right-0 bg-red-600 text-white w-5 h-5 text-xs opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                    aria-label={`Remove ${att.name}`}
                   >
                     ×
                   </button>

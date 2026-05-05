@@ -33,6 +33,15 @@ export default defineConfig(() => ({
           if (id.includes('node_modules/react') || id.includes('node_modules/scheduler')) {
             return 'react-vendor';
           }
+          // Office-doc parsers — lazy-loaded by utils/attachments.ts. Each in
+          // its own chunk so an operator who never uploads DOCX/XLSX doesn't
+          // pay the bundle cost for them.
+          if (id.includes('node_modules/mammoth')) {
+            return 'parser-docx';
+          }
+          if (id.includes('node_modules/exceljs') || id.includes('node_modules/archiver') || id.includes('node_modules/unzipper')) {
+            return 'parser-xlsx';
+          }
         },
       },
     },
