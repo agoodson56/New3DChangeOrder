@@ -180,7 +180,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
     }
   };
 
-  const inputClasses = "w-full bg-gray-50 border border-gray-800 text-white p-2.5 focus:border-[#008b8b] outline-none transition-all text-sm placeholder-gray-700";
+  const inputClasses = "w-full bg-gray-50 border border-gray-800 text-black p-2.5 focus:border-[#008b8b] outline-none transition-all text-sm placeholder-gray-700";
   const labelClasses = "block text-[10px] font-bold text-[#008b8b] uppercase tracking-widest mb-1.5";
 
   return (
@@ -190,9 +190,9 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
         <div className="p-6 bg-white/5 border border-gray-900 shadow-xl">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-xs font-black text-[#008b8b] uppercase tracking-[0.3em]">Start from a saved scope</h3>
-            <span className="text-[10px] text-gray-500 uppercase tracking-widest">{templates.length} template{templates.length === 1 ? '' : 's'}</span>
+            <span className="text-[10px] text-gray-600 uppercase tracking-widest">{templates.length} template{templates.length === 1 ? '' : 's'}</span>
           </div>
-          <p className="text-[10px] text-gray-500 mb-3 leading-relaxed">
+          <p className="text-[10px] text-gray-600 mb-3 leading-relaxed">
             Skip the AI estimator and start from a known-good scope. Customer info you've entered above is preserved. Pricing is what was saved — use the per-line MSRP lookup on the next screen if a template is more than a couple months old.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -206,8 +206,8 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
                   onClick={() => handleApplyTemplate(tpl)}
                   className="flex-1 text-left"
                 >
-                  <div className="text-sm font-bold text-white truncate">{tpl.name}</div>
-                  <div className="text-[10px] text-gray-500 mt-0.5">
+                  <div className="text-sm font-bold text-black truncate">{tpl.name}</div>
+                  <div className="text-[10px] text-gray-600 mt-0.5">
                     {tpl.coData.materials?.length || 0} materials · {tpl.coData.labor?.length || 0} labor tasks
                     {tpl.useCount > 0 ? ` · used ${tpl.useCount}×` : ''}
                   </div>
@@ -246,7 +246,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
               />
               {customerFocused && customerSuggestions.length > 0 && (
                 <div className="absolute z-20 left-0 right-0 mt-1 bg-gray-50 border border-[#008b8b]/40 shadow-2xl max-h-64 overflow-y-auto">
-                  <div className="text-[8px] text-gray-500 uppercase font-bold tracking-widest px-3 py-1.5 border-b border-gray-900">
+                  <div className="text-[8px] text-gray-600 uppercase font-bold tracking-widest px-3 py-1.5 border-b border-gray-900">
                     Recent customers — click to autofill
                   </div>
                   {customerSuggestions.map(c => (
@@ -256,8 +256,8 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
                       onMouseDown={() => handlePickCustomer(c)}
                       className="w-full text-left px-3 py-2 hover:bg-[#008b8b]/10 transition-colors border-b border-gray-900 last:border-b-0"
                     >
-                      <div className="text-sm text-white font-bold truncate">{c.customer}</div>
-                      <div className="text-[10px] text-gray-500 truncate">
+                      <div className="text-sm text-black font-bold truncate">{c.customer}</div>
+                      <div className="text-[10px] text-gray-600 truncate">
                         {c.contact && <span>{c.contact} · </span>}
                         {c.address || 'no address'}
                       </div>
@@ -389,7 +389,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
                 try { recognition.stop(); } catch { /* ignore */ }
               }, 120000);
             }}
-            className={`flex items-center gap-2 px-4 py-2 font-bold text-xs uppercase tracking-wider transition-all ${isListening ? 'animate-pulse bg-red-600 text-white' : 'bg-[#008b8b] text-black hover:bg-[#20b2aa]'}`}
+            className={`flex items-center gap-2 px-4 py-2 font-bold text-xs uppercase tracking-wider transition-all ${isListening ? 'animate-pulse bg-red-600 text-black' : 'bg-[#008b8b] text-black hover:bg-[#20b2aa]'}`}
           >
             {isListening ? (
               <>
@@ -407,7 +407,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
           </button>
         </div>
         <textarea
-          className={`w-full h-40 bg-gray-50 border ${intentError ? 'border-red-500' : 'border-gray-800'} text-white p-6 focus:border-[#008b8b] outline-none transition-all resize-none shadow-inner text-lg placeholder-gray-700`}
+          className={`w-full h-40 bg-gray-50 border ${intentError ? 'border-red-500' : 'border-gray-800'} text-black p-6 focus:border-[#008b8b] outline-none transition-all resize-none shadow-inner text-lg placeholder-gray-700`}
           placeholder="Type your description here, or click 'Voice Input' to speak it. e.g., 'Add two cameras in the warehouse at column B4 and C6. Include cabling back to MDF-1.'"
           value={intent}
           onChange={(e) => {
@@ -420,7 +420,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
         )}
         <div className="space-y-2">
           <div className="flex items-center gap-3 flex-wrap">
-            <label className={`cursor-pointer bg-white/5 hover:bg-white/10 border border-gray-800 px-3 py-1.5 text-xs uppercase font-bold tracking-wider text-gray-400 hover:text-[#008b8b] transition-all ${attachmentBusy ? 'opacity-50 cursor-wait' : ''}`}>
+            <label className={`cursor-pointer bg-white/5 hover:bg-white/10 border border-gray-800 px-3 py-1.5 text-xs uppercase font-bold tracking-wider text-gray-700 hover:text-[#008b8b] transition-all ${attachmentBusy ? 'opacity-50 cursor-wait' : ''}`}>
               {attachmentBusy ? '⌛ Processing…' : '+ Attach Files'}
               <input
                 ref={fileInputRef}
@@ -434,7 +434,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
                 disabled={attachmentBusy}
               />
             </label>
-            <span className="text-[10px] text-gray-500 uppercase tracking-widest">
+            <span className="text-[10px] text-gray-600 uppercase tracking-widest">
               {attachments.length > 0
                 ? `${attachments.length} of ${LIMITS.maxFiles} attached`
                 : `Images · PDF · DOCX · XLSX · TXT · CSV (max ${LIMITS.maxFiles})`}
@@ -455,7 +455,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
                           : '📃'}
                       </div>
                       <div className="text-[9px] text-gray-300 font-bold truncate w-full">{att.name}</div>
-                      <div className="text-[8px] text-gray-500 uppercase tracking-widest mt-0.5">
+                      <div className="text-[8px] text-gray-600 uppercase tracking-widest mt-0.5">
                         {/* This block only renders when att.kind !== 'image' (handled above), so kind here is 'pdf' | 'text'. */}
                         {att.kind === 'pdf' ? 'PDF' : 'TEXT'}
                       </div>
@@ -464,7 +464,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
                   <button
                     type="button"
                     onClick={() => removeAttachment(i)}
-                    className="absolute top-0 right-0 bg-red-600 text-white w-5 h-5 text-xs opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                    className="absolute top-0 right-0 bg-red-600 text-black w-5 h-5 text-xs opacity-0 group-hover:opacity-100 transition-opacity z-10"
                     aria-label={`Remove ${att.name}`}
                   >
                     ×
@@ -479,24 +479,24 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
       {/* Guidance Section */}
       <div className="p-6 bg-white/5 border border-gray-900 shadow-xl space-y-4">
         <h3 className="text-xs font-black text-[#008b8b] uppercase tracking-[0.3em] border-b border-gray-800 pb-2">Tips for Best Results</h3>
-        <div className="text-sm text-gray-400 space-y-3">
+        <div className="text-sm text-gray-700 space-y-3">
           <p className="leading-relaxed">
             <span className="text-[#008b8b] font-bold">Be specific about manufacturers:</span> If you have a preferred brand, include it in your description.
-            <span className="text-gray-500 italic"> Example: "Add 4 Axis cameras..." or "Run Panduit Cat6 cabling..."</span>
+            <span className="text-gray-600 italic"> Example: "Add 4 Axis cameras..." or "Run Panduit Cat6 cabling..."</span>
           </p>
           <p className="leading-relaxed">
             <span className="text-[#008b8b] font-bold">Include model numbers when known:</span> Specific models ensure accurate pricing and compatibility.
-            <span className="text-gray-500 italic"> Example: "Install Axis P3245-V cameras" or "Use Leviton 6A250 jacks"</span>
+            <span className="text-gray-600 italic"> Example: "Install Axis P3245-V cameras" or "Use Leviton 6A250 jacks"</span>
           </p>
           <p className="leading-relaxed">
             <span className="text-[#008b8b] font-bold">Mention heights and distances:</span> Include ceiling heights (for lift requirements) and cable run lengths.
-            <span className="text-gray-500 italic"> Example: "Cameras at 18ft ceiling height, approximately 150ft cable runs to MDF"</span>
+            <span className="text-gray-600 italic"> Example: "Cameras at 18ft ceiling height, approximately 150ft cable runs to MDF"</span>
           </p>
           <p className="leading-relaxed">
             <span className="text-[#008b8b] font-bold">If no manufacturer specified:</span> The system will select appropriate professional-grade equipment and maintain brand consistency within each system type.
           </p>
           <p className="leading-relaxed border-t border-gray-800 pt-3 mt-3">
-            <span className="text-red-400 font-bold">🔻 DEDUCTIONS / CREDITS:</span> To remove or credit items, say <span className="text-gray-500 italic">"Remove 4 cameras from the existing quote"</span> or <span className="text-gray-500 italic">"Credit back the Cat6 cabling"</span>. The system will price them as negative credits that are subtracted from the total.
+            <span className="text-red-400 font-bold">🔻 DEDUCTIONS / CREDITS:</span> To remove or credit items, say <span className="text-gray-600 italic">"Remove 4 cameras from the existing quote"</span> or <span className="text-gray-600 italic">"Credit back the Cat6 cabling"</span>. The system will price them as negative credits that are subtracted from the total.
           </p>
           <p className="leading-relaxed border-t border-gray-800 pt-3 mt-3">
             <span className="text-[#008b8b] font-bold">⚡ NECA MLU Aligned:</span> Labor formulas are aligned with NECA Manual of Labor Units (MLU) standards, featuring Normal/Difficult/Very Difficult condition multipliers for accurate estimating.
@@ -509,7 +509,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm text-[#008b8b] font-bold">{pipelineStatus}</span>
-              <span className="text-xs text-gray-500 font-mono">{pipelinePercent}%</span>
+              <span className="text-xs text-gray-600 font-mono">{pipelinePercent}%</span>
             </div>
             <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
               <div

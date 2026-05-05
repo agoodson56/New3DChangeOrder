@@ -19,9 +19,9 @@ const STATUS_LABEL: Record<COStatus, string> = {
 
 const STATUS_BG: Record<COStatus, string> = {
   pending: 'bg-amber-500 text-black',
-  accepted: 'bg-emerald-600 text-white',
-  rejected: 'bg-red-600 text-white',
-  withdrawn: 'bg-gray-500 text-white',
+  accepted: 'bg-emerald-600 text-black',
+  rejected: 'bg-red-600 text-black',
+  withdrawn: 'bg-gray-500 text-black',
 };
 
 export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
@@ -91,11 +91,11 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
           <div className="flex items-start justify-between mb-6">
             <div>
               <h2 id="history-modal-title" className="text-2xl font-black bg-gradient-to-r from-[#008b8b] to-[#20b2aa] bg-clip-text text-transparent uppercase tracking-tighter italic">Change Order History</h2>
-              <p className="text-[10px] text-gray-500 uppercase font-bold tracking-[0.3em] mt-1">Win-rate tracking · stored locally on this device</p>
+              <p className="text-[10px] text-gray-600 uppercase font-bold tracking-[0.3em] mt-1">Win-rate tracking · stored locally on this device</p>
             </div>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-[#008b8b] transition-colors text-2xl leading-none"
+              className="text-gray-600 hover:text-[#008b8b] transition-colors text-2xl leading-none"
               aria-label="Close"
             >
               ×
@@ -132,7 +132,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[10px]">
                 {closeReasonStats.slice(0, 4).map(r => (
                   <div key={r.reason} className="bg-white/40 border border-gray-800 p-2">
-                    <div className="text-gray-400 uppercase tracking-wider mb-0.5">{r.label}</div>
+                    <div className="text-gray-700 uppercase tracking-wider mb-0.5">{r.label}</div>
                     <div className="text-red-300 font-mono font-bold">
                       {r.count} CO{r.count === 1 ? '' : 's'} · {fmtUSD(r.lostRevenue)}
                     </div>
@@ -151,7 +151,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
                 className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 transition-all ${
                   filter === f
                     ? 'bg-[#008b8b] text-black'
-                    : 'bg-white/5 hover:bg-white/10 border border-gray-800 text-gray-400'
+                    : 'bg-white/5 hover:bg-white/10 border border-gray-800 text-gray-700'
                 }`}
               >
                 {f === 'all' ? 'All' : STATUS_LABEL[f]}
@@ -163,7 +163,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
         {/* Item list */}
         <div className="flex-1 overflow-y-auto p-6">
           {visibleItems.length === 0 ? (
-            <div className="text-center text-gray-500 py-20">
+            <div className="text-center text-gray-600 py-20">
               <p className="text-sm uppercase tracking-widest font-bold mb-2">No change orders {filter !== 'all' ? `with status "${STATUS_LABEL[filter]}"` : 'yet'}</p>
               <p className="text-xs">Generate and archive change orders to track them here.</p>
             </div>
@@ -191,37 +191,37 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
               <h3 className="text-sm font-black text-red-400 uppercase tracking-[0.2em] mb-2">
                 Why is this CO closing?
               </h3>
-              <p className="text-[11px] text-gray-400 mb-4 leading-relaxed">
+              <p className="text-[11px] text-gray-700 mb-4 leading-relaxed">
                 Two seconds of input now → useful win/loss analytics later. You'll see aggregate reasons in the stats panel.
               </p>
-              <label className="block text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-1">Reason</label>
+              <label className="block text-[10px] uppercase font-bold tracking-widest text-gray-600 mb-1">Reason</label>
               <select
                 value={reasonChoice}
                 onChange={(e) => setReasonChoice(e.target.value as CloseReason)}
-                className="w-full bg-gray-50 border border-gray-800 text-white p-2 mb-4 focus:border-[#008b8b] outline-none text-sm"
+                className="w-full bg-gray-50 border border-gray-800 text-black p-2 mb-4 focus:border-[#008b8b] outline-none text-sm"
               >
                 {(Object.keys(CLOSE_REASON_LABELS) as CloseReason[]).map(k => (
                   <option key={k} value={k}>{CLOSE_REASON_LABELS[k]}</option>
                 ))}
               </select>
-              <label className="block text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-1">Notes (optional)</label>
+              <label className="block text-[10px] uppercase font-bold tracking-widest text-gray-600 mb-1">Notes (optional)</label>
               <textarea
                 value={reasonNotes}
                 onChange={(e) => setReasonNotes(e.target.value)}
                 rows={3}
                 placeholder="Customer said they had a quote $2K lower from competitor X..."
-                className="w-full bg-gray-50 border border-gray-800 text-white p-2 mb-4 focus:border-[#008b8b] outline-none text-xs resize-none"
+                className="w-full bg-gray-50 border border-gray-800 text-black p-2 mb-4 focus:border-[#008b8b] outline-none text-xs resize-none"
               />
               <div className="flex gap-2 justify-end">
                 <button
                   onClick={skipReasonAndClose}
-                  className="text-[10px] font-bold uppercase tracking-widest px-4 py-2 bg-white/5 hover:bg-white/10 border border-gray-700 text-gray-400"
+                  className="text-[10px] font-bold uppercase tracking-widest px-4 py-2 bg-white/5 hover:bg-white/10 border border-gray-700 text-gray-700"
                 >
                   Skip
                 </button>
                 <button
                   onClick={confirmCloseWithReason}
-                  className="text-[10px] font-bold uppercase tracking-widest px-4 py-2 bg-red-600 hover:bg-red-700 text-white"
+                  className="text-[10px] font-bold uppercase tracking-widest px-4 py-2 bg-red-600 hover:bg-red-700 text-black"
                 >
                   Save Reason
                 </button>
@@ -236,12 +236,12 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
 
 const StatCard: React.FC<{ label: string; value: string; accent?: 'gold' | 'emerald' | 'amber' }> = ({ label, value, accent }) => (
   <div className="bg-white/5 border border-gray-800 p-3">
-    <div className="text-[9px] text-gray-500 uppercase font-bold tracking-widest mb-1">{label}</div>
+    <div className="text-[9px] text-gray-600 uppercase font-bold tracking-widest mb-1">{label}</div>
     <div className={`text-xl font-mono font-black ${
       accent === 'gold' ? 'text-[#008b8b]'
       : accent === 'emerald' ? 'text-emerald-400'
       : accent === 'amber' ? 'text-amber-400'
-      : 'text-white'
+      : 'text-black'
     }`}>{value}</div>
   </div>
 );
@@ -260,15 +260,15 @@ const HistoryRow: React.FC<{
             <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 ${STATUS_BG[item.status]}`}>
               {STATUS_LABEL[item.status]}
             </span>
-            <span className="text-xs text-gray-500 font-mono">{dateStr}</span>
+            <span className="text-xs text-gray-600 font-mono">{dateStr}</span>
             {item.coData.pcoNumber && (
               <span className="text-[10px] text-gray-600 font-mono">PCO #{item.coData.pcoNumber}</span>
             )}
           </div>
-          <h3 className="text-sm font-bold text-white truncate">
+          <h3 className="text-sm font-bold text-black truncate">
             {item.coData.customer || 'Unknown customer'} — {item.coData.projectName || '(no project name)'}
           </h3>
-          <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">
+          <p className="text-xs text-gray-600 mt-0.5 line-clamp-1">
             {item.coData.systemsImpacted?.join(', ') || 'no systems listed'}
           </p>
         </div>
@@ -280,7 +280,7 @@ const HistoryRow: React.FC<{
         <select
           value={item.status}
           onChange={(e) => onStatusChange(item.id, e.target.value as COStatus)}
-          className="bg-white border border-gray-800 text-white text-[10px] uppercase font-bold tracking-widest p-1.5 focus:border-[#008b8b] outline-none"
+          className="bg-white border border-gray-800 text-black text-[10px] uppercase font-bold tracking-widest p-1.5 focus:border-[#008b8b] outline-none"
           aria-label="Change status"
         >
           <option value="pending">Pending</option>
@@ -290,7 +290,7 @@ const HistoryRow: React.FC<{
         </select>
         <button
           onClick={() => onDelete(item.id)}
-          className="text-[10px] uppercase font-bold tracking-widest text-gray-500 hover:text-red-400 transition-colors px-3 py-1.5 border border-gray-800"
+          className="text-[10px] uppercase font-bold tracking-widest text-gray-600 hover:text-red-400 transition-colors px-3 py-1.5 border border-gray-800"
         >
           Delete
         </button>

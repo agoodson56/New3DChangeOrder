@@ -208,7 +208,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-black selection:bg-[#008b8b] selection:text-white">
+    <div className="min-h-screen bg-white text-black selection:bg-[#008b8b] selection:text-black">
       {/* Rate Intake Modal (Global Lock) */}
       {status === AppStatus.SETUP && <LaborRateModal onSave={handleSaveRates} initialRates={rates ?? undefined} />}
 
@@ -223,7 +223,7 @@ const App: React.FC = () => {
             <div className="h-10 w-px bg-gray-800 mx-2 hidden md:block"></div>
             <div className="hidden md:block">
               <h1 className="text-xl font-black uppercase tracking-tighter leading-none italic">Intelligence <span className="bg-gradient-to-r from-[#008b8b] to-[#20b2aa] bg-clip-text text-transparent">At Work</span></h1>
-              <p className="text-[10px] text-gray-500 uppercase font-bold tracking-[0.4em] mt-1">3DTSI Service Estimator</p>
+              <p className="text-[10px] text-gray-600 uppercase font-bold tracking-[0.4em] mt-1">3DTSI Service Estimator</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -248,7 +248,7 @@ const App: React.FC = () => {
                     : 'bg-red-500'
                   }`}
                 />
-                <span className="text-gray-500">
+                <span className="text-gray-600">
                   {syncState === 'pulling' ? 'syncing' : syncState === 'pushing' ? 'saving' : syncState === 'offline' ? 'offline' : syncState === 'disabled' ? 'local' : 'sync err'}
                 </span>
               </div>
@@ -262,7 +262,7 @@ const App: React.FC = () => {
             {user && (
               <div className="text-right hidden sm:block border-r border-gray-800 pr-6">
                 <div className="text-[10px] text-gray-600 uppercase font-black tracking-[0.2em] mb-1">User</div>
-                <div className="text-gray-400 text-sm font-mono">{user.username}</div>
+                <div className="text-gray-700 text-sm font-mono">{user.username}</div>
                 {user.role === 'admin' && <div className="text-[10px] text-amber-400 uppercase font-bold mt-1">Admin</div>}
               </div>
             )}
@@ -271,8 +271,8 @@ const App: React.FC = () => {
               className="group flex items-center gap-2 bg-white/5 hover:bg-white/10 px-2 md:px-4 py-2 border border-gray-800 transition-all rounded-sm"
               title="Change Order History & Win Rate"
             >
-              <span className="hidden md:inline text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-[#008b8b]">History</span>
-              <svg className="w-5 h-5 text-gray-500 group-hover:text-[#008b8b] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span className="hidden md:inline text-[10px] font-black uppercase tracking-widest text-gray-600 group-hover:text-[#008b8b]">History</span>
+              <svg className="w-5 h-5 text-gray-600 group-hover:text-[#008b8b] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
               </svg>
             </button>
@@ -281,8 +281,8 @@ const App: React.FC = () => {
               className="group flex items-center gap-2 bg-white/5 hover:bg-white/10 px-2 md:px-4 py-2 border border-gray-800 transition-all rounded-sm"
               title="Labor Rates"
             >
-              <span className="hidden md:inline text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-[#008b8b]">Rates</span>
-              <svg className="w-5 h-5 text-gray-500 group-hover:text-[#008b8b] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span className="hidden md:inline text-[10px] font-black uppercase tracking-widest text-gray-600 group-hover:text-[#008b8b]">Rates</span>
+              <svg className="w-5 h-5 text-gray-600 group-hover:text-[#008b8b] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
@@ -292,8 +292,8 @@ const App: React.FC = () => {
               className="group flex items-center gap-2 bg-white/5 hover:bg-red-900/30 px-2 md:px-4 py-2 border border-gray-800 hover:border-red-700 transition-all rounded-sm"
               title="Sign out"
             >
-              <span className="hidden md:inline text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-red-400">Sign Out</span>
-              <svg className="w-5 h-5 text-gray-500 group-hover:text-red-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span className="hidden md:inline text-[10px] font-black uppercase tracking-widest text-gray-600 group-hover:text-red-400">Sign Out</span>
+              <svg className="w-5 h-5 text-gray-600 group-hover:text-red-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
             </button>
@@ -317,7 +317,7 @@ const App: React.FC = () => {
               </div>
               <button
                 onClick={() => setOtherTabWarning(false)}
-                className="text-[10px] uppercase tracking-widest text-amber-300 hover:text-white shrink-0"
+                className="text-[10px] uppercase tracking-widest text-amber-300 hover:text-black shrink-0"
                 aria-label="Dismiss tab conflict warning"
               >
                 Dismiss ×
@@ -338,7 +338,7 @@ const App: React.FC = () => {
               </div>
               <button
                 onClick={() => setStorageWarning(null)}
-                className="text-[10px] uppercase tracking-widest text-red-300 hover:text-white shrink-0"
+                className="text-[10px] uppercase tracking-widest text-red-300 hover:text-black shrink-0"
                 aria-label="Dismiss storage warning"
               >
                 Dismiss ×
@@ -354,7 +354,7 @@ const App: React.FC = () => {
                 </svg>
                 <div>
                   <p className="text-sm font-bold text-[#008b8b] uppercase tracking-widest">Unsaved draft found</p>
-                  <p className="text-xs text-gray-400">A change order was in progress when you last closed the tab. Restore it?</p>
+                  <p className="text-xs text-gray-700">A change order was in progress when you last closed the tab. Restore it?</p>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -366,7 +366,7 @@ const App: React.FC = () => {
                 </button>
                 <button
                   onClick={handleDismissDraft}
-                  className="bg-white/5 hover:bg-white/10 border border-gray-800 text-gray-400 px-4 py-2 text-xs font-black uppercase tracking-widest transition-all"
+                  className="bg-white/5 hover:bg-white/10 border border-gray-800 text-gray-700 px-4 py-2 text-xs font-black uppercase tracking-widest transition-all"
                 >
                   Discard
                 </button>
@@ -380,7 +380,7 @@ const App: React.FC = () => {
               <div className="text-center max-w-3xl mx-auto space-y-6">
                 <h2 className="text-3xl md:text-6xl font-serif-elegant font-medium tracking-wide leading-tight">Change Order <span className="bg-gradient-to-r from-[#008b8b] to-[#20b2aa] bg-clip-text text-transparent italic">Requests</span></h2>
                 <div className="h-1.5 w-32 bg-[#008b8b] mx-auto"></div>
-                <p className="hidden md:block text-gray-400 text-lg font-medium leading-relaxed tracking-wide">
+                <p className="hidden md:block text-gray-700 text-lg font-medium leading-relaxed tracking-wide">
                   Submit coordinator intent with attached project collateral. Our multimodal reasoning engine will synthesize a defensible Change Order with deterministic labor units and infrastructure requirements.
                 </p>
               </div>

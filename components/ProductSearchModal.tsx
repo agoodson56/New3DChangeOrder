@@ -109,7 +109,7 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
                             onChange={(e) => setQuery(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder="Search for products... e.g., 'Axis P3265-V dome camera' or 'Cat6A plenum cable'"
-                            className="flex-1 bg-white border border-gray-700 text-white px-4 py-3 focus:border-[#008b8b] outline-none transition-all text-lg placeholder-gray-600"
+                            className="flex-1 bg-white border border-gray-700 text-black px-4 py-3 focus:border-[#008b8b] outline-none transition-all text-lg placeholder-gray-600"
                         />
                         <GoldButton
                             onClick={handleSearch}
@@ -119,7 +119,7 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
                             {loading ? 'Searching...' : 'Search'}
                         </GoldButton>
                     </div>
-                    <p className="text-gray-500 text-xs mt-2 uppercase tracking-wider">
+                    <p className="text-gray-600 text-xs mt-2 uppercase tracking-wider">
                         Powered by Google AI • Real-time pricing from manufacturer & distributor sources
                     </p>
                 </div>
@@ -135,7 +135,7 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
                     {loading && (
                         <div className="flex flex-col items-center justify-center py-12">
                             <div className="w-12 h-12 border-4 border-[#008b8b] border-t-transparent rounded-full animate-spin mb-4" />
-                            <p className="text-gray-400 uppercase tracking-widest text-sm">Searching products...</p>
+                            <p className="text-gray-700 uppercase tracking-widest text-sm">Searching products...</p>
                         </div>
                     )}
 
@@ -144,7 +144,7 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
                             <svg className="w-16 h-16 text-gray-700 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <p className="text-gray-500">No products found. Try a different search term.</p>
+                            <p className="text-gray-600">No products found. Try a different search term.</p>
                         </div>
                     )}
 
@@ -153,7 +153,7 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
                             <svg className="w-16 h-16 text-gray-700 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
-                            <p className="text-gray-500">Enter a product name, model number, or description to search.</p>
+                            <p className="text-gray-600">Enter a product name, model number, or description to search.</p>
                             <div className="mt-4 text-xs text-gray-600 space-y-1">
                                 <p>Try searching for:</p>
                                 <p className="text-[#008b8b]">"Axis P3265-V" • "Leviton Cat6A jack" • "Panduit patch panel 24-port"</p>
@@ -163,7 +163,7 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
 
                     {results.length > 0 && (
                         <div className="space-y-4">
-                            <p className="text-gray-400 text-sm uppercase tracking-wider mb-4">
+                            <p className="text-gray-700 text-sm uppercase tracking-wider mb-4">
                                 Found {results.length} product{results.length !== 1 ? 's' : ''}
                             </p>
 
@@ -191,15 +191,15 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
                                                 </span>
                                             </div>
 
-                                            <h3 className="text-white font-bold text-lg group-hover:text-[#008b8b] transition-colors">
+                                            <h3 className="text-black font-bold text-lg group-hover:text-[#008b8b] transition-colors">
                                                 {product.manufacturer} {product.model}
                                             </h3>
 
-                                            <p className="text-gray-400 text-sm mt-1">
+                                            <p className="text-gray-700 text-sm mt-1">
                                                 {product.description}
                                             </p>
 
-                                            <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                            <div className="flex items-center gap-4 mt-2 text-xs text-gray-600">
                                                 <span className="font-mono">Part #: {product.partNumber}</span>
                                                 <span>Unit: {product.unitOfMeasure}</span>
                                             </div>
@@ -208,11 +208,11 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
                                         <div className="text-right shrink-0">
                                             <div className="text-2xl font-black text-[#008b8b] font-mono">
                                                 ${(Number.isFinite(product.msrp) ? product.msrp : 0).toFixed(2)}
-                                                {product.unitOfMeasure === 'ft' && <span className="text-sm text-gray-500">/ft</span>}
+                                                {product.unitOfMeasure === 'ft' && <span className="text-sm text-gray-600">/ft</span>}
                                             </div>
 
                                             <div className="flex items-center gap-2 mt-3">
-                                                <label className="text-[10px] text-gray-500 uppercase tracking-widest">Qty:</label>
+                                                <label className="text-[10px] text-gray-600 uppercase tracking-widest">Qty:</label>
                                                 <input
                                                     type="number"
                                                     value={quantities[index] || 1}
@@ -220,10 +220,10 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
                                                         ...quantities,
                                                         [index]: Math.max(1, parseInt(e.target.value) || 1)
                                                     })}
-                                                    className="w-16 bg-white border border-gray-700 text-white text-center px-2 py-1 focus:border-[#008b8b] outline-none"
+                                                    className="w-16 bg-white border border-gray-700 text-black text-center px-2 py-1 focus:border-[#008b8b] outline-none"
                                                     min="1"
                                                 />
-                                                {product.unitOfMeasure === 'ft' && <span className="text-gray-500 text-xs">ft</span>}
+                                                {product.unitOfMeasure === 'ft' && <span className="text-gray-600 text-xs">ft</span>}
                                             </div>
 
                                             <button
@@ -250,7 +250,7 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
                     </p>
                     <button
                         onClick={onClose}
-                        className="text-gray-400 hover:text-white text-sm uppercase tracking-wider transition-colors"
+                        className="text-gray-700 hover:text-black text-sm uppercase tracking-wider transition-colors"
                     >
                         Cancel
                     </button>

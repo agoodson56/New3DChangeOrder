@@ -211,7 +211,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
           {isCable && <span className="ml-0.5">ft</span>}
         </div>
         <div className={`col-span-5 border-r border-black px-2 py-px uppercase flex items-center ${isDeduct ? 'text-red-600 font-bold' : ''}`}>
-          {isDeduct && <span className="text-[8px] bg-red-600 text-white px-1 mr-1 rounded-sm font-black tracking-wider print:bg-red-600">DEDUCT</span>}
+          {isDeduct && <span className="text-[8px] bg-red-600 text-black px-1 mr-1 rounded-sm font-black tracking-wider print:bg-red-600">DEDUCT</span>}
           <input
             type="text"
             value={`${item.manufacturer} ${item.model}`.trim()}
@@ -260,15 +260,15 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
             onClick={() => updateMaterial(safeIndex, { isDeduct: !isDeduct })}
             className={`text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-sm transition-all ${
               isDeduct
-                ? 'bg-red-600 text-white hover:bg-red-700'
-                : 'bg-gray-200 text-gray-500 hover:bg-green-100 hover:text-green-700'
+                ? 'bg-red-600 text-black hover:bg-red-700'
+                : 'bg-gray-200 text-gray-600 hover:bg-green-100 hover:text-green-700'
             }`}
             title={isDeduct ? 'Click to change to ADD' : 'Click to change to DEDUCT'}
           >
             {isDeduct ? '−' : '+'}
           </button>
         </div>
-        <div className="col-span-1 border-r border-black px-1 py-px text-center text-[8px] text-gray-500 uppercase print:hidden">
+        <div className="col-span-1 border-r border-black px-1 py-px text-center text-[8px] text-gray-600 uppercase print:hidden">
           {item.category === 'Equipment' ? 'EQP' : 'MAT'}
         </div>
         <div className={`col-span-2 border-r border-black px-1 py-px text-right font-mono font-bold flex items-center ${isDeduct ? 'text-red-600' : ''}`}>
@@ -330,10 +330,10 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
             tabIndex={0}
             aria-expanded={showValidationDetails}
             className={`px-4 py-2 flex items-center justify-between cursor-pointer ${data.validationResult.status === 'customer_ready'
-              ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white'
+              ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-black'
               : data.validationResult.status === 'review_recommended'
                 ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-black'
-                : 'bg-gradient-to-r from-red-600 to-red-500 text-white'
+                : 'bg-gradient-to-r from-red-600 to-red-500 text-black'
               }`}
             onClick={() => setShowValidationDetails(!showValidationDetails)}
             onKeyDown={(e) => {
@@ -382,14 +382,14 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
               {(data.validationResult.autoCorrections?.length ?? 0) > 0 && (
                 <div>
                   <h4 className="text-emerald-400 font-bold uppercase tracking-wider mb-1">🔧 Auto-Corrections Applied</h4>
-                  {(data.validationResult.autoCorrections ?? []).map((c, i) => <p key={i} className="text-gray-400">• {c}</p>)}
+                  {(data.validationResult.autoCorrections ?? []).map((c, i) => <p key={i} className="text-gray-700">• {c}</p>)}
                 </div>
               )}
               {(data.validationResult.warnings?.length ?? 0) > 0 && (
                 <div>
                   <h4 className="text-amber-400 font-bold uppercase tracking-wider mb-1">⚠️ Code Validation Warnings</h4>
                   {(data.validationResult.warnings ?? []).map((w, i) => (
-                    <p key={i} className={`${w.severity === 'error' ? 'text-red-400' : w.severity === 'warning' ? 'text-amber-300' : 'text-gray-500'
+                    <p key={i} className={`${w.severity === 'error' ? 'text-red-400' : w.severity === 'warning' ? 'text-amber-300' : 'text-gray-600'
                       }`}>• [{w.type}] {w.message}</p>
                   ))}
                 </div>
@@ -406,7 +406,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
                       const conf = Number.isFinite(p.confidence) ? p.confidence : 0;
                       const delta = Number.isFinite(p.delta) ? p.delta : 0;
                       return (
-                        <p key={i} className={delta > 15 ? 'text-red-400' : 'text-gray-400'}>
+                        <p key={i} className={delta > 15 ? 'text-red-400' : 'text-gray-700'}>
                           • {p.manufacturer ?? '?'} {p.model ?? '?'}: ${orig.toFixed(2)} → ${valid.toFixed(2)} ({p.source ?? 'unknown'}, {conf}% conf, Δ{delta}%)
                         </p>
                       );
@@ -416,7 +416,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
               {(data.validationResult.qaIssues?.length ?? 0) > 0 && (
                 <div>
                   <h4 className="text-purple-400 font-bold uppercase tracking-wider mb-1">🔍 QA Audit Notes</h4>
-                  {(data.validationResult.qaIssues ?? []).map((issue, i) => <p key={i} className="text-gray-400">• {issue}</p>)}
+                  {(data.validationResult.qaIssues ?? []).map((issue, i) => <p key={i} className="text-gray-700">• {issue}</p>)}
                 </div>
               )}
             </div>
@@ -594,7 +594,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
               />
             </div>
             <div className={`col-span-6 border-r border-black px-1 py-px uppercase font-bold flex items-center ${isDeduct ? 'text-red-600' : 'text-gray-800'}`}>
-              {isDeduct && <span className="text-[8px] bg-red-600 text-white px-1 mr-1 rounded-sm font-black tracking-wider">DEDUCT</span>}
+              {isDeduct && <span className="text-[8px] bg-red-600 text-black px-1 mr-1 rounded-sm font-black tracking-wider">DEDUCT</span>}
               <input
                 type="text"
                 value={task.task}
@@ -608,8 +608,8 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
                 onClick={() => updateLaborTask(i, { isDeduct: !isDeduct })}
                 className={`text-[7px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-sm transition-all ${
                   isDeduct
-                    ? 'bg-red-600 text-white hover:bg-red-700'
-                    : 'bg-gray-200 text-gray-500 hover:bg-green-100 hover:text-green-700'
+                    ? 'bg-red-600 text-black hover:bg-red-700'
+                    : 'bg-gray-200 text-gray-600 hover:bg-green-100 hover:text-green-700'
                 }`}
                 title={isDeduct ? 'Click to change to ADD' : 'Click to change to DEDUCT'}
               >
@@ -748,19 +748,19 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
               </div>
               <div className="grid grid-cols-4 gap-3 text-[10px]">
                 <div>
-                  <div className="text-gray-500 uppercase tracking-wider mb-0.5">Revenue (ex-tax)</div>
+                  <div className="text-gray-600 uppercase tracking-wider mb-0.5">Revenue (ex-tax)</div>
                   <div className="font-mono font-bold text-gray-900">{fmtUSD(grandTotal - salesTax)}</div>
                 </div>
                 <div>
-                  <div className="text-gray-500 uppercase tracking-wider mb-0.5">Estimated Cost</div>
+                  <div className="text-gray-600 uppercase tracking-wider mb-0.5">Estimated Cost</div>
                   <div className="font-mono font-bold text-gray-900">{fmtUSD(financials.estimatedCost)}</div>
                 </div>
                 <div>
-                  <div className="text-gray-500 uppercase tracking-wider mb-0.5">Gross Profit</div>
+                  <div className="text-gray-600 uppercase tracking-wider mb-0.5">Gross Profit</div>
                   <div className={`font-mono font-bold ${financials.grossProfit < 0 ? 'text-red-700' : 'text-gray-900'}`}>{fmtUSD(financials.grossProfit)}</div>
                 </div>
                 <div>
-                  <div className="text-gray-500 uppercase tracking-wider mb-0.5">Margin</div>
+                  <div className="text-gray-600 uppercase tracking-wider mb-0.5">Margin</div>
                   <div className={`font-mono font-bold text-lg ${pctTone}`}>{(marginPct * 100).toFixed(1)}%</div>
                 </div>
               </div>
@@ -827,10 +827,10 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
                       <div className="flex-1">
                         <div className="text-[10px] font-bold text-gray-900">
                           {item.label}
-                          {item.required && <span className="ml-2 text-[8px] bg-red-600 text-white px-1 rounded-sm uppercase tracking-wider">required</span>}
+                          {item.required && <span className="ml-2 text-[8px] bg-red-600 text-black px-1 rounded-sm uppercase tracking-wider">required</span>}
                         </div>
                         {item.reference && (
-                          <div className="text-[9px] text-gray-500 italic mt-0.5">{item.reference}</div>
+                          <div className="text-[9px] text-gray-600 italic mt-0.5">{item.reference}</div>
                         )}
                       </div>
                     </label>

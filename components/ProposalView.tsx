@@ -50,8 +50,8 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                         <Icons.Logo className="w-full h-auto" />
                     </div>
                     <div className="text-right">
-                        <div className="text-white text-xs font-bold uppercase tracking-[0.3em]">Service Proposal</div>
-                        <div className="text-white/80 text-[10px] mt-1">{proposal.generatedDate}</div>
+                        <div className="text-black text-xs font-bold uppercase tracking-[0.3em]">Service Proposal</div>
+                        <div className="text-black/80 text-[10px] mt-1">{proposal.generatedDate}</div>
                     </div>
                 </div>
 
@@ -90,25 +90,25 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                     <div className="grid grid-cols-2 gap-8">
                         <div className="space-y-4">
                             <div className="border-b-2 border-gray-200 pb-2">
-                                <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Client</div>
+                                <div className="text-[10px] font-bold uppercase tracking-widest text-gray-700">Client</div>
                                 <div className="text-lg font-bold text-black">{coData.customer}</div>
                             </div>
                             <div className="border-b-2 border-gray-200 pb-2">
-                                <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Project</div>
+                                <div className="text-[10px] font-bold uppercase tracking-widest text-gray-700">Project</div>
                                 <div className="text-lg font-bold text-black">{coData.projectName}</div>
                             </div>
                             <div className="border-b-2 border-gray-200 pb-2">
-                                <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Location</div>
+                                <div className="text-[10px] font-bold uppercase tracking-widest text-gray-700">Location</div>
                                 <div className="text-base font-medium text-gray-700">{coData.address}</div>
                             </div>
                         </div>
                         {/* Total Investment Box - Teal Gradient */}
-                        <div className="bg-gradient-to-br from-[#008a8a] to-[#006666] text-white p-8 flex flex-col justify-center items-center text-center rounded-lg shadow-lg">
+                        <div className="bg-gradient-to-br from-[#008a8a] to-[#006666] text-black p-8 flex flex-col justify-center items-center text-center rounded-lg shadow-lg">
                             <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#008b8b] mb-2">Total Investment</div>
                             <div className="text-4xl font-black">
                                 {fmtUSD(proposal.investmentSummary.grandTotal)}
                             </div>
-                            <div className="text-xs text-white/80 mt-2">Complete Turnkey Solution</div>
+                            <div className="text-xs text-black/80 mt-2">Complete Turnkey Solution</div>
                         </div>
                     </div>
                 </div>
@@ -128,7 +128,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                     <div className="w-32">
                         <Icons.Logo className="w-full h-auto" />
                     </div>
-                    <div className="text-white text-xs font-bold uppercase tracking-[0.2em]">Solution Overview</div>
+                    <div className="text-black text-xs font-bold uppercase tracking-[0.2em]">Solution Overview</div>
                 </div>
 
                 {/* The Challenge */}
@@ -145,7 +145,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                 {/* Our Solution */}
                 <div className="px-10 py-6 border-b border-gray-200 bg-gradient-to-r from-[#008b8b]/10 to-transparent">
                     <h3 className="text-sm font-black uppercase tracking-[0.15em] text-gray-900 mb-3 flex items-center gap-2">
-                        <span className="w-8 h-8 bg-[#008b8b] text-white rounded-full flex items-center justify-center text-sm font-bold">✓</span>
+                        <span className="w-8 h-8 bg-[#008b8b] text-black rounded-full flex items-center justify-center text-sm font-bold">✓</span>
                         Our Solution
                     </h3>
                     <p className="text-gray-800 leading-relaxed font-medium">{proposal.solutionOverview}</p>
@@ -192,8 +192,8 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                 </div>
 
                 {/* Industry Insights - Teal Gradient */}
-                <div className="px-10 py-6 bg-gradient-to-r from-[#008a8a] to-[#006666] text-white">
-                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/80 mb-4 flex items-center gap-2">
+                <div className="px-10 py-6 bg-gradient-to-r from-[#008a8a] to-[#006666] text-black">
+                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-black/80 mb-4 flex items-center gap-2">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
                         </svg>
@@ -203,7 +203,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                         {(proposal.industryInsights ?? []).map((insight, i) => (
                             <div key={i} className="flex items-start gap-3 text-sm">
                                 <span className="text-[#008b8b] font-bold">📊</span>
-                                <span className="text-white/90">{insight}</span>
+                                <span className="text-black/90">{insight}</span>
                             </div>
                         ))}
                     </div>
@@ -211,7 +211,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
 
                 {/* Footer */}
                 <div className="bg-gradient-to-r from-[#008b8b]/20 to-[#008a8a]/20 px-10 py-3 text-center border-t border-[#008b8b]/30">
-                    <div className="text-[9px] font-bold uppercase tracking-widest text-gray-500">
+                    <div className="text-[9px] font-bold uppercase tracking-widest text-gray-600">
                         Page 2 | Confidential Proposal for {proposal.clientName}
                     </div>
                 </div>
@@ -224,7 +224,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                     <div className="w-32">
                         <Icons.Logo className="w-full h-auto" />
                     </div>
-                    <div className="text-white text-xs font-bold uppercase tracking-[0.2em]">Investment Summary</div>
+                    <div className="text-black text-xs font-bold uppercase tracking-[0.2em]">Investment Summary</div>
                 </div>
 
                 {/* Investment Breakdown */}
@@ -244,7 +244,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                             <span className="font-bold font-mono">{fmtUSD(proposal.investmentSummary.taxTotal)}</span>
                         </div>
                         {/* Total Investment - Teal Gradient */}
-                        <div className="flex justify-between items-center py-4 bg-gradient-to-r from-[#008a8a] to-[#006666] text-white px-4 -mx-4 mt-4 rounded-lg">
+                        <div className="flex justify-between items-center py-4 bg-gradient-to-r from-[#008a8a] to-[#006666] text-black px-4 -mx-4 mt-4 rounded-lg">
                             <span className="font-black uppercase tracking-wider">Total Investment</span>
                             <span className="font-black font-mono text-2xl text-[#008b8b]">{fmtUSD(proposal.investmentSummary.grandTotal)}</span>
                         </div>
@@ -286,7 +286,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                     <div className="flex flex-wrap justify-center gap-4">
                         {(proposal.nextSteps ?? []).map((step, i) => (
                             <div key={i} className="flex items-center gap-2 bg-white px-4 py-2 rounded shadow-sm border border-[#008b8b]/30">
-                                <span className="w-6 h-6 bg-[#008b8b] text-white rounded-full flex items-center justify-center text-xs font-black">{i + 1}</span>
+                                <span className="w-6 h-6 bg-[#008b8b] text-black rounded-full flex items-center justify-center text-xs font-black">{i + 1}</span>
                                 <span className="text-sm font-medium text-gray-800">{step}</span>
                             </div>
                         ))}
@@ -294,7 +294,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                 </div>
 
                 {/* Call to Action - Teal Gradient instead of black */}
-                <div className="px-10 py-8 bg-gradient-to-r from-[#008a8a] to-[#006666] text-white text-center">
+                <div className="px-10 py-8 bg-gradient-to-r from-[#008a8a] to-[#006666] text-black text-center">
                     <p className="text-lg font-semibold max-w-2xl mx-auto leading-relaxed">
                         {proposal.callToAction}
                     </p>
@@ -310,19 +310,19 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                         <div className="grid grid-cols-2 gap-8">
                             <div>
                                 <div className="border-b-2 border-[#008a8a] h-12 mb-2"></div>
-                                <div className="text-xs font-bold uppercase tracking-wider text-gray-500">Authorized Signature</div>
+                                <div className="text-xs font-bold uppercase tracking-wider text-gray-600">Authorized Signature</div>
                             </div>
                             <div>
                                 <div className="border-b-2 border-[#008a8a] h-12 mb-2"></div>
-                                <div className="text-xs font-bold uppercase tracking-wider text-gray-500">Date</div>
+                                <div className="text-xs font-bold uppercase tracking-wider text-gray-600">Date</div>
                             </div>
                             <div>
                                 <div className="border-b-2 border-[#008a8a] h-12 mb-2"></div>
-                                <div className="text-xs font-bold uppercase tracking-wider text-gray-500">Printed Name</div>
+                                <div className="text-xs font-bold uppercase tracking-wider text-gray-600">Printed Name</div>
                             </div>
                             <div>
                                 <div className="border-b-2 border-[#008a8a] h-12 mb-2"></div>
-                                <div className="text-xs font-bold uppercase tracking-wider text-gray-500">Title</div>
+                                <div className="text-xs font-bold uppercase tracking-wider text-gray-600">Title</div>
                             </div>
                         </div>
                     </div>
@@ -333,10 +333,10 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                     <div className="w-32 mx-auto mb-3">
                         <Icons.Logo className="w-full h-auto" />
                     </div>
-                    <div className="text-[10px] text-white/90 uppercase tracking-widest">
+                    <div className="text-[10px] text-black/90 uppercase tracking-widest">
                         {office.address}, {office.cityState} | Phone: {COMPANY_PHONE} | License: {COMPANY_LICENSE}
                     </div>
-                    <div className="text-[9px] text-white mt-2 uppercase tracking-[0.3em] font-bold">
+                    <div className="text-[9px] text-black mt-2 uppercase tracking-[0.3em] font-bold">
                         Intelligence At Work™
                     </div>
                 </div>

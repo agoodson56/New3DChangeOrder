@@ -84,13 +84,13 @@ export const SetupBanner: React.FC = () => {
     : 'border-amber-500 bg-amber-950/20';
 
   return (
-    <div className={`max-w-3xl mx-auto mb-8 border-2 ${tone} text-white p-5 rounded-sm`}>
+    <div className={`max-w-3xl mx-auto mb-8 border-2 ${tone} text-black p-5 rounded-sm`}>
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
           <h3 className={`text-sm font-black uppercase tracking-[0.2em] ${hasCritical ? 'text-red-300' : 'text-amber-300'}`}>
             {hasCritical ? '🔴 Setup Incomplete' : '⚙️ Setup Recommended'}
           </h3>
-          <p className="text-[11px] text-gray-400 mt-1">
+          <p className="text-[11px] text-gray-700 mt-1">
             {hasCritical
               ? 'One or more required integrations are missing. The app will not work correctly until these are configured.'
               : 'Optional integrations are unconfigured. The app works without them, but capability is reduced.'}
@@ -101,7 +101,7 @@ export const SetupBanner: React.FC = () => {
             sessionStorage.setItem(SESSION_DISMISS_KEY, '1');
             setDismissed(true);
           }}
-          className="text-[10px] uppercase tracking-widest text-gray-500 hover:text-white"
+          className="text-[10px] uppercase tracking-widest text-gray-600 hover:text-black"
           title="Hide until next reload"
         >
           Hide ×
@@ -113,14 +113,14 @@ export const SetupBanner: React.FC = () => {
             <div className={`text-[12px] font-bold ${issue.severity === 'critical' ? 'text-red-200' : 'text-amber-200'}`}>
               {issue.message}
             </div>
-            <div className="text-[10px] text-gray-400 mt-1 leading-relaxed">
+            <div className="text-[10px] text-gray-700 mt-1 leading-relaxed">
               {issue.hint}
             </div>
           </li>
         ))}
       </ul>
       {cloudSync?.userEmail && (
-        <div className="mt-3 text-[10px] text-gray-500 italic">
+        <div className="mt-3 text-[10px] text-gray-600 italic">
           Signed in as <span className="text-gray-300">{cloudSync.userEmail}</span> via Cloudflare Access.
         </div>
       )}

@@ -112,7 +112,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
   override render() {
     if (this.state.error) {
       return (
-        <div className="m-8 p-6 bg-red-900/20 border border-red-500 text-white rounded">
+        <div className="m-8 p-6 bg-red-900/20 border border-red-500 text-black rounded">
           <h2 className="text-xl font-black uppercase tracking-wider text-red-400 mb-2">
             {this.props.fallbackTitle || 'Something went wrong'}
           </h2>
