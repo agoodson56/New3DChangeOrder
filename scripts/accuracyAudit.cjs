@@ -40,7 +40,10 @@ check('ProductDB', 'Has AccessoryRequirement', dbContent.includes('AccessoryRequ
 
 // SECTION 2: VALIDATOR LOGIC
 const v = fs.readFileSync('utils/coValidator.ts', 'utf8');
-check('Validator', 'Rule 1: qty > 0', v.includes('quantity <= 0'), '');
+// Rule 1: negative quantity is a hard error; quantity == 0 is now an info
+// (allows in-progress edit state per H9 fix). The check below verifies the
+// negative-quantity guard is present.
+check('Validator', 'Rule 1: qty >= 0', v.includes('quantity < 0'), '');
 check('Validator', 'Rule 1: msrp check', v.includes('msrp <=') || v.includes('msrp <'), '');
 check('Validator', 'Rule 1: category check', v.includes("'Material', 'Equipment'"), '');
 check('Validator', 'Rule 2: isAccessory exclusion', v.includes('isAccessory'), 'Prevents false ft on jacks');
