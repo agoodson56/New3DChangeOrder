@@ -21,7 +21,7 @@ import * as cloudSync from './utils/cloudSync';
 import { useAuth } from './contexts/AuthContext';
 
 const App: React.FC = () => {
-  const { token } = useAuth();
+  const { token, user, logout } = useAuth();
   const [status, setStatus] = useState<AppStatus>(AppStatus.IDLE);
   const [rates, setRates] = useState<LaborRates | null>(null);
   const [coData, setCoData] = useState<ChangeOrderData | null>(null);
@@ -259,6 +259,13 @@ const App: React.FC = () => {
                 <div className="text-[#D4AF37] font-black text-xl font-mono">${rates.base.toFixed(2)}/hr</div>
               </div>
             )}
+            {user && (
+              <div className="text-right hidden sm:block border-r border-gray-800 pr-6">
+                <div className="text-[10px] text-gray-600 uppercase font-black tracking-[0.2em] mb-1">User</div>
+                <div className="text-gray-400 text-sm font-mono">{user.username}</div>
+                {user.role === 'admin' && <div className="text-[10px] text-amber-400 uppercase font-bold mt-1">Admin</div>}
+              </div>
+            )}
             <button
               onClick={() => setHistoryOpen(true)}
               className="group flex items-center gap-2 bg-white/5 hover:bg-white/10 px-2 md:px-4 py-2 border border-gray-800 transition-all rounded-sm"
@@ -278,6 +285,16 @@ const App: React.FC = () => {
               <svg className="w-5 h-5 text-gray-500 group-hover:text-[#D4AF37] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
+            <button
+              onClick={logout}
+              className="group flex items-center gap-2 bg-white/5 hover:bg-red-900/30 px-2 md:px-4 py-2 border border-gray-800 hover:border-red-700 transition-all rounded-sm"
+              title="Sign out"
+            >
+              <span className="hidden md:inline text-[10px] font-black uppercase tracking-widest text-gray-500 group-hover:text-red-400">Sign Out</span>
+              <svg className="w-5 h-5 text-gray-500 group-hover:text-red-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
             </button>
           </div>
