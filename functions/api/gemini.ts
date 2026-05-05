@@ -265,10 +265,18 @@ export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promis
       }
     }
 
-    console.log('Calling Claude API with model:', model);
+    // Read max_tokens from config if provided (frontend passes maxOutputTokens),
+    // otherwise default to a high value to avoid truncating large change orders.
+    const cfg = (config && typeof config === 'object') ? config as Record<string, unknown> : {};
+    const maxTokensFromConfig = typeof cfg.maxOutputTokens === 'number' ? cfg.maxOutputTokens : null;
+    const maxTokens = maxTokensFromConfig && maxTokensFromConfig > 0
+      ? Math.min(maxTokensFromConfig, 16384)
+      : 16384;
+
+    console.log('Calling Claude API with model:', model, 'max_tokens:', maxTokens);
     const response = await client.messages.create({
       model: model || 'claude-sonnet-4-6',
-      max_tokens: 4096,
+      max_tokens: maxTokens,
       system: systemInstruction || undefined,
       messages: messages,
     });
