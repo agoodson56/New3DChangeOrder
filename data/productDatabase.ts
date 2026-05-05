@@ -841,7 +841,7 @@ export const CABLE_STANDARDS: CableCalculation = {
     perCameraFeet: 150,    // Average cable run per camera
     perDoorFeet: 200,      // Average cable run per access door (reader + lock + sensors)
     perDropFeet: 100,      // Average cable run per network drop
-    jHookSpacingFeet: 10,  // J-hooks every 10 feet (3DTSI install standard — overrides TIA-569 default of 5ft)
+    jHookSpacingFeet: 45,  // J-hooks every 45 feet of TOTAL cable footage. Cables share the main pathway for ~80% of any run, so a single j-hook supports the whole bundle. Counting per cable per 8-10 feet over-estimates hardware that does the same job. (3DTSI install standard.)
     pullBoxIntervalFeet: 100, // Pull box every 100 feet for long runs
     wasteFactorPercent: 10 // 10% waste factor for terminations and pulls (matches prompt rule)
 };

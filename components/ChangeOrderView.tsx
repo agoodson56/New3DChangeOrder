@@ -403,7 +403,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
                       const conf = Number.isFinite(p.confidence) ? p.confidence : 0;
                       const delta = Number.isFinite(p.delta) ? p.delta : 0;
                       return (
-                        <p key={i} className={delta > 15 ? 'text-red-400' : 'text-gray-700'}>
+                        <p key={i} className={delta > 15 ? 'text-red-400' : 'text-gray-300'}>
                           • {p.manufacturer ?? '?'} {p.model ?? '?'}: ${orig.toFixed(2)} → ${valid.toFixed(2)} ({p.source ?? 'unknown'}, {conf}% conf, Δ{delta}%)
                         </p>
                       );
@@ -413,7 +413,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
               {(data.validationResult.qaIssues?.length ?? 0) > 0 && (
                 <div>
                   <h4 className="text-purple-400 font-bold uppercase tracking-wider mb-1">🔍 QA Audit Notes</h4>
-                  {(data.validationResult.qaIssues ?? []).map((issue, i) => <p key={i} className="text-gray-700">• {issue}</p>)}
+                  {(data.validationResult.qaIssues ?? []).map((issue, i) => <p key={i} className="text-gray-300">• {issue}</p>)}
                 </div>
               )}
             </div>
