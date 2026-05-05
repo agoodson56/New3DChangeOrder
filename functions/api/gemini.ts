@@ -404,7 +404,19 @@ export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promis
     if (tools) {
       upstreamBody.tools = tools;
     }
-    upstreamBody.generationConfig = cfg;
+
+    // Convert v1beta field names to v1 API snake_case format
+    const v1Config = {} as Record<string, unknown>;
+    for (const [key, val] of Object.entries(cfg)) {
+      if (key === 'responseMimeType') {
+        v1Config['response_mime_type'] = val;
+      } else if (key === 'responseSchema') {
+        v1Config['response_schema'] = val;
+      } else {
+        v1Config[key] = val;
+      }
+    }
+    upstreamBody.generationConfig = v1Config;
   }
 
   // Send the API key in the header rather than the URL so it doesn't show up
