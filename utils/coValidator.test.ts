@@ -203,12 +203,12 @@ describe('coValidator — J-hook coverage', () => {
     expect(result.warnings.some(w => /missing j-hooks/i.test(w.message))).toBe(true);
   });
 
-  it('does not flag when J-hooks at 1-per-45ft are included', () => {
-    // 500ft / 45ft spacing = 12 J-hooks expected (cables share pathway, not per-cable)
+  it('does not flag when J-hooks at 1-per-35ft are included', () => {
+    // 500ft / 35ft spacing = 15 J-hooks expected (cables share pathway, not per-cable)
     const result = validateChangeOrder(makeCO({
       materials: [
         item({ unitOfMeasure: 'ft', manufacturer: 'Berk-Tek', model: 'LANmark-10G2', quantity: 500, msrp: 0.85 }),
-        item({ manufacturer: 'nVent CADDY', model: 'CAT HP J-Hook 2"', quantity: 12, msrp: 3.50 }),
+        item({ manufacturer: 'nVent CADDY', model: 'CAT HP J-Hook 2"', quantity: 15, msrp: 3.50 }),
       ],
     }));
     expect(result.warnings.some(w => /missing j-hooks/i.test(w.message))).toBe(false);
@@ -216,7 +216,7 @@ describe('coValidator — J-hook coverage', () => {
   });
 
   it('flags low J-hook count when significantly under-supplied', () => {
-    // 1000ft / 45ft = 23 expected, 50% threshold = ~11. Having 3 is clearly low.
+    // 1000ft / 35ft = 29 expected, 50% threshold = ~14. Having 3 is clearly low.
     const result = validateChangeOrder(makeCO({
       materials: [
         item({ unitOfMeasure: 'ft', model: 'Cat6A LANmark', quantity: 1000, msrp: 0.85 }),

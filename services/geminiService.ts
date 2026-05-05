@@ -69,11 +69,11 @@ function addStandardHardware(data: ChangeOrderData): void {
   const totalFootage = cables.reduce((sum, m) => sum + (m.quantity || 0), 0);
   const cableCount = cables.length;
 
-  // J-hooks: 1 per 45 feet of total cable footage.
+  // J-hooks: 3DTSI INSTALL STANDARD — 1 per 35 feet of total cable footage.
   // Reason: cables share the main pathway for 80%+ of any run, so a single j-hook
-  // supports the whole bundle. Dividing total footage by 45 approximates this
-  // bundled support pattern (vs. 1 per 8 feet, which would over-count for each cable).
-  const jHooksNeeded = Math.ceil(totalFootage / 45);
+  // supports the whole bundle. Dividing total footage by 35 approximates this
+  // bundled support pattern (vs. 1 per 8 feet, which would over-count per cable).
+  const jHooksNeeded = Math.ceil(totalFootage / 35);
 
   // Labels: 2 per cable run
   const labelsNeeded = cableCount * 2;
@@ -107,7 +107,7 @@ function addStandardHardware(data: ChangeOrderData): void {
       msrp: 3.50, // Mid-range of $2-6 pricing
       unitOfMeasure: 'ea',
       complexity: 'Low',
-      notes: `Standard cable support hardware: 1 per 45 feet of total cable footage (${totalFootage}ft ÷ 45 = ${jHooksNeeded}) — cables share main pathway for 80%+ of runs.`,
+      notes: `Standard cable support hardware: 1 per 35 feet of total cable footage (${totalFootage}ft ÷ 35 = ${jHooksNeeded}) — cables share main pathway for 80%+ of runs.`,
       isDeduct: false
     });
   }
@@ -510,13 +510,13 @@ ${buildProductReference()}
        - DATA DROPS (wall outlets): 2 jacks per drop (1 wall jack + 1 patch panel jack)
        - Do NOT add 2 jacks per camera - cameras terminate with RJ45 plugs, not jacks
 
-       J-HOOKS AND BEAM CLAMPS (3DTSI INSTALL STANDARD):
-       - Calculate: 1 J-hook per 45 feet of TOTAL cable footage across all cables
+       J-HOOKS AND BEAM CLAMPS (3DTSI INSTALL STANDARD — MANDATORY):
+       - Calculate: 1 J-hook per 35 feet of TOTAL cable footage across all cables
        - Reason: cables share the main pathway for ~80% of any run, so a single
          J-hook supports the entire bundle. Counting per cable per 8-10 feet
          massively over-counts hardware that physically does the same job.
        - Calculate: 1 beam clamp per J-hook (1:1 ratio — each hook attaches to a beam clamp)
-       - Example: 7 cables × 110ft = 770ft total → 770 ÷ 45 ≈ 18 J-hooks + 18 beam clamps
+       - Example: 7 cables × 110ft = 770ft total → 770 ÷ 35 ≈ 22 J-hooks + 22 beam clamps
        - Vertical runs use different supports (not J-hooks)
        - Round up to nearest whole number
 
