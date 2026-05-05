@@ -229,7 +229,7 @@ export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promis
   if (!contents) {
     return json({ error: { code: 400, status: 'INVALID_REQUEST', message: 'contents is required' } }, 400);
   }
-  if (!/^gemini-[a-z0-9.\-]+$/i.test(model)) {
+  if (!/^(claude|gemini)-[a-z0-9.\-]+$/i.test(model)) {
     return json({ error: { code: 400, status: 'INVALID_REQUEST', message: 'Unsupported model identifier' } }, 400);
   }
 
