@@ -208,14 +208,14 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-[#008b8b] selection:text-black">
+    <div className="min-h-screen bg-white text-black selection:bg-[#008b8b] selection:text-white">
       {/* Rate Intake Modal (Global Lock) */}
       {status === AppStatus.SETUP && <LaborRateModal onSave={handleSaveRates} initialRates={rates ?? undefined} />}
 
       {/* Main Layout */}
       <div className="relative z-10">
         {/* Persistent Sticky Header */}
-        <header className="sticky top-0 z-40 bg-black/90 backdrop-blur-xl border-b border-gray-900 px-4 md:px-8 py-3 md:py-4 flex items-center justify-between shadow-2xl">
+        <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-gray-900 px-4 md:px-8 py-3 md:py-4 flex items-center justify-between shadow-2xl">
           <div className="flex items-center gap-3 md:gap-6 min-w-0">
             <div className="w-24 md:w-40 shrink-0">
               <Icons.Logo className="w-full h-auto" />

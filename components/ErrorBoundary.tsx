@@ -119,7 +119,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
           <p className="text-sm text-gray-300 mb-2">
             Your data is preserved. Click below to retry, or refresh the page if the problem persists.
           </p>
-          <pre className="text-[10px] text-red-300 bg-black/40 p-3 mt-3 mb-4 overflow-auto max-h-40 whitespace-pre-wrap">
+          <pre className="text-[10px] text-red-300 bg-white/40 p-3 mt-3 mb-4 overflow-auto max-h-40 whitespace-pre-wrap">
             {this.state.error.message}
           </pre>
           <div className="flex gap-2">

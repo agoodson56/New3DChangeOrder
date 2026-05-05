@@ -180,7 +180,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
     }
   };
 
-  const inputClasses = "w-full bg-[#0a0a0a] border border-gray-800 text-white p-2.5 focus:border-[#008b8b] outline-none transition-all text-sm placeholder-gray-700";
+  const inputClasses = "w-full bg-gray-50 border border-gray-800 text-white p-2.5 focus:border-[#008b8b] outline-none transition-all text-sm placeholder-gray-700";
   const labelClasses = "block text-[10px] font-bold text-[#008b8b] uppercase tracking-widest mb-1.5";
 
   return (
@@ -199,7 +199,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
             {templates.slice(0, 8).map(tpl => (
               <div
                 key={tpl.id}
-                className="group flex items-center justify-between bg-black/40 border border-gray-800 hover:border-[#008b8b]/60 p-3 transition-all"
+                className="group flex items-center justify-between bg-white/40 border border-gray-800 hover:border-[#008b8b]/60 p-3 transition-all"
               >
                 <button
                   type="button"
@@ -245,7 +245,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
                 autoComplete="off"
               />
               {customerFocused && customerSuggestions.length > 0 && (
-                <div className="absolute z-20 left-0 right-0 mt-1 bg-[#0a0a0a] border border-[#008b8b]/40 shadow-2xl max-h-64 overflow-y-auto">
+                <div className="absolute z-20 left-0 right-0 mt-1 bg-gray-50 border border-[#008b8b]/40 shadow-2xl max-h-64 overflow-y-auto">
                   <div className="text-[8px] text-gray-500 uppercase font-bold tracking-widest px-3 py-1.5 border-b border-gray-900">
                     Recent customers — click to autofill
                   </div>
@@ -407,7 +407,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
           </button>
         </div>
         <textarea
-          className={`w-full h-40 bg-[#0a0a0a] border ${intentError ? 'border-red-500' : 'border-gray-800'} text-white p-6 focus:border-[#008b8b] outline-none transition-all resize-none shadow-inner text-lg placeholder-gray-700`}
+          className={`w-full h-40 bg-gray-50 border ${intentError ? 'border-red-500' : 'border-gray-800'} text-white p-6 focus:border-[#008b8b] outline-none transition-all resize-none shadow-inner text-lg placeholder-gray-700`}
           placeholder="Type your description here, or click 'Voice Input' to speak it. e.g., 'Add two cameras in the warehouse at column B4 and C6. Include cabling back to MDF-1.'"
           value={intent}
           onChange={(e) => {
@@ -443,7 +443,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
           {attachments.length > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
               {attachments.map((att, i) => (
-                <div key={`${att.name}-${i}`} className="relative group bg-black/40 border border-gray-800 p-2 flex flex-col items-center justify-center text-center min-h-[80px]">
+                <div key={`${att.name}-${i}`} className="relative group bg-white/40 border border-gray-800 p-2 flex flex-col items-center justify-center text-center min-h-[80px]">
                   {att.kind === 'image' ? (
                     <img src={att.content} alt={att.name} className="w-full h-20 object-cover" />
                   ) : (

@@ -76,12 +76,12 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true" aria-label="Product Search">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                className="absolute inset-0 bg-white/80 backdrop-blur-sm"
                 onClick={onClose}
             />
 
             {/* Modal */}
-            <div className="relative w-full max-w-4xl max-h-[90vh] bg-[#0a0a0a] border border-gray-800 shadow-2xl overflow-hidden animate-in zoom-in-95 fade-in duration-300">
+            <div className="relative w-full max-w-4xl max-h-[90vh] bg-gray-50 border border-gray-800 shadow-2xl overflow-hidden animate-in zoom-in-95 fade-in duration-300">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-[#008b8b] to-[#B8962F] px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -109,7 +109,7 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
                             onChange={(e) => setQuery(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder="Search for products... e.g., 'Axis P3265-V dome camera' or 'Cat6A plenum cable'"
-                            className="flex-1 bg-black border border-gray-700 text-white px-4 py-3 focus:border-[#008b8b] outline-none transition-all text-lg placeholder-gray-600"
+                            className="flex-1 bg-white border border-gray-700 text-white px-4 py-3 focus:border-[#008b8b] outline-none transition-all text-lg placeholder-gray-600"
                         />
                         <GoldButton
                             onClick={handleSearch}
@@ -170,7 +170,7 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
                             {results.map((product, index) => (
                                 <div
                                     key={index}
-                                    className="bg-black/50 border border-gray-800 hover:border-[#008b8b]/50 transition-all p-4 group"
+                                    className="bg-white/50 border border-gray-800 hover:border-[#008b8b]/50 transition-all p-4 group"
                                 >
                                     <div className="flex items-start justify-between gap-4">
                                         <div className="flex-1">
@@ -220,7 +220,7 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
                                                         ...quantities,
                                                         [index]: Math.max(1, parseInt(e.target.value) || 1)
                                                     })}
-                                                    className="w-16 bg-black border border-gray-700 text-white text-center px-2 py-1 focus:border-[#008b8b] outline-none"
+                                                    className="w-16 bg-white border border-gray-700 text-white text-center px-2 py-1 focus:border-[#008b8b] outline-none"
                                                     min="1"
                                                 />
                                                 {product.unitOfMeasure === 'ft' && <span className="text-gray-500 text-xs">ft</span>}
@@ -244,7 +244,7 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
                 </div>
 
                 {/* Footer */}
-                <div className="border-t border-gray-800 px-6 py-4 bg-black/50 flex justify-between items-center">
+                <div className="border-t border-gray-800 px-6 py-4 bg-white/50 flex justify-between items-center">
                     <p className="text-gray-600 text-xs">
                         💡 Tip: Include manufacturer names and model numbers for best results
                     </p>

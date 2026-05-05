@@ -76,14 +76,14 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-white/95 backdrop-blur-md p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="history-modal-title"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-5xl max-h-[90vh] bg-black border-2 border-[#008b8b] shadow-[0_0_80px_rgba(212,175,55,0.25)] flex flex-col"
+        className="relative w-full max-w-5xl max-h-[90vh] bg-white border-2 border-[#008b8b] shadow-[0_0_80px_rgba(212,175,55,0.25)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header + stats */}
@@ -131,7 +131,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-[10px]">
                 {closeReasonStats.slice(0, 4).map(r => (
-                  <div key={r.reason} className="bg-black/40 border border-gray-800 p-2">
+                  <div key={r.reason} className="bg-white/40 border border-gray-800 p-2">
                     <div className="text-gray-400 uppercase tracking-wider mb-0.5">{r.label}</div>
                     <div className="text-red-300 font-mono font-bold">
                       {r.count} CO{r.count === 1 ? '' : 's'} · {fmtUSD(r.lostRevenue)}
@@ -184,10 +184,10 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
         {/* Close-reason prompt overlay — fires on rejected/withdrawn transition. */}
         {reasonPromptFor && (
           <div
-            className="absolute inset-0 z-10 bg-black/85 backdrop-blur-sm flex items-center justify-center p-6"
+            className="absolute inset-0 z-10 bg-white/85 backdrop-blur-sm flex items-center justify-center p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="w-full max-w-md bg-black border-2 border-red-500 p-6 shadow-[0_0_60px_rgba(239,68,68,0.3)]">
+            <div className="w-full max-w-md bg-white border-2 border-red-500 p-6 shadow-[0_0_60px_rgba(239,68,68,0.3)]">
               <h3 className="text-sm font-black text-red-400 uppercase tracking-[0.2em] mb-2">
                 Why is this CO closing?
               </h3>
@@ -198,7 +198,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
               <select
                 value={reasonChoice}
                 onChange={(e) => setReasonChoice(e.target.value as CloseReason)}
-                className="w-full bg-[#0a0a0a] border border-gray-800 text-white p-2 mb-4 focus:border-[#008b8b] outline-none text-sm"
+                className="w-full bg-gray-50 border border-gray-800 text-white p-2 mb-4 focus:border-[#008b8b] outline-none text-sm"
               >
                 {(Object.keys(CLOSE_REASON_LABELS) as CloseReason[]).map(k => (
                   <option key={k} value={k}>{CLOSE_REASON_LABELS[k]}</option>
@@ -210,7 +210,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
                 onChange={(e) => setReasonNotes(e.target.value)}
                 rows={3}
                 placeholder="Customer said they had a quote $2K lower from competitor X..."
-                className="w-full bg-[#0a0a0a] border border-gray-800 text-white p-2 mb-4 focus:border-[#008b8b] outline-none text-xs resize-none"
+                className="w-full bg-gray-50 border border-gray-800 text-white p-2 mb-4 focus:border-[#008b8b] outline-none text-xs resize-none"
               />
               <div className="flex gap-2 justify-end">
                 <button
@@ -280,7 +280,7 @@ const HistoryRow: React.FC<{
         <select
           value={item.status}
           onChange={(e) => onStatusChange(item.id, e.target.value as COStatus)}
-          className="bg-black border border-gray-800 text-white text-[10px] uppercase font-bold tracking-widest p-1.5 focus:border-[#008b8b] outline-none"
+          className="bg-white border border-gray-800 text-white text-[10px] uppercase font-bold tracking-widest p-1.5 focus:border-[#008b8b] outline-none"
           aria-label="Change status"
         >
           <option value="pending">Pending</option>
