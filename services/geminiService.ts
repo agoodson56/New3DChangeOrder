@@ -901,26 +901,25 @@ ${buildProductReference()}
   if (!rawText) throw new Error("No response from AI");
 
   // Strip markdown code block wrapper if present (Claude often wraps JSON in ```json ... ```)
-  rawText = rawText.replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
+  // Handle various formats: ```json\n{...}\n```, ```\n{...}\n```, with or without "json", etc.
+  rawText = rawText
+    .replace(/^```(?:json|JSON)?\s*\n?/m, '')  // Remove opening backticks + optional "json" + optional newline
+    .replace(/\n?```\s*$/m, '');  // Remove closing backticks + optional leading newline
 
   let data: ChangeOrderData;
   let jsonRepairApplied = false;
   try {
     data = JSON.parse(rawText) as ChangeOrderData;
   } catch (parseErr) {
-    // Attempt to repair truncated JSON
+    // Attempt to repair truncated/malformed JSON
     console.warn('JSON parse failed, attempting recovery:', parseErr);
     jsonRepairApplied = true;
     let fixed = rawText;
 
-    // Strategy: truncate back to the last complete value, then close all open brackets
-    // 1. Find the last complete key-value pair by looking for the last valid JSON boundary
-    //    (a comma, closing bracket, or closing brace that's NOT inside a string)
-    // 2. Trim everything after that point
-    // 3. Close any remaining open brackets/braces
+    // Strategy: Find the last complete JSON value and close any remaining open structures
 
     // First, try to find a clean truncation point by removing the broken trailing content
-    // Look for the last comma or colon followed by a complete value
+    // Look for the last comma or closing bracket/brace
     const lastGoodComma = Math.max(
       fixed.lastIndexOf('",'),
       fixed.lastIndexOf('"],'),
@@ -938,18 +937,43 @@ ${buildProductReference()}
     if (lastGood > fixed.length * 0.5) {
       // Truncate to the last clean boundary (keep the matched chars)
       const keepTo = lastGoodComma > lastGoodEnd
-        ? lastGoodComma + 2  // keep the '",' 
+        ? lastGoodComma + 2  // keep the '",'
         : lastGoodEnd + 2;   // keep the '"}' etc.
       fixed = fixed.substring(0, keepTo);
     } else {
-      // Fallback: close any open string, remove trailing partial content after last comma
-      const quoteCount = (fixed.match(/(?<!\\)"/g) || []).length;
-      if (quoteCount % 2 !== 0) fixed += '"';
-      fixed = fixed.replace(/,\s*$/, '');
+      // Fallback: find the last complete object/array and truncate there
+      // Remove anything after the last closing brace or bracket
+      const lastClosingBrace = fixed.lastIndexOf('}');
+      const lastClosingBracket = fixed.lastIndexOf(']');
+      const lastClosing = Math.max(lastClosingBrace, lastClosingBracket);
+      if (lastClosing > fixed.length * 0.3) {
+        fixed = fixed.substring(0, lastClosing + 1);
+      }
     }
 
-    // Remove any trailing comma before closing
-    fixed = fixed.replace(/,\s*$/, '');
+    // Remove any trailing comma or incomplete content
+    fixed = fixed.replace(/,\s*$/, '').trim();
+
+    // Handle unterminated strings: count unescaped quotes
+    let inString = false;
+    let escaped = false;
+    for (let i = 0; i < fixed.length; i++) {
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (fixed[i] === '\\') {
+        escaped = true;
+        continue;
+      }
+      if (fixed[i] === '"') {
+        inString = !inString;
+      }
+    }
+    // If we're still in a string, close it
+    if (inString) {
+      fixed += '"';
+    }
 
     // Balance brackets
     const openBrackets = (fixed.match(/\[/g) || []).length - (fixed.match(/\]/g) || []).length;
