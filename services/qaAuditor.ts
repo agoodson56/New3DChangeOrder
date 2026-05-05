@@ -26,8 +26,9 @@ const ALL_DB_PRODUCTS: ProductDefinition[] = [
 ];
 
 function isDbVerified(manufacturer: string, model: string): boolean {
-    const mfrLower = manufacturer.toLowerCase();
-    const modelLower = model.toLowerCase();
+    const mfrLower = (manufacturer || '').toLowerCase();
+    const modelLower = (model || '').toLowerCase();
+    if (!mfrLower && !modelLower) return false;
     // Check FULL_CATALOG first (authoritative price source)
     const inCatalog = FULL_CATALOG.some(p => {
         const pMfr = p[0].toLowerCase();

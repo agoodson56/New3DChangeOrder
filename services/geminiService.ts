@@ -76,10 +76,11 @@ function addStandardHardware(data: ChangeOrderData): void {
   const labelsNeeded = cableCount * 2;
 
   // Check if J-hooks already exist (don't double-add)
-  const hasJHooks = data.materials.some(m =>
-    m.manufacturer.toLowerCase().includes('generic') &&
-    (m.model.toLowerCase().includes('j-hook') || m.model.toLowerCase().includes('hook'))
-  );
+  const hasJHooks = data.materials.some(m => {
+    const mfr = (m.manufacturer || '').toLowerCase();
+    const mdl = (m.model || '').toLowerCase();
+    return mfr.includes('generic') && (mdl.includes('j-hook') || mdl.includes('hook'));
+  });
 
   if (!hasJHooks && jHooksNeeded > 0) {
     data.materials.push({
@@ -96,10 +97,10 @@ function addStandardHardware(data: ChangeOrderData): void {
   }
 
   // Check if labels already exist
-  const hasLabels = data.materials.some(m =>
-    (m.model.toLowerCase().includes('label') || m.model.toLowerCase().includes('tag')) &&
-    m.category === 'Material'
-  );
+  const hasLabels = data.materials.some(m => {
+    const mdl = (m.model || '').toLowerCase();
+    return (mdl.includes('label') || mdl.includes('tag')) && m.category === 'Material';
+  });
 
   if (!hasLabels && labelsNeeded > 0) {
     data.materials.push({

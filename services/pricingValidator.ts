@@ -28,9 +28,11 @@ const ALL_DB_PRODUCTS: ProductDefinition[] = [
 ];
 
 function isInDatabase(manufacturer: string, model: string, partNumber?: string): { found: boolean; dbProduct?: ProductDefinition } {
-    const mfrLower = manufacturer.toLowerCase();
-    const modelLower = model.toLowerCase();
+    const mfrLower = (manufacturer || '').toLowerCase();
+    const modelLower = (model || '').toLowerCase();
     const partLower = (partNumber || '').toLowerCase();
+    // If both manufacturer and model are missing, can't look up anything — short-circuit.
+    if (!mfrLower && !modelLower && !partLower) return { found: false };
 
     // ── PRIORITY 0: PRICE_LIST_PRODUCTS (Change Order quotes - no discounts) ──────
     // For change orders: use the price list with manufacturer list prices (no project discounts)
