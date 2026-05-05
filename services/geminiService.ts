@@ -809,6 +809,26 @@ ${buildProductReference()}
     - The change order would withstand customer, auditor, and field review
     When in doubt, include the item.
     </criteria>
+
+    <output_format>
+    CRITICAL: Your response MUST be a single valid JSON object. NOTHING ELSE.
+
+    DO NOT:
+    - Wrap the JSON in markdown code blocks (no \`\`\`json or \`\`\`)
+    - Add any prose, explanations, or commentary before or after the JSON
+    - Include any text outside the JSON object
+    - Use trailing commas in arrays or objects
+    - Include unescaped quotes, newlines, or control characters inside string values
+
+    DO:
+    - Start your response with the opening curly brace {
+    - End your response with the closing curly brace }
+    - Ensure all strings are properly escaped (use \\" for quotes inside strings, \\n for newlines)
+    - Ensure all arrays and objects are properly closed
+    - Output complete, parseable JSON that JSON.parse() can handle directly
+
+    The very first character of your response MUST be { and the very last character MUST be }.
+    </output_format>
   `;
 
   const safeIntent = sanitizeForPrompt(intent, 8000);
@@ -900,11 +920,30 @@ ${buildProductReference()}
   let rawText = response.text;
   if (!rawText) throw new Error("No response from AI");
 
-  // Strip markdown code block wrapper if present (Claude often wraps JSON in ```json ... ```)
-  // Handle various formats: ```json\n{...}\n```, ```\n{...}\n```, with or without "json", etc.
+  console.log('Raw AI response length:', rawText.length);
+  console.log('First 200 chars:', rawText.substring(0, 200));
+  console.log('Last 200 chars:', rawText.substring(Math.max(0, rawText.length - 200)));
+
+  // Aggressive JSON extraction: find the first { and last } and extract everything between.
+  // This handles ANY wrapper format: ```json...```, prose+JSON, commentary, etc.
+  rawText = rawText.trim();
+
+  // Strategy 1: Strip markdown code block wrappers (most common case)
   rawText = rawText
-    .replace(/^```(?:json|JSON)?\s*\n?/, '')  // Remove opening backticks + optional "json" + optional newline
-    .replace(/\n?```\s*$/, '');  // Remove closing backticks + optional leading newline
+    .replace(/^```(?:json|JSON)?\s*\n?/, '')
+    .replace(/\n?```\s*$/, '')
+    .trim();
+
+  // Strategy 2: If response still doesn't start with {, find the first { and last }
+  // and extract just the JSON object
+  if (!rawText.startsWith('{')) {
+    const firstBrace = rawText.indexOf('{');
+    const lastBrace = rawText.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      console.log(`Extracting JSON from position ${firstBrace} to ${lastBrace}`);
+      rawText = rawText.substring(firstBrace, lastBrace + 1);
+    }
+  }
 
   let data: ChangeOrderData;
   let jsonRepairApplied = false;
