@@ -897,8 +897,11 @@ ${buildProductReference()}
     }
   }));
 
-  const rawText = response.text;
+  let rawText = response.text;
   if (!rawText) throw new Error("No response from AI");
+
+  // Strip markdown code block wrapper if present (Claude often wraps JSON in ```json ... ```)
+  rawText = rawText.replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '');
 
   let data: ChangeOrderData;
   let jsonRepairApplied = false;
