@@ -16,6 +16,7 @@ import {
     STANDARD_CONSUMABLES, type ProductDefinition
 } from '../data/productDatabase';
 import { FULL_CATALOG, lookupProduct } from '../data/products';
+import { PRICE_LIST_PRODUCTS, lookupPrice } from '../data/priceListProducts';
 
 // Build master lookup
 const ALL_DB_PRODUCTS: ProductDefinition[] = [
@@ -30,6 +31,22 @@ function isInDatabase(manufacturer: string, model: string, partNumber?: string):
     const mfrLower = manufacturer.toLowerCase();
     const modelLower = model.toLowerCase();
     const partLower = (partNumber || '').toLowerCase();
+
+    // ── PRIORITY 0: PRICE_LIST_PRODUCTS (Change Order quotes - no discounts) ──────
+    // For change orders: use the price list with manufacturer list prices (no project discounts)
+    const priceListHit = lookupPrice(manufacturer, partNumber || '');
+    if (priceListHit) {
+        return {
+            found: true, dbProduct: {
+                manufacturer: manufacturer, model: model || partNumber || '',
+                partNumber: partNumber || '', category: 'Material' as const,
+                subcategory: 'material', msrp: priceListHit,
+                unitOfMeasure: 'EA', description: model || '',
+                installationRequirements: [], accessories: [],
+                laborHours: 0, complexity: 'Low' as const
+            }
+        };
+    }
 
     // ── PRIORITY 1: FULL_CATALOG (authoritative) ────────────────────────────────
     // FULL_CATALOG is the canonical price source. When the same product exists in
