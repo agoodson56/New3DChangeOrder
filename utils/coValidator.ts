@@ -65,13 +65,30 @@ export interface ValidationOutput {
     score: number; // 0-100
     warnings: ValidationWarning[];
     autoCorrections: string[];
+    /** A defensively-cloned copy of the input with auto-corrections applied
+     *  (e.g. complexity defaulted to 'Medium', unitOfMeasure 'ft' inferred
+     *  for bulk cable). The input object is NEVER mutated. */
+    correctedData: ChangeOrderData;
 }
 
 /**
  * Run all validation rules against a generated Change Order.
- * Returns warnings and auto-corrections.
+ * Returns warnings, auto-corrections, and a corrected copy of the data.
+ *
+ * **Pure**: input is treated as readonly. Auto-corrections are applied to
+ * a deep-enough clone (materials & labor arrays are re-built; other fields
+ * are shallow-copied). Callers who want the corrected version should read
+ * `result.correctedData`.
  */
-export function validateChangeOrder(data: ChangeOrderData): ValidationOutput {
+export function validateChangeOrder(input: ChangeOrderData): ValidationOutput {
+    // Clone enough to safely apply auto-corrections without touching input.
+    // Materials & labor are the only arrays we mutate items inside of, so
+    // those need item-level clones; the rest can be a shallow spread.
+    const data: ChangeOrderData = {
+        ...input,
+        materials: (input.materials || []).map(m => ({ ...m })),
+        labor: (input.labor || []).map(l => ({ ...l })),
+    };
     const warnings: ValidationWarning[] = [];
     const autoCorrections: string[] = [];
     let deductions = 0;
@@ -438,14 +455,17 @@ export function validateChangeOrder(data: ChangeOrderData): ValidationOutput {
         }
     });
 
-    if (expectedMinLabor > 0 && totalLaborHours < expectedMinLabor * 0.7) {
+    // Tightened thresholds (was 70%/85%): bidding 20% under NECA is enough
+    // to lose a job's margin — flag aggressively. Operators can override
+    // with explicit acknowledgment or a reduced complexity rating.
+    if (expectedMinLabor > 0 && totalLaborHours < expectedMinLabor * 0.80) {
         warnings.push({
             type: 'labor',
             severity: 'error',
             message: `Labor hours (${totalLaborHours.toFixed(1)}hrs) are significantly below NECA minimum (${expectedMinLabor.toFixed(1)}hrs expected). Under-estimated by ${((1 - totalLaborHours / expectedMinLabor) * 100).toFixed(0)}%`
         });
         deductions += 5;
-    } else if (expectedMinLabor > 0 && totalLaborHours < expectedMinLabor * 0.85) {
+    } else if (expectedMinLabor > 0 && totalLaborHours < expectedMinLabor * 0.95) {
         warnings.push({
             type: 'labor',
             severity: 'warning',
@@ -533,5 +553,6 @@ export function validateChangeOrder(data: ChangeOrderData): ValidationOutput {
         score,
         warnings,
         autoCorrections,
+        correctedData: data,
     };
 }

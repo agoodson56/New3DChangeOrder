@@ -152,6 +152,20 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
   const totalMaterials = materialSubtotal + materialMarkup;
   const totalEquipment = equipmentSubtotal + equipmentMarkup;
 
+  // Single source of truth for "is the operator allowed to print/proposal yet?".
+  // Previously this exact check appeared inline 3 separate times (banner + 2
+  // disabled props + 2 onClick guards), which let one path drift away from
+  // the others on edits.
+  const submitGate = useMemo(() => {
+    const marginBlocked = financials.marginPct < MARGIN_FLOOR_PCT && !marginAcknowledged;
+    const requiredCompliance = relevantComplianceItems(data.officeId, data.systemsImpacted ?? []).filter(i => i.required);
+    const complianceBlocked = requiredCompliance.some(i => !complianceChecked[i.id]);
+    const reasons: string[] = [];
+    if (marginBlocked) reasons.push(`margin below ${Math.round(MARGIN_FLOOR_PCT * 100)}% floor`);
+    if (complianceBlocked) reasons.push('required compliance items unchecked');
+    return { blocked: reasons.length > 0, reasons };
+  }, [financials.marginPct, marginAcknowledged, data.officeId, data.systemsImpacted, complianceChecked]);
+
   const currentDate = new Date().toLocaleDateString();
 
   // Editable input styles
@@ -159,12 +173,22 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
   const editableNumberClass = "bg-transparent hover:bg-yellow-50 focus:bg-yellow-50 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] text-right w-full rounded transition-colors print:hover:bg-transparent print:focus:bg-transparent print:focus:ring-0";
 
   const renderMaterialRow = (item: MaterialItem, displayIndex: number) => {
-    // Use the item's original index in data.materials (stable, not reference-dependent)
-    const actualIndex = data.materials.indexOf(item);
-    // Fallback: find by matching properties if reference was broken by spread
-    const safeIndex = actualIndex >= 0 ? actualIndex : data.materials.findIndex(
-      m => m.manufacturer === item.manufacturer && m.model === item.model && m.quantity === item.quantity
-    );
+    // The item came from a filtered+spread copy of data.materials, so its
+    // reference no longer matches the original. Use indexOf to recover the
+    // canonical index. The previous fallback `findIndex(m => mfr+model+qty
+    // match)` would silently alias to the WRONG row when two identical
+    // lines existed (e.g., two "Generic Cable Tie 1ea" rows) — toggling
+    // isDeduct on row 5 would actually toggle it on row 2.
+    //
+    // Now: indexOf returns -1 if the reference is gone (which can't happen
+    // here because the filtered arrays are computed from data.materials in
+    // the same render). If it ever does, we abort the row render rather than
+    // silently mutate the wrong line.
+    const safeIndex = data.materials.indexOf(item);
+    if (safeIndex < 0) {
+      console.error('[CO] renderMaterialRow: lost row reference for', item);
+      return null;
+    }
     const isCable = item.unitOfMeasure === 'ft';
     const isLoading = lookupLoadingIndex === safeIndex;
     const isDeduct = item.isDeduct === true;
@@ -572,14 +596,11 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
           );
         })}
 
-        {/* Total Hours Row — uses laborSubtotal from calculateFinancials so it never drifts from the final totals */}
+        {/* Total Hours Row — totalLaborHours comes from calculateFinancials,
+            same source as laborSubtotal, so the two cannot drift apart. */}
         <div className="grid grid-cols-12 text-[10px] font-black bg-gray-100 border-b-2 border-black">
           <div className="col-span-1 border-r border-black px-2 py-1 text-center font-black text-[11px]">
-            {data.labor.reduce((sum, t) => {
-              const s = t.isDeduct === true ? -1 : 1;
-              const h = Number.isFinite(t.hours) ? t.hours : 0;
-              return sum + s * h;
-            }, 0).toFixed(2)}
+            {financials.totalLaborHours.toFixed(2)}
           </div>
           <div className="col-span-7 border-r border-black px-2 py-1 uppercase tracking-wider text-right">Total Labor Hours:</div>
           <div className="col-span-2 border-r border-black px-2 py-1 text-right"></div>
@@ -793,27 +814,16 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
 
       {/* Non-Printable Actions */}
       <div className="p-4 md:p-10 print:hidden bg-gray-100 border-t-4 border-gray-300 space-y-5">
-        {(() => {
-          // Combined submit-block: margin floor + required compliance items.
-          // Either failing condition disables Print + Generate Proposal.
-          const marginBlocked = financials.marginPct < MARGIN_FLOOR_PCT && !marginAcknowledged;
-          const items = relevantComplianceItems(data.officeId, data.systemsImpacted ?? []);
-          const complianceBlocked = items.some(i => i.required && !complianceChecked[i.id]);
-          const blockers: string[] = [];
-          if (marginBlocked) blockers.push(`margin below ${Math.round(MARGIN_FLOOR_PCT * 100)}% floor`);
-          if (complianceBlocked) blockers.push('required compliance items unchecked');
-          return blockers.length > 0 ? (
-            <div className="bg-red-100 border-2 border-red-500 text-red-900 p-3 mb-2 text-[11px] font-bold uppercase tracking-wider text-center">
-              ⚠️ Print and Generate Proposal are blocked: {blockers.join(' · ')}.
-            </div>
-          ) : null;
-        })()}
+        {submitGate.blocked && (
+          <div className="bg-red-100 border-2 border-red-500 text-red-900 p-3 mb-2 text-[11px] font-bold uppercase tracking-wider text-center">
+            ⚠️ Print and Generate Proposal are blocked: {submitGate.reasons.join(' · ')}.
+          </div>
+        )}
         <div className="flex flex-col md:flex-row gap-3 md:gap-6">
           <GoldButton
-            disabled={(financials.marginPct < MARGIN_FLOOR_PCT && !marginAcknowledged) || relevantComplianceItems(data.officeId, data.systemsImpacted ?? []).some(i => i.required && !complianceChecked[i.id])}
+            disabled={submitGate.blocked}
             onClick={() => {
-              if (financials.marginPct < MARGIN_FLOOR_PCT && !marginAcknowledged) return;
-              if (relevantComplianceItems(data.officeId, data.systemsImpacted ?? []).some(i => i.required && !complianceChecked[i.id])) return;
+              if (submitGate.blocked) return;
               // Auto-save to history on first print so win-rate tracking captures every CO sent out.
               if (onArchive && !archivedId) onArchive();
               // Build a useful filename so the browser's "Save as PDF" default name is clean:
@@ -842,10 +852,9 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
             🖨️ PRINT / SAVE AS PDF
           </GoldButton>
           <GoldButton
-            disabled={(financials.marginPct < MARGIN_FLOOR_PCT && !marginAcknowledged) || relevantComplianceItems(data.officeId, data.systemsImpacted ?? []).some(i => i.required && !complianceChecked[i.id])}
+            disabled={submitGate.blocked}
             onClick={() => {
-              if (financials.marginPct < MARGIN_FLOOR_PCT && !marginAcknowledged) return;
-              if (relevantComplianceItems(data.officeId, data.systemsImpacted ?? []).some(i => i.required && !complianceChecked[i.id])) return;
+              if (submitGate.blocked) return;
               onGenerateProposal();
             }}
             loading={isGeneratingProposal}

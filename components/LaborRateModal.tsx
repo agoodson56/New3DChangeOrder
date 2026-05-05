@@ -13,6 +13,15 @@ export const LaborRateModal: React.FC<LaborRateModalProps> = ({ onSave, initialR
   const [rates, setRates] = useState<LaborRates>(
     initialRates ?? { base: 165, afterHours: 247.50, emergency: 330 }
   );
+  // Track whether the user has manually edited a derived rate. Once they do,
+  // the base-rate keystroke handler stops auto-recomputing that field so we
+  // don't clobber a custom multiplier (e.g., afterHours = 1.4x not 1.5x).
+  const [customAfterHours, setCustomAfterHours] = useState<boolean>(
+    !!initialRates && Math.abs(initialRates.afterHours - initialRates.base * 1.5) > 0.01
+  );
+  const [customEmergency, setCustomEmergency] = useState<boolean>(
+    !!initialRates && Math.abs(initialRates.emergency - initialRates.base * 2) > 0.01
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,33 +75,45 @@ export const LaborRateModal: React.FC<LaborRateModalProps> = ({ onSave, initialR
               value={rates.base}
               onChange={(e) => {
                 const base = parseFloat(e.target.value) || 0;
-                setRates({
+                setRates(prev => ({
                   base,
-                  afterHours: base * 1.5,
-                  emergency: base * 2
-                });
+                  // Preserve manually-edited derived fields. Default 1.5x/2x
+                  // multipliers only apply when the user hasn't customized them.
+                  afterHours: customAfterHours ? prev.afterHours : base * 1.5,
+                  emergency: customEmergency ? prev.emergency : base * 2,
+                }));
               }}
             />
           </div>
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <label className="block text-[10px] font-bold text-gray-500 uppercase mb-2 tracking-widest">After-Hours (1.5x)</label>
+              <label className="block text-[10px] font-bold text-gray-500 uppercase mb-2 tracking-widest">
+                After-Hours {customAfterHours ? '(custom)' : '(1.5x)'}
+              </label>
               <input
                 type="number"
                 required
                 className="w-full bg-black border border-gray-800 text-gray-400 p-3 focus:border-[#D4AF37] outline-none transition-colors font-mono"
                 value={rates.afterHours}
-                onChange={(e) => setRates({ ...rates, afterHours: parseFloat(e.target.value) || 0 })}
+                onChange={(e) => {
+                  setCustomAfterHours(true);
+                  setRates({ ...rates, afterHours: parseFloat(e.target.value) || 0 });
+                }}
               />
             </div>
             <div>
-              <label className="block text-[10px] font-bold text-gray-500 uppercase mb-2 tracking-widest">Emergency (2.0x)</label>
+              <label className="block text-[10px] font-bold text-gray-500 uppercase mb-2 tracking-widest">
+                Emergency {customEmergency ? '(custom)' : '(2.0x)'}
+              </label>
               <input
                 type="number"
                 required
                 className="w-full bg-black border border-gray-800 text-gray-400 p-3 focus:border-[#D4AF37] outline-none transition-colors font-mono"
                 value={rates.emergency}
-                onChange={(e) => setRates({ ...rates, emergency: parseFloat(e.target.value) || 0 })}
+                onChange={(e) => {
+                  setCustomEmergency(true);
+                  setRates({ ...rates, emergency: parseFloat(e.target.value) || 0 });
+                }}
               />
             </div>
           </div>

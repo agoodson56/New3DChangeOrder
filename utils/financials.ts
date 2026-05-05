@@ -56,8 +56,16 @@ export function calculateFinancials(
     equipmentMarkup: number;
     salesTax: number;
     taxBase: number;
+    /** Sum of labor hours (deducts subtract). Single source of truth — display
+     *  surfaces should read this rather than reducing data.labor inline. */
+    totalLaborHours: number;
 } {
     // Labor (deducts contribute negative values)
+    const totalLaborHours = round2((data.labor || []).reduce((acc, task) => {
+        const sign = task.isDeduct === true ? -1 : 1;
+        const hours = Number.isFinite(task.hours) ? task.hours : 0;
+        return acc + (sign * hours);
+    }, 0));
     const laborSubtotal = round2((data.labor || []).reduce((acc, task) => {
         const rate = rateLookup(rates, task.rateType);
         const sign = task.isDeduct === true ? -1 : 1;
@@ -119,6 +127,7 @@ export function calculateFinancials(
         laborSubtotal,
         laborMarkup,
         laborTotal,
+        totalLaborHours,
         materialSubtotal,
         materialMarkup,
         equipmentSubtotal,

@@ -1050,12 +1050,16 @@ export async function generateValidatedChangeOrder(
 
   // ===== BRAIN 1: Generate initial Change Order =====
   onProgress?.('🧠 Brain 1: Generating Change Order...', 10);
-  const coData = await generateChangeOrder(intent, images, adminData);
+  const initialData = await generateChangeOrder(intent, images, adminData);
   onProgress?.('✅ Change Order generated', 30);
 
   // ===== CODE VALIDATOR: Deterministic rule checks =====
+  // Returns a corrected copy (auto-fills complexity, infers ft for cable, etc.)
+  // — the validator no longer mutates initialData. We use the corrected copy
+  // for downstream steps so pricing/QA see the same data the operator will.
   onProgress?.('⚙️ Running code validation (9 rules)...', 40);
-  const codeValidation = validateChangeOrder(coData);
+  const codeValidation = validateChangeOrder(initialData);
+  const coData: ChangeOrderData = codeValidation.correctedData;
   onProgress?.(`⚙️ Code validation: ${codeValidation.score}/100`, 50);
 
   // ===== BRAIN 2: Pricing Validation =====
