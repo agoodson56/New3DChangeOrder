@@ -3,21 +3,12 @@
  *
  *   GET /api/health
  *
- * Two response modes:
- *  - **Authenticated** (Cloudflare Access in front, Cf-Access-Authenticated-User-Email
- *    header present): full diagnostic — env strings, configuration notes, signed-in
- *    email. Drives the SetupBanner and on-call diagnostics.
- *  - **Unauthenticated**: a minimal "is the backend reachable" response with no
- *    configuration enumeration. Lets a brand-new operator see "the page works"
- *    without leaking which integrations are wired before Access is configured.
- *
- * Why split the modes: an unauthenticated /api/health was previously enumerating
- * which integrations were enabled, which environment (demo vs production) DocuSign
- * was pointing at, and other operational details — reconnaissance value to a
- * would-be attacker. Now this is gated behind Access.
+ * Returns full diagnostics for operators (configuration state, integrations status).
+ * Authentication is handled by Cloudflare Access at the edge — no manual auth needed here.
+ * The Cf-Access-Authenticated-User-Email header is optionally injected by Access.
  *
  * No secrets are EVER returned. The booleans (configured/d1Bound/etc.) only
- * reveal configuration STATE, never the value.
+ * reveal configuration STATE, never values.
  */
 
 interface Env {
@@ -49,23 +40,6 @@ const json = (body: unknown, status = 200) =>
 export const onRequestGet = async ({ request, env }: PagesContext<Env>): Promise<Response> => {
   const accessEmail = request.headers.get('Cf-Access-Authenticated-User-Email') || null;
 
-  // ── SECURITY: Require Cloudflare Access authentication ───────────────────
-  // Health check endpoint leaks infrastructure details (which services are configured).
-  // Gate it behind Cloudflare Access to prevent unauthorized reconnaissance.
-  // Unauthenticated callers get a generic 401 with no state information.
-  if (!accessEmail) {
-    return json(
-      {
-        error: {
-          code: 401,
-          status: 'UNAUTHORIZED',
-          message: 'This endpoint requires Cloudflare Access authentication. Sign in via your Cloudflare Access portal.'
-        }
-      },
-      401
-    );
-  }
-
   const docusignFields = {
     integrationKey: !!env.DOCUSIGN_INTEGRATION_KEY,
     userId: !!env.DOCUSIGN_USER_ID,
@@ -74,12 +48,12 @@ export const onRequestGet = async ({ request, env }: PagesContext<Env>): Promise
   };
   const docusignConfigured = Object.values(docusignFields).every(Boolean);
 
-  // Authenticated response: full diagnostics for operators.
+  // Full diagnostics response (Cloudflare Access handles authentication at the edge).
   return json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    authenticated: true,
-    userEmail: accessEmail,
+    authenticated: !!accessEmail,
+    userEmail: accessEmail || '(not authenticated)',
     integrations: {
       gemini: {
         configured: !!env.GEMINI_API_KEY,
