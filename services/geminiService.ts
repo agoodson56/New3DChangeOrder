@@ -59,6 +59,63 @@ async function callWithRetry<T>(
   throw lastErr;
 }
 
+/** Auto-add standard J-hooks and cable labels based on cable footage and count. */
+function addStandardHardware(data: ChangeOrderData): void {
+  // Find all cable materials (unitOfMeasure = 'ft')
+  const cables = data.materials.filter(m => m.unitOfMeasure === 'ft');
+  if (cables.length === 0) return; // No cabling, no hardware needed
+
+  // Calculate total cable footage
+  const totalFootage = cables.reduce((sum, m) => sum + (m.quantity || 0), 0);
+  const cableCount = cables.length;
+
+  // J-hooks: 1 per 8 feet of cable
+  const jHooksNeeded = Math.ceil(totalFootage / 8);
+
+  // Labels: 2 per cable run
+  const labelsNeeded = cableCount * 2;
+
+  // Check if J-hooks already exist (don't double-add)
+  const hasJHooks = data.materials.some(m =>
+    m.manufacturer.toLowerCase().includes('generic') &&
+    (m.model.toLowerCase().includes('j-hook') || m.model.toLowerCase().includes('hook'))
+  );
+
+  if (!hasJHooks && jHooksNeeded > 0) {
+    data.materials.push({
+      manufacturer: 'Generic',
+      model: 'J-Hook Installation Hardware (2")',
+      category: 'Material',
+      quantity: jHooksNeeded,
+      msrp: 3.50, // Mid-range of $2-6 pricing
+      unitOfMeasure: 'ea',
+      complexity: 'Low',
+      notes: `Standard cable support hardware: 1 per 8 feet (${totalFootage}ft ÷ 8 = ${jHooksNeeded})`,
+      isDeduct: false
+    });
+  }
+
+  // Check if labels already exist
+  const hasLabels = data.materials.some(m =>
+    (m.model.toLowerCase().includes('label') || m.model.toLowerCase().includes('tag')) &&
+    m.category === 'Material'
+  );
+
+  if (!hasLabels && labelsNeeded > 0) {
+    data.materials.push({
+      manufacturer: 'Generic',
+      model: 'Cable Labeling Kit',
+      category: 'Material',
+      quantity: labelsNeeded,
+      msrp: 8.00, // Typical label kit cost
+      unitOfMeasure: 'ea',
+      complexity: 'Low',
+      notes: `Cable identification & documentation: 2 per cable run (${cableCount} cables × 2 = ${labelsNeeded})`,
+      isDeduct: false
+    });
+  }
+}
+
 /** Default-fill optional array fields so downstream consumers don't crash on undefined. */
 function defaultFillCO(data: ChangeOrderData): ChangeOrderData {
   data.materials = data.materials || [];
@@ -918,6 +975,9 @@ ${buildProductReference()}
   if (adminData.rfiNumber) data.rfiNumber = adminData.rfiNumber;
   if (adminData.pcoNumber) data.pcoNumber = adminData.pcoNumber;
   if (adminData.officeId) data.officeId = adminData.officeId;
+
+  // Auto-add standard J-hooks and cable labels based on cabling materials
+  addStandardHardware(data);
 
   // Sanitize: clamp and round all monetary/numeric values.
   // Use sign-symmetric round-half-away-from-zero (matches utils/financials.ts:round2)
