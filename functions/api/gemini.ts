@@ -396,34 +396,21 @@ export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promis
       // Don't send systemInstruction inline when using cache — it's redundant
       // and may error.
     } else if (sysInstruction) {
-      // v1 API doesn't support systemInstruction at the top level;
-      // embed it in the first message instead
-      if (Array.isArray(contents) && contents[0]) {
-        const firstContent = contents[0] as any;
-        if (!firstContent.parts) firstContent.parts = [];
-        firstContent.parts.unshift({
-          text: typeof sysInstruction === 'string' ? sysInstruction : JSON.stringify(sysInstruction)
-        });
-      }
+      upstreamBody.systemInstruction = typeof sysInstruction === 'string'
+        ? { parts: [{ text: sysInstruction }] }
+        : sysInstruction;
     }
 
     if (tools) {
       upstreamBody.tools = tools;
     }
 
-    // v1 API doesn't support responseSchema or responseMimeType — remove them
-    const v1Config = {} as Record<string, unknown>;
-    for (const [key, val] of Object.entries(cfg)) {
-      if (key !== 'responseMimeType' && key !== 'responseSchema') {
-        v1Config[key] = val;
-      }
-    }
-    upstreamBody.generationConfig = v1Config;
+    upstreamBody.generationConfig = cfg;
   }
 
   // Send the API key in the header rather than the URL so it doesn't show up
   // in any intermediate logs.
-  const url = `https://generativelanguage.googleapis.com/v1/models/${encodeURIComponent(model)}:generateContent`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
 
   const upstream = await fetch(url, {
     method: 'POST',
