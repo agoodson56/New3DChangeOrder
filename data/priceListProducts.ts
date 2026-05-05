@@ -406,7 +406,7 @@ export const PRICE_LIST_PRODUCTS = {
   'axis communications|10320448': {"manufacturer":"Axis Communications","partNumber":"10320448","description":"AXIS Camera Station S1216 Tower is an out-of-the-box ready workstation","serviceLine":"cctv","listPrice":2544.82,"unit":"EA"},
 };
 
-export function lookupPrice(manufacturer, partNumber) {
+export function lookupPrice(manufacturer: string, partNumber: string): number | null {
   const key = `${manufacturer}|${partNumber}`.toLowerCase();
-  return PRICE_LIST_PRODUCTS[key]?.listPrice || null;
+  return PRICE_LIST_PRODUCTS[key as keyof typeof PRICE_LIST_PRODUCTS]?.listPrice || null;
 }
