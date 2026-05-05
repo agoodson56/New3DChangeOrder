@@ -267,7 +267,7 @@ export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promis
 
     console.log('Calling Claude API with model:', model);
     const response = await client.messages.create({
-      model: model || 'claude-3-5-sonnet-20241022',
+      model: model || 'claude-sonnet-4-6',
       max_tokens: 4096,
       system: systemInstruction || undefined,
       messages: messages,
