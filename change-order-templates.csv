@@ -1,0 +1,11 @@
+Change_Order_Type,Labor_Hours,Labor_Role,Typical_Material_Cost,Estimated_Total
+Add CCTV Camera,3.0,Senior Technician,800,1050
+Add Network Drop,4.0,Technician,150,450
+Move Equipment,2.0,Senior Technician,50,250
+Add Card Reader,2.0,Senior Technician,600,750
+Add Fire Pull Station,1.5,Senior Technician,250,400
+Add AV Display,4.0,Senior Technician,1500,1900
+Add Phone Extension,1.0,Technician,75,150
+Remove Equipment,1.0,Technician,25,100
+Upgrade Equipment,2.0,Senior Technician,400,350
+System Reconfiguration,4.0,Application Engineer,100,600

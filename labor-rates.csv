@@ -1,0 +1,8 @@
+Role,Hourly_Rate,Min_Rate,Max_Rate,Description
+Project Manager,120,100,150,Project oversight and coordination
+Foreman,110,100,120,Field supervision and crew coordination
+Senior Technician,90,85,95,"Installation, configuration, troubleshooting"
+Technician,75,70,80,Installation support and labor
+Application Engineer,100,95,120,System design and configuration
+Startup/Programming Engineer,120,120,140,"Programming, startup, testing"
+Drafter/CAD,75,70,85,Documentation and CAD work

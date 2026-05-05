@@ -1,0 +1,209 @@
+{
+  "metadata": {
+    "description": "Change Order Pricing Reference Database - Extracted from historical bids",
+    "generated": "2026-05-05",
+    "source_files": 18,
+    "note": "These rates are derived from historical bids and should be reviewed/updated based on current market rates and project experience"
+  },
+  "labor_rates_by_role": {
+    "Project Manager": {
+      "hourly_rate": 120,
+      "range_min": 100,
+      "range_max": 150,
+      "source": "POA-Sac Office, Indians Bid",
+      "notes": "Project oversight, coordination, management"
+    },
+    "Foreman": {
+      "hourly_rate": 110,
+      "range_min": 100,
+      "range_max": 120,
+      "source": "POA-Sac Office",
+      "notes": "Field supervision, crew coordination"
+    },
+    "Senior Technician": {
+      "hourly_rate": 90,
+      "range_min": 85,
+      "range_max": 95,
+      "source": "Multiple bids",
+      "notes": "Installation, configuration, troubleshooting"
+    },
+    "Technician": {
+      "hourly_rate": 75,
+      "range_min": 70,
+      "range_max": 80,
+      "source": "Multiple bids",
+      "notes": "Installation support, labor"
+    },
+    "Application Engineer": {
+      "hourly_rate": 100,
+      "range_min": 95,
+      "range_max": 120,
+      "source": "POA-Sac Office",
+      "notes": "System design, configuration, engineering"
+    },
+    "Startup/Programming Engineer": {
+      "hourly_rate": 120,
+      "range_min": 120,
+      "range_max": 140,
+      "source": "POA-Sac Office",
+      "notes": "Programming, system startup, testing"
+    },
+    "Drafter/CAD": {
+      "hourly_rate": 75,
+      "range_min": 70,
+      "range_max": 85,
+      "source": "POA-Sac Office",
+      "notes": "Documentation, drawings, CAD work"
+    }
+  },
+  "system_types": [
+    "CCTV",
+    "Fire Alarm",
+    "Data Cabling/Telecommunications",
+    "Backbone/Network Infrastructure",
+    "Wireless/WiFi",
+    "Audio Visual",
+    "Sound Masking",
+    "Access Control/Card Access",
+    "Intrusion Detection",
+    "Nurse Call",
+    "2-Way Radio",
+    "Intercom",
+    "Cellular DAS",
+    "Point-to-Point",
+    "RFID",
+    "Clock System",
+    "Fence Detection",
+    "Building Systems"
+  ],
+  "typical_change_order_costs": {
+    "add_cctv_camera": {
+      "description": "Add single IP camera, installation and cabling",
+      "labor_hours": 3,
+      "labor_rate": "Senior Technician",
+      "material_cost": 800,
+      "total_estimated": 1050,
+      "notes": "Includes rough-in cabling, camera, PoE injector, labor"
+    },
+    "add_network_drop": {
+      "description": "Add single network data drop (CAT6, full run)",
+      "labor_hours": 4,
+      "labor_rate": "Technician",
+      "material_cost": 150,
+      "total_estimated": 450,
+      "notes": "Full run from panel to endpoint, includes jack and cable"
+    },
+    "move_equipment": {
+      "description": "Relocate equipment to new location",
+      "labor_hours": 2,
+      "labor_rate": "Senior Technician",
+      "material_cost": 50,
+      "total_estimated": 250,
+      "notes": "Disconnect, relocate, reconnect, verify functionality"
+    },
+    "access_control_card_reader": {
+      "description": "Add card reader at door, includes wiring",
+      "labor_hours": 2,
+      "labor_rate": "Senior Technician",
+      "material_cost": 600,
+      "total_estimated": 750,
+      "notes": "Reader, wiring, integration with existing system"
+    },
+    "fire_alarm_pull_station": {
+      "description": "Add pull station in new location",
+      "labor_hours": 1.5,
+      "labor_rate": "Senior Technician",
+      "material_cost": 250,
+      "total_estimated": 400,
+      "notes": "Pull station, wiring, system integration"
+    },
+    "audio_visual_display": {
+      "description": "Add wall-mounted display with infrastructure",
+      "labor_hours": 4,
+      "labor_rate": "Senior Technician",
+      "material_cost": 1500,
+      "total_estimated": 1900,
+      "notes": "Display, mount, cabling, HDMI/network integration"
+    },
+    "telephone_extension": {
+      "description": "Add phone extension at new location",
+      "labor_hours": 1,
+      "labor_rate": "Technician",
+      "material_cost": 75,
+      "total_estimated": 150,
+      "notes": "Wire pull, phone jack, handset"
+    }
+  },
+  "material_cost_ranges": {
+    "cctv_camera_ip": {
+      "low": 600,
+      "mid": 1200,
+      "high": 3000,
+      "typical_for_changeorder": 900
+    },
+    "network_switch": {
+      "low": 400,
+      "mid": 800,
+      "high": 2000,
+      "typical_for_changeorder": 600
+    },
+    "access_reader": {
+      "low": 400,
+      "mid": 600,
+      "high": 1000,
+      "typical_for_changeorder": 600
+    },
+    "fire_alarm_device": {
+      "low": 150,
+      "mid": 250,
+      "high": 500,
+      "typical_for_changeorder": 250
+    },
+    "speaker_audio": {
+      "low": 200,
+      "mid": 500,
+      "high": 1500,
+      "typical_for_changeorder": 500
+    },
+    "conduit_and_wire_per_foot": {
+      "low": 2,
+      "mid": 3.50,
+      "high": 5,
+      "typical_for_changeorder": 3
+    },
+    "cable_cabling_per_foot": {
+      "low": 1,
+      "mid": 1.75,
+      "high": 3,
+      "typical_for_changeorder": 1.5
+    }
+  },
+  "markup_guidelines": {
+    "materials": {
+      "standard": 0.35,
+      "specialty_equipment": 0.40,
+      "cables_and_passive": 0.30,
+      "note": "30-40% markup on material cost"
+    },
+    "labor": {
+      "standard": 0.50,
+      "engineering": 0.60,
+      "project_management": 0.40,
+      "note": "40-60% markup on labor cost, varies by work type"
+    },
+    "subcontractors": {
+      "standard": 0.15,
+      "note": "15% markup on subcontractor work"
+    }
+  },
+  "change_order_workflow_tips": {
+    "tip_1": "Always get site measurements before estimating add/move/change items",
+    "tip_2": "Factor in cable runs and conduit requirements - often 50% of labor cost",
+    "tip_3": "Program/configuration time is often 20-30% of installation time",
+    "tip_4": "Testing and commissioning should be 10-15% of project total labor",
+    "tip_5": "For moves, factor in decommissioning (10-20% of add cost) and recommissioning",
+    "tip_6": "Materials cost can vary significantly by vendor and order quantity",
+    "tip_7": "Weather and site access can impact labor productivity 20-50%",
+    "tip_8": "Always include travel time in labor estimates (1-2 hours for first trip)"
+  }
+}
