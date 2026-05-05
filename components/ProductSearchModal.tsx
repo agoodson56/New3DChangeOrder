@@ -83,7 +83,7 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
             {/* Modal */}
             <div className="relative w-full max-w-4xl max-h-[90vh] bg-[#0a0a0a] border border-gray-800 shadow-2xl overflow-hidden animate-in zoom-in-95 fade-in duration-300">
                 {/* Header */}
-                <div className="bg-gradient-to-r from-[#D4AF37] to-[#B8962F] px-6 py-4 flex items-center justify-between">
+                <div className="bg-gradient-to-r from-[#008b8b] to-[#B8962F] px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <svg className="w-6 h-6 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -109,7 +109,7 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
                             onChange={(e) => setQuery(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder="Search for products... e.g., 'Axis P3265-V dome camera' or 'Cat6A plenum cable'"
-                            className="flex-1 bg-black border border-gray-700 text-white px-4 py-3 focus:border-[#D4AF37] outline-none transition-all text-lg placeholder-gray-600"
+                            className="flex-1 bg-black border border-gray-700 text-white px-4 py-3 focus:border-[#008b8b] outline-none transition-all text-lg placeholder-gray-600"
                         />
                         <GoldButton
                             onClick={handleSearch}
@@ -134,7 +134,7 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
 
                     {loading && (
                         <div className="flex flex-col items-center justify-center py-12">
-                            <div className="w-12 h-12 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin mb-4" />
+                            <div className="w-12 h-12 border-4 border-[#008b8b] border-t-transparent rounded-full animate-spin mb-4" />
                             <p className="text-gray-400 uppercase tracking-widest text-sm">Searching products...</p>
                         </div>
                     )}
@@ -156,7 +156,7 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
                             <p className="text-gray-500">Enter a product name, model number, or description to search.</p>
                             <div className="mt-4 text-xs text-gray-600 space-y-1">
                                 <p>Try searching for:</p>
-                                <p className="text-[#D4AF37]">"Axis P3265-V" • "Leviton Cat6A jack" • "Panduit patch panel 24-port"</p>
+                                <p className="text-[#008b8b]">"Axis P3265-V" • "Leviton Cat6A jack" • "Panduit patch panel 24-port"</p>
                             </div>
                         </div>
                     )}
@@ -170,14 +170,14 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
                             {results.map((product, index) => (
                                 <div
                                     key={index}
-                                    className="bg-black/50 border border-gray-800 hover:border-[#D4AF37]/50 transition-all p-4 group"
+                                    className="bg-black/50 border border-gray-800 hover:border-[#008b8b]/50 transition-all p-4 group"
                                 >
                                     <div className="flex items-start justify-between gap-4">
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 ${product.category === 'Equipment'
                                                         ? 'bg-[#008a8a]/20 text-[#00b3b3]'
-                                                        : 'bg-[#D4AF37]/20 text-[#D4AF37]'
+                                                        : 'bg-[#008b8b]/20 text-[#008b8b]'
                                                     }`}>
                                                     {product.category}
                                                 </span>
@@ -191,7 +191,7 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
                                                 </span>
                                             </div>
 
-                                            <h3 className="text-white font-bold text-lg group-hover:text-[#D4AF37] transition-colors">
+                                            <h3 className="text-white font-bold text-lg group-hover:text-[#008b8b] transition-colors">
                                                 {product.manufacturer} {product.model}
                                             </h3>
 
@@ -206,7 +206,7 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
                                         </div>
 
                                         <div className="text-right shrink-0">
-                                            <div className="text-2xl font-black text-[#D4AF37] font-mono">
+                                            <div className="text-2xl font-black text-[#008b8b] font-mono">
                                                 ${(Number.isFinite(product.msrp) ? product.msrp : 0).toFixed(2)}
                                                 {product.unitOfMeasure === 'ft' && <span className="text-sm text-gray-500">/ft</span>}
                                             </div>
@@ -220,7 +220,7 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
                                                         ...quantities,
                                                         [index]: Math.max(1, parseInt(e.target.value) || 1)
                                                     })}
-                                                    className="w-16 bg-black border border-gray-700 text-white text-center px-2 py-1 focus:border-[#D4AF37] outline-none"
+                                                    className="w-16 bg-black border border-gray-700 text-white text-center px-2 py-1 focus:border-[#008b8b] outline-none"
                                                     min="1"
                                                 />
                                                 {product.unitOfMeasure === 'ft' && <span className="text-gray-500 text-xs">ft</span>}
@@ -228,7 +228,7 @@ export const ProductSearchModal: React.FC<ProductSearchModalProps> = ({
 
                                             <button
                                                 onClick={() => handleAddProduct(product, index)}
-                                                className="mt-3 bg-[#D4AF37] hover:bg-[#FFD700] text-black font-bold text-xs uppercase tracking-wider px-4 py-2 transition-all flex items-center gap-2"
+                                                className="mt-3 bg-[#008b8b] hover:bg-[#20b2aa] text-black font-bold text-xs uppercase tracking-wider px-4 py-2 transition-all flex items-center gap-2"
                                             >
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />

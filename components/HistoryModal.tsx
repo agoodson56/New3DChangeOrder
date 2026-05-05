@@ -83,7 +83,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-5xl max-h-[90vh] bg-black border-2 border-[#D4AF37] shadow-[0_0_80px_rgba(212,175,55,0.25)] flex flex-col"
+        className="relative w-full max-w-5xl max-h-[90vh] bg-black border-2 border-[#008b8b] shadow-[0_0_80px_rgba(212,175,55,0.25)] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header + stats */}
@@ -95,7 +95,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
             </div>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-[#D4AF37] transition-colors text-2xl leading-none"
+              className="text-gray-500 hover:text-[#008b8b] transition-colors text-2xl leading-none"
               aria-label="Close"
             >
               ×
@@ -150,7 +150,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
                 onClick={() => setFilter(f)}
                 className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 transition-all ${
                   filter === f
-                    ? 'bg-[#D4AF37] text-black'
+                    ? 'bg-[#008b8b] text-black'
                     : 'bg-white/5 hover:bg-white/10 border border-gray-800 text-gray-400'
                 }`}
               >
@@ -198,7 +198,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
               <select
                 value={reasonChoice}
                 onChange={(e) => setReasonChoice(e.target.value as CloseReason)}
-                className="w-full bg-[#0a0a0a] border border-gray-800 text-white p-2 mb-4 focus:border-[#D4AF37] outline-none text-sm"
+                className="w-full bg-[#0a0a0a] border border-gray-800 text-white p-2 mb-4 focus:border-[#008b8b] outline-none text-sm"
               >
                 {(Object.keys(CLOSE_REASON_LABELS) as CloseReason[]).map(k => (
                   <option key={k} value={k}>{CLOSE_REASON_LABELS[k]}</option>
@@ -210,7 +210,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
                 onChange={(e) => setReasonNotes(e.target.value)}
                 rows={3}
                 placeholder="Customer said they had a quote $2K lower from competitor X..."
-                className="w-full bg-[#0a0a0a] border border-gray-800 text-white p-2 mb-4 focus:border-[#D4AF37] outline-none text-xs resize-none"
+                className="w-full bg-[#0a0a0a] border border-gray-800 text-white p-2 mb-4 focus:border-[#008b8b] outline-none text-xs resize-none"
               />
               <div className="flex gap-2 justify-end">
                 <button
@@ -238,7 +238,7 @@ const StatCard: React.FC<{ label: string; value: string; accent?: 'gold' | 'emer
   <div className="bg-white/5 border border-gray-800 p-3">
     <div className="text-[9px] text-gray-500 uppercase font-bold tracking-widest mb-1">{label}</div>
     <div className={`text-xl font-mono font-black ${
-      accent === 'gold' ? 'text-[#D4AF37]'
+      accent === 'gold' ? 'text-[#008b8b]'
       : accent === 'emerald' ? 'text-emerald-400'
       : accent === 'amber' ? 'text-amber-400'
       : 'text-white'
@@ -273,14 +273,14 @@ const HistoryRow: React.FC<{
           </p>
         </div>
         <div className="text-right shrink-0">
-          <div className="text-lg font-black font-mono text-[#D4AF37]">{fmtUSD(item.grandTotal)}</div>
+          <div className="text-lg font-black font-mono text-[#008b8b]">{fmtUSD(item.grandTotal)}</div>
         </div>
       </div>
       <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-gray-900">
         <select
           value={item.status}
           onChange={(e) => onStatusChange(item.id, e.target.value as COStatus)}
-          className="bg-black border border-gray-800 text-white text-[10px] uppercase font-bold tracking-widest p-1.5 focus:border-[#D4AF37] outline-none"
+          className="bg-black border border-gray-800 text-white text-[10px] uppercase font-bold tracking-widest p-1.5 focus:border-[#008b8b] outline-none"
           aria-label="Change status"
         >
           <option value="pending">Pending</option>

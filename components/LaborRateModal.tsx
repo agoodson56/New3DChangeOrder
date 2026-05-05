@@ -51,7 +51,7 @@ export const LaborRateModal: React.FC<LaborRateModalProps> = ({ onSave, initialR
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4" role="dialog" aria-modal="true" aria-labelledby="rate-modal-title">
-      <div className="w-full max-w-xl bg-black border-4 border-[#D4AF37] p-12 shadow-[0_0_100px_rgba(212,175,55,0.25)] relative overflow-hidden">
+      <div className="w-full max-w-xl bg-black border-4 border-[#008b8b] p-12 shadow-[0_0_100px_rgba(212,175,55,0.25)] relative overflow-hidden">
         {/* Subtle Background Mark */}
         <div className="absolute -top-10 -right-10 opacity-5 pointer-events-none">
           <Icons.Logo className="w-96 h-96" />
@@ -67,11 +67,11 @@ export const LaborRateModal: React.FC<LaborRateModalProps> = ({ onSave, initialR
 
         <form onSubmit={handleSubmit} className="space-y-8 relative">
           <div className="group">
-            <label className="block text-[10px] font-black text-[#D4AF37] uppercase mb-2 tracking-[0.3em] transition-colors group-focus-within:text-white">Base Hourly Rate ($)</label>
+            <label className="block text-[10px] font-black text-[#008b8b] uppercase mb-2 tracking-[0.3em] transition-colors group-focus-within:text-white">Base Hourly Rate ($)</label>
             <input
               type="number"
               required
-              className="w-full bg-[#0a0a0a] border-2 border-gray-800 text-white p-4 focus:border-[#D4AF37] outline-none transition-all text-xl font-mono"
+              className="w-full bg-[#0a0a0a] border-2 border-gray-800 text-white p-4 focus:border-[#008b8b] outline-none transition-all text-xl font-mono"
               value={rates.base}
               onChange={(e) => {
                 const base = parseFloat(e.target.value) || 0;
@@ -93,7 +93,7 @@ export const LaborRateModal: React.FC<LaborRateModalProps> = ({ onSave, initialR
               <input
                 type="number"
                 required
-                className="w-full bg-black border border-gray-800 text-gray-400 p-3 focus:border-[#D4AF37] outline-none transition-colors font-mono"
+                className="w-full bg-black border border-gray-800 text-gray-400 p-3 focus:border-[#008b8b] outline-none transition-colors font-mono"
                 value={rates.afterHours}
                 onChange={(e) => {
                   setCustomAfterHours(true);
@@ -108,7 +108,7 @@ export const LaborRateModal: React.FC<LaborRateModalProps> = ({ onSave, initialR
               <input
                 type="number"
                 required
-                className="w-full bg-black border border-gray-800 text-gray-400 p-3 focus:border-[#D4AF37] outline-none transition-colors font-mono"
+                className="w-full bg-black border border-gray-800 text-gray-400 p-3 focus:border-[#008b8b] outline-none transition-colors font-mono"
                 value={rates.emergency}
                 onChange={(e) => {
                   setCustomEmergency(true);

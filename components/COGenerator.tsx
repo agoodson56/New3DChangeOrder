@@ -180,8 +180,8 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
     }
   };
 
-  const inputClasses = "w-full bg-[#0a0a0a] border border-gray-800 text-white p-2.5 focus:border-[#D4AF37] outline-none transition-all text-sm placeholder-gray-700";
-  const labelClasses = "block text-[10px] font-bold text-[#D4AF37] uppercase tracking-widest mb-1.5";
+  const inputClasses = "w-full bg-[#0a0a0a] border border-gray-800 text-white p-2.5 focus:border-[#008b8b] outline-none transition-all text-sm placeholder-gray-700";
+  const labelClasses = "block text-[10px] font-bold text-[#008b8b] uppercase tracking-widest mb-1.5";
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-10">
@@ -189,7 +189,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
       {templates.length > 0 && (
         <div className="p-6 bg-white/5 border border-gray-900 shadow-xl">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xs font-black text-[#D4AF37] uppercase tracking-[0.3em]">Start from a saved scope</h3>
+            <h3 className="text-xs font-black text-[#008b8b] uppercase tracking-[0.3em]">Start from a saved scope</h3>
             <span className="text-[10px] text-gray-500 uppercase tracking-widest">{templates.length} template{templates.length === 1 ? '' : 's'}</span>
           </div>
           <p className="text-[10px] text-gray-500 mb-3 leading-relaxed">
@@ -199,7 +199,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
             {templates.slice(0, 8).map(tpl => (
               <div
                 key={tpl.id}
-                className="group flex items-center justify-between bg-black/40 border border-gray-800 hover:border-[#D4AF37]/60 p-3 transition-all"
+                className="group flex items-center justify-between bg-black/40 border border-gray-800 hover:border-[#008b8b]/60 p-3 transition-all"
               >
                 <button
                   type="button"
@@ -229,7 +229,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
 
       {/* Administrative Intake Section */}
       <div className="p-6 bg-white/5 border border-gray-900 shadow-xl space-y-6">
-        <h3 className="text-xs font-black text-[#D4AF37] uppercase tracking-[0.3em] border-b border-gray-800 pb-2">Administrative Intake</h3>
+        <h3 className="text-xs font-black text-[#008b8b] uppercase tracking-[0.3em] border-b border-gray-800 pb-2">Administrative Intake</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
           <div className="space-y-4">
             <div className="relative">
@@ -245,7 +245,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
                 autoComplete="off"
               />
               {customerFocused && customerSuggestions.length > 0 && (
-                <div className="absolute z-20 left-0 right-0 mt-1 bg-[#0a0a0a] border border-[#D4AF37]/40 shadow-2xl max-h-64 overflow-y-auto">
+                <div className="absolute z-20 left-0 right-0 mt-1 bg-[#0a0a0a] border border-[#008b8b]/40 shadow-2xl max-h-64 overflow-y-auto">
                   <div className="text-[8px] text-gray-500 uppercase font-bold tracking-widest px-3 py-1.5 border-b border-gray-900">
                     Recent customers — click to autofill
                   </div>
@@ -254,7 +254,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
                       key={c.customer}
                       type="button"
                       onMouseDown={() => handlePickCustomer(c)}
-                      className="w-full text-left px-3 py-2 hover:bg-[#D4AF37]/10 transition-colors border-b border-gray-900 last:border-b-0"
+                      className="w-full text-left px-3 py-2 hover:bg-[#008b8b]/10 transition-colors border-b border-gray-900 last:border-b-0"
                     >
                       <div className="text-sm text-white font-bold truncate">{c.customer}</div>
                       <div className="text-[10px] text-gray-500 truncate">
@@ -317,7 +317,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <label className="block text-sm font-bold text-[#D4AF37] uppercase tracking-widest">
+          <label className="block text-sm font-bold text-[#008b8b] uppercase tracking-widest">
             Coordinator Intent Description
           </label>
           <button
@@ -389,7 +389,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
                 try { recognition.stop(); } catch { /* ignore */ }
               }, 120000);
             }}
-            className={`flex items-center gap-2 px-4 py-2 font-bold text-xs uppercase tracking-wider transition-all ${isListening ? 'animate-pulse bg-red-600 text-white' : 'bg-[#D4AF37] text-black hover:bg-[#FFD700]'}`}
+            className={`flex items-center gap-2 px-4 py-2 font-bold text-xs uppercase tracking-wider transition-all ${isListening ? 'animate-pulse bg-red-600 text-white' : 'bg-[#008b8b] text-black hover:bg-[#20b2aa]'}`}
           >
             {isListening ? (
               <>
@@ -407,7 +407,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
           </button>
         </div>
         <textarea
-          className={`w-full h-40 bg-[#0a0a0a] border ${intentError ? 'border-red-500' : 'border-gray-800'} text-white p-6 focus:border-[#D4AF37] outline-none transition-all resize-none shadow-inner text-lg placeholder-gray-700`}
+          className={`w-full h-40 bg-[#0a0a0a] border ${intentError ? 'border-red-500' : 'border-gray-800'} text-white p-6 focus:border-[#008b8b] outline-none transition-all resize-none shadow-inner text-lg placeholder-gray-700`}
           placeholder="Type your description here, or click 'Voice Input' to speak it. e.g., 'Add two cameras in the warehouse at column B4 and C6. Include cabling back to MDF-1.'"
           value={intent}
           onChange={(e) => {
@@ -420,7 +420,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
         )}
         <div className="space-y-2">
           <div className="flex items-center gap-3 flex-wrap">
-            <label className={`cursor-pointer bg-white/5 hover:bg-white/10 border border-gray-800 px-3 py-1.5 text-xs uppercase font-bold tracking-wider text-gray-400 hover:text-[#D4AF37] transition-all ${attachmentBusy ? 'opacity-50 cursor-wait' : ''}`}>
+            <label className={`cursor-pointer bg-white/5 hover:bg-white/10 border border-gray-800 px-3 py-1.5 text-xs uppercase font-bold tracking-wider text-gray-400 hover:text-[#008b8b] transition-all ${attachmentBusy ? 'opacity-50 cursor-wait' : ''}`}>
               {attachmentBusy ? '⌛ Processing…' : '+ Attach Files'}
               <input
                 ref={fileInputRef}
@@ -478,28 +478,28 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
 
       {/* Guidance Section */}
       <div className="p-6 bg-white/5 border border-gray-900 shadow-xl space-y-4">
-        <h3 className="text-xs font-black text-[#D4AF37] uppercase tracking-[0.3em] border-b border-gray-800 pb-2">Tips for Best Results</h3>
+        <h3 className="text-xs font-black text-[#008b8b] uppercase tracking-[0.3em] border-b border-gray-800 pb-2">Tips for Best Results</h3>
         <div className="text-sm text-gray-400 space-y-3">
           <p className="leading-relaxed">
-            <span className="text-[#D4AF37] font-bold">Be specific about manufacturers:</span> If you have a preferred brand, include it in your description.
+            <span className="text-[#008b8b] font-bold">Be specific about manufacturers:</span> If you have a preferred brand, include it in your description.
             <span className="text-gray-500 italic"> Example: "Add 4 Axis cameras..." or "Run Panduit Cat6 cabling..."</span>
           </p>
           <p className="leading-relaxed">
-            <span className="text-[#D4AF37] font-bold">Include model numbers when known:</span> Specific models ensure accurate pricing and compatibility.
+            <span className="text-[#008b8b] font-bold">Include model numbers when known:</span> Specific models ensure accurate pricing and compatibility.
             <span className="text-gray-500 italic"> Example: "Install Axis P3245-V cameras" or "Use Leviton 6A250 jacks"</span>
           </p>
           <p className="leading-relaxed">
-            <span className="text-[#D4AF37] font-bold">Mention heights and distances:</span> Include ceiling heights (for lift requirements) and cable run lengths.
+            <span className="text-[#008b8b] font-bold">Mention heights and distances:</span> Include ceiling heights (for lift requirements) and cable run lengths.
             <span className="text-gray-500 italic"> Example: "Cameras at 18ft ceiling height, approximately 150ft cable runs to MDF"</span>
           </p>
           <p className="leading-relaxed">
-            <span className="text-[#D4AF37] font-bold">If no manufacturer specified:</span> The system will select appropriate professional-grade equipment and maintain brand consistency within each system type.
+            <span className="text-[#008b8b] font-bold">If no manufacturer specified:</span> The system will select appropriate professional-grade equipment and maintain brand consistency within each system type.
           </p>
           <p className="leading-relaxed border-t border-gray-800 pt-3 mt-3">
             <span className="text-red-400 font-bold">🔻 DEDUCTIONS / CREDITS:</span> To remove or credit items, say <span className="text-gray-500 italic">"Remove 4 cameras from the existing quote"</span> or <span className="text-gray-500 italic">"Credit back the Cat6 cabling"</span>. The system will price them as negative credits that are subtracted from the total.
           </p>
           <p className="leading-relaxed border-t border-gray-800 pt-3 mt-3">
-            <span className="text-[#D4AF37] font-bold">⚡ NECA MLU Aligned:</span> Labor formulas are aligned with NECA Manual of Labor Units (MLU) standards, featuring Normal/Difficult/Very Difficult condition multipliers for accurate estimating.
+            <span className="text-[#008b8b] font-bold">⚡ NECA MLU Aligned:</span> Labor formulas are aligned with NECA Manual of Labor Units (MLU) standards, featuring Normal/Difficult/Very Difficult condition multipliers for accurate estimating.
           </p>
         </div>
       </div>
@@ -508,12 +508,12 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
         {loading && pipelineStatus && (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-[#D4AF37] font-bold">{pipelineStatus}</span>
+              <span className="text-sm text-[#008b8b] font-bold">{pipelineStatus}</span>
               <span className="text-xs text-gray-500 font-mono">{pipelinePercent}%</span>
             </div>
             <div className="w-full h-2 bg-gray-800 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-[#D4AF37] to-[#FFD700] transition-all duration-500 ease-out rounded-full"
+                className="h-full bg-gradient-to-r from-[#008b8b] to-[#20b2aa] transition-all duration-500 ease-out rounded-full"
                 style={{ width: `${pipelinePercent}%` }}
               />
             </div>

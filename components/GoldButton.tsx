@@ -17,7 +17,7 @@ export const GoldButton: React.FC<GoldButtonProps> = ({
   
   const variants = {
     solid: "gold-bg-gradient text-black hover:brightness-110 shadow-[0_0_15px_rgba(212,175,55,0.3)]",
-    outline: "border-2 border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black"
+    outline: "border-2 border-[#008b8b] text-[#008b8b] hover:bg-[#008b8b] hover:text-black"
   };
 
   return (

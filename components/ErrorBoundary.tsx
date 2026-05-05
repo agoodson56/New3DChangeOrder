@@ -125,7 +125,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
           <div className="flex gap-2">
             <button
               onClick={this.reset}
-              className="bg-[#D4AF37] hover:bg-[#FFD700] text-black font-bold px-4 py-2 uppercase tracking-wider text-sm"
+              className="bg-[#008b8b] hover:bg-[#20b2aa] text-black font-bold px-4 py-2 uppercase tracking-wider text-sm"
             >
               Retry
             </button>

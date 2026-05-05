@@ -45,7 +45,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
             {/* ==================== PAGE 1: COVER PAGE ==================== */}
             <div className="bg-white text-black shadow-2xl print:shadow-none overflow-hidden proposal-page" style={{ pageBreakAfter: 'always' }}>
                 {/* Premium Header Bar - Gold Gradient */}
-                <div className="bg-gradient-to-r from-[#D4AF37] to-[#B8860B] px-8 py-6 flex justify-between items-center">
+                <div className="bg-gradient-to-r from-[#008b8b] to-[#008b8b] px-8 py-6 flex justify-between items-center">
                     <div className="w-56">
                         <Icons.Logo className="w-full h-auto" />
                     </div>
@@ -57,13 +57,13 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
 
                 {/* Hero Section */}
                 <div className="relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/10 via-transparent to-[#008a8a]/10"></div>
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#008b8b]/10 via-transparent to-[#008a8a]/10"></div>
                     <div className="relative px-12 py-16 text-center">
-                        <div className="text-xs font-bold uppercase tracking-[0.4em] text-[#D4AF37] mb-4">Technology Investment Proposal</div>
+                        <div className="text-xs font-bold uppercase tracking-[0.4em] text-[#008b8b] mb-4">Technology Investment Proposal</div>
                         <h1 className="text-4xl font-black uppercase tracking-tight leading-tight mb-6 text-black">
                             {proposal.projectTitle}
                         </h1>
-                        <div className="w-24 h-1 bg-gradient-to-r from-[#D4AF37] to-[#008a8a] mx-auto mb-6"></div>
+                        <div className="w-24 h-1 bg-gradient-to-r from-[#008b8b] to-[#008a8a] mx-auto mb-6"></div>
                         <div className="text-lg font-semibold text-gray-700">
                             Prepared Exclusively for <span className="text-[#008a8a] font-black">{proposal.clientName}</span>
                         </div>
@@ -72,8 +72,8 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
 
                 {/* Executive Summary - Clean White with Gold Border */}
                 <div className="px-12 pb-12">
-                    <div className="bg-white border-2 border-[#D4AF37] p-8 shadow-lg">
-                        <h2 className="text-sm font-black uppercase tracking-[0.2em] text-[#D4AF37] mb-4 flex items-center gap-3">
+                    <div className="bg-white border-2 border-[#008b8b] p-8 shadow-lg">
+                        <h2 className="text-sm font-black uppercase tracking-[0.2em] text-[#008b8b] mb-4 flex items-center gap-3">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -104,7 +104,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                         </div>
                         {/* Total Investment Box - Teal Gradient */}
                         <div className="bg-gradient-to-br from-[#008a8a] to-[#006666] text-white p-8 flex flex-col justify-center items-center text-center rounded-lg shadow-lg">
-                            <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#D4AF37] mb-2">Total Investment</div>
+                            <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#008b8b] mb-2">Total Investment</div>
                             <div className="text-4xl font-black">
                                 {fmtUSD(proposal.investmentSummary.grandTotal)}
                             </div>
@@ -114,7 +114,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                 </div>
 
                 {/* Footer */}
-                <div className="bg-gradient-to-r from-[#D4AF37]/20 to-[#008a8a]/20 px-12 py-4 text-center border-t border-[#D4AF37]/30">
+                <div className="bg-gradient-to-r from-[#008b8b]/20 to-[#008a8a]/20 px-12 py-4 text-center border-t border-[#008b8b]/30">
                     <div className="text-[10px] font-bold uppercase tracking-widest text-gray-600">
                         3D Technology Services | {office.address}, {office.cityState} | {COMPANY_PHONE}
                     </div>
@@ -124,7 +124,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
             {/* ==================== PAGE 2: SOLUTION & VALUE ==================== */}
             <div className="bg-white text-black shadow-2xl print:shadow-none overflow-hidden mt-8 print:mt-0 proposal-page" style={{ pageBreakAfter: 'always' }}>
                 {/* Compact Header - Gold Gradient */}
-                <div className="bg-gradient-to-r from-[#D4AF37] to-[#B8860B] px-8 py-4 flex justify-between items-center">
+                <div className="bg-gradient-to-r from-[#008b8b] to-[#008b8b] px-8 py-4 flex justify-between items-center">
                     <div className="w-32">
                         <Icons.Logo className="w-full h-auto" />
                     </div>
@@ -143,9 +143,9 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                 )}
 
                 {/* Our Solution */}
-                <div className="px-10 py-6 border-b border-gray-200 bg-gradient-to-r from-[#D4AF37]/10 to-transparent">
+                <div className="px-10 py-6 border-b border-gray-200 bg-gradient-to-r from-[#008b8b]/10 to-transparent">
                     <h3 className="text-sm font-black uppercase tracking-[0.15em] text-gray-900 mb-3 flex items-center gap-2">
-                        <span className="w-8 h-8 bg-[#D4AF37] text-white rounded-full flex items-center justify-center text-sm font-bold">✓</span>
+                        <span className="w-8 h-8 bg-[#008b8b] text-white rounded-full flex items-center justify-center text-sm font-bold">✓</span>
                         Our Solution
                     </h3>
                     <p className="text-gray-800 leading-relaxed font-medium">{proposal.solutionOverview}</p>
@@ -173,8 +173,8 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                     </div>
 
                     {/* Value Proposition */}
-                    <div className="px-8 py-6 bg-[#D4AF37]/5">
-                        <h3 className="text-xs font-black uppercase tracking-[0.15em] text-[#D4AF37] mb-4 flex items-center gap-2">
+                    <div className="px-8 py-6 bg-[#008b8b]/5">
+                        <h3 className="text-xs font-black uppercase tracking-[0.15em] text-[#008b8b] mb-4 flex items-center gap-2">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                             </svg>
@@ -183,7 +183,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                         <ul className="space-y-2">
                             {(proposal.valueProposition ?? []).map((item, i) => (
                                 <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                                    <span className="text-[#D4AF37] font-bold mt-0.5">★</span>
+                                    <span className="text-[#008b8b] font-bold mt-0.5">★</span>
                                     <span>{item}</span>
                                 </li>
                             ))}
@@ -202,7 +202,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                     <div className="grid grid-cols-1 gap-3">
                         {(proposal.industryInsights ?? []).map((insight, i) => (
                             <div key={i} className="flex items-start gap-3 text-sm">
-                                <span className="text-[#D4AF37] font-bold">📊</span>
+                                <span className="text-[#008b8b] font-bold">📊</span>
                                 <span className="text-white/90">{insight}</span>
                             </div>
                         ))}
@@ -210,7 +210,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                 </div>
 
                 {/* Footer */}
-                <div className="bg-gradient-to-r from-[#D4AF37]/20 to-[#008a8a]/20 px-10 py-3 text-center border-t border-[#D4AF37]/30">
+                <div className="bg-gradient-to-r from-[#008b8b]/20 to-[#008a8a]/20 px-10 py-3 text-center border-t border-[#008b8b]/30">
                     <div className="text-[9px] font-bold uppercase tracking-widest text-gray-500">
                         Page 2 | Confidential Proposal for {proposal.clientName}
                     </div>
@@ -220,7 +220,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
             {/* ==================== PAGE 3: INVESTMENT & AUTHORIZATION ==================== */}
             <div className="bg-white text-black shadow-2xl print:shadow-none overflow-hidden mt-8 print:mt-0 proposal-page">
                 {/* Compact Header - Gold Gradient */}
-                <div className="bg-gradient-to-r from-[#D4AF37] to-[#B8860B] px-8 py-4 flex justify-between items-center">
+                <div className="bg-gradient-to-r from-[#008b8b] to-[#008b8b] px-8 py-4 flex justify-between items-center">
                     <div className="w-32">
                         <Icons.Logo className="w-full h-auto" />
                     </div>
@@ -246,7 +246,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                         {/* Total Investment - Teal Gradient */}
                         <div className="flex justify-between items-center py-4 bg-gradient-to-r from-[#008a8a] to-[#006666] text-white px-4 -mx-4 mt-4 rounded-lg">
                             <span className="font-black uppercase tracking-wider">Total Investment</span>
-                            <span className="font-black font-mono text-2xl text-[#D4AF37]">{fmtUSD(proposal.investmentSummary.grandTotal)}</span>
+                            <span className="font-black font-mono text-2xl text-[#008b8b]">{fmtUSD(proposal.investmentSummary.grandTotal)}</span>
                         </div>
                     </div>
                 </div>
@@ -259,7 +259,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                         <ul className="space-y-2">
                             {(proposal.whyChooseUs ?? []).map((item, i) => (
                                 <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                                    <span className="text-[#D4AF37]">✓</span>
+                                    <span className="text-[#008b8b]">✓</span>
                                     <span>{item}</span>
                                 </li>
                             ))}
@@ -268,7 +268,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
 
                     {/* Company Credentials */}
                     <div className="px-8 py-6 bg-[#008a8a]/5">
-                        <h3 className="text-xs font-black uppercase tracking-[0.15em] text-[#D4AF37] mb-4">Our Credentials</h3>
+                        <h3 className="text-xs font-black uppercase tracking-[0.15em] text-[#008b8b] mb-4">Our Credentials</h3>
                         <ul className="space-y-2">
                             {proposal.companyCredentials.slice(0, 5).map((item, i) => (
                                 <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
@@ -281,12 +281,12 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                 </div>
 
                 {/* Next Steps */}
-                <div className="px-10 py-6 bg-[#D4AF37]/10 border-t border-[#D4AF37]/30">
+                <div className="px-10 py-6 bg-[#008b8b]/10 border-t border-[#008b8b]/30">
                     <h3 className="text-sm font-black uppercase tracking-[0.15em] text-gray-900 mb-4 text-center">Next Steps</h3>
                     <div className="flex flex-wrap justify-center gap-4">
                         {(proposal.nextSteps ?? []).map((step, i) => (
-                            <div key={i} className="flex items-center gap-2 bg-white px-4 py-2 rounded shadow-sm border border-[#D4AF37]/30">
-                                <span className="w-6 h-6 bg-[#D4AF37] text-white rounded-full flex items-center justify-center text-xs font-black">{i + 1}</span>
+                            <div key={i} className="flex items-center gap-2 bg-white px-4 py-2 rounded shadow-sm border border-[#008b8b]/30">
+                                <span className="w-6 h-6 bg-[#008b8b] text-white rounded-full flex items-center justify-center text-xs font-black">{i + 1}</span>
                                 <span className="text-sm font-medium text-gray-800">{step}</span>
                             </div>
                         ))}
@@ -301,7 +301,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                 </div>
 
                 {/* Authorization Section */}
-                <div className="px-10 py-8 border-t-4 border-[#D4AF37]">
+                <div className="px-10 py-8 border-t-4 border-[#008b8b]">
                     <h3 className="text-sm font-black uppercase tracking-[0.15em] text-gray-900 mb-6 text-center">Authorization to Proceed</h3>
                     <div className="max-w-2xl mx-auto">
                         <p className="text-sm text-gray-600 mb-6 text-center italic">
@@ -329,7 +329,7 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                 </div>
 
                 {/* Footer - Gold Gradient with actual logo */}
-                <div className="bg-gradient-to-r from-[#D4AF37] to-[#B8860B] px-10 py-6 text-center">
+                <div className="bg-gradient-to-r from-[#008b8b] to-[#008b8b] px-10 py-6 text-center">
                     <div className="w-32 mx-auto mb-3">
                         <Icons.Logo className="w-full h-auto" />
                     </div>

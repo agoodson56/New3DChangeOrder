@@ -5,7 +5,7 @@ export const COLORS = {
   black: '#000000',
   gold: '#f2bc1c',
   teal: '#008a8a',
-  goldDark: '#B8860B'
+  goldDark: '#008b8b'
 };
 
 export const Icons = {

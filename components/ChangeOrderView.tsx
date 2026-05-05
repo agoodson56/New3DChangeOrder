@@ -169,8 +169,8 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
   const currentDate = new Date().toLocaleDateString();
 
   // Editable input styles
-  const editableTextClass = "bg-transparent hover:bg-yellow-50 focus:bg-yellow-50 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] px-1 rounded transition-colors print:hover:bg-transparent print:focus:bg-transparent print:focus:ring-0";
-  const editableNumberClass = "bg-transparent hover:bg-yellow-50 focus:bg-yellow-50 focus:outline-none focus:ring-1 focus:ring-[#D4AF37] text-right w-full rounded transition-colors print:hover:bg-transparent print:focus:bg-transparent print:focus:ring-0";
+  const editableTextClass = "bg-transparent hover:bg-yellow-50 focus:bg-yellow-50 focus:outline-none focus:ring-1 focus:ring-[#008b8b] px-1 rounded transition-colors print:hover:bg-transparent print:focus:bg-transparent print:focus:ring-0";
+  const editableNumberClass = "bg-transparent hover:bg-yellow-50 focus:bg-yellow-50 focus:outline-none focus:ring-1 focus:ring-[#008b8b] text-right w-full rounded transition-colors print:hover:bg-transparent print:focus:bg-transparent print:focus:ring-0";
 
   const renderMaterialRow = (item: MaterialItem, displayIndex: number) => {
     // The item came from a filtered+spread copy of data.materials, so its
@@ -235,8 +235,8 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
             onClick={() => handleLookupMSRP(safeIndex, item.manufacturer, item.model)}
             className={`ml-1.5 shrink-0 p-1 rounded-sm transition-all print:hidden ${
               isLoading
-                ? 'bg-[#D4AF37]/20 text-[#D4AF37] cursor-wait'
-                : 'bg-[#D4AF37]/10 text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black'
+                ? 'bg-[#008b8b]/20 text-[#008b8b] cursor-wait'
+                : 'bg-[#008b8b]/10 text-[#008b8b] hover:bg-[#008b8b] hover:text-black'
             }`}
             title="Look up current street price for this item (uses live web search)"
             aria-label="Look up current price"
@@ -296,7 +296,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
                   minWidth: '0' }}>
       <div className="min-w-[640px] md:min-w-0">
       {/* Edit Mode Banner - Hidden on Print */}
-      <div className="bg-gradient-to-r from-[#D4AF37] to-[#B8962F] text-black px-4 py-2 flex items-center gap-3 print:hidden">
+      <div className="bg-gradient-to-r from-[#008b8b] to-[#B8962F] text-black px-4 py-2 flex items-center gap-3 print:hidden">
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
@@ -652,7 +652,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
           <span className="text-[10px] font-black uppercase tracking-widest text-gray-700">Materials & Equipment</span>
           <button
             onClick={() => openSearchModal()}
-            className="flex items-center gap-1 bg-[#D4AF37] hover:bg-[#FFD700] text-black text-[9px] font-bold uppercase tracking-wider px-3 py-1 transition-all"
+            className="flex items-center gap-1 bg-[#008b8b] hover:bg-[#20b2aa] text-black text-[9px] font-bold uppercase tracking-wider px-3 py-1 transition-all"
           >
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -911,7 +911,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
               const tpl = saveTemplate(name, data);
               alert(`Saved "${tpl.name}" — load it from the intake screen on future jobs.`);
             }}
-            className="text-[11px] uppercase tracking-widest font-bold text-gray-700 hover:text-[#B8860B] border border-gray-400 hover:border-[#D4AF37] px-5 py-2 transition-all"
+            className="text-[11px] uppercase tracking-widest font-bold text-gray-700 hover:text-[#008b8b] border border-gray-400 hover:border-[#008b8b] px-5 py-2 transition-all"
             title="Save the current materials/labor/scope as a reusable template. Customer info is stripped."
           >
             💾 Save scope as template
@@ -964,7 +964,7 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
           </button>
         </div>
         <p className="text-[10px] text-center text-gray-700 tracking-widest font-bold uppercase border-t border-gray-300 pt-4 leading-relaxed">
-          <span className="text-[#B8860B]">Estimator Verification —</span> Prior to issuing this change order, the estimator is responsible for validating all high-priced material and equipment line items against current distributor pricing. Use the magnifying-glass icon adjacent to each line to confirm street-price accuracy.
+          <span className="text-[#008b8b]">Estimator Verification —</span> Prior to issuing this change order, the estimator is responsible for validating all high-priced material and equipment line items against current distributor pricing. Use the magnifying-glass icon adjacent to each line to confirm street-price accuracy.
         </p>
       </div>
       {/* Product Search Modal */}
