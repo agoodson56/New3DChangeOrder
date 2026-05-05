@@ -27,6 +27,23 @@ interface Env {
   ALLOWED_ORIGINS?: string;
   MAX_REQUEST_BYTES?: string;
   RATE_LIMIT_PER_MINUTE?: string;
+  DB?: D1Database;
+}
+
+interface D1Database {
+  prepare(sql: string): D1PreparedStatement;
+}
+
+interface D1PreparedStatement {
+  bind(...params: unknown[]): D1PreparedStatement;
+  first(): Promise<unknown>;
+  all(): Promise<{ results?: unknown[] }>;
+  run(): Promise<D1Result>;
+}
+
+interface D1Result {
+  success: boolean;
+  errors?: string[];
 }
 
 interface GeminiProxyBody {
@@ -207,6 +224,67 @@ function isAllowedOrigin(request: Request, env: Env): boolean {
   return false;
 }
 
+/** Check and enforce per-user monthly quota for Gemini API calls.
+ *  Returns { ok: true } on success (quota within limit), or quota-exceeded response.
+ *  Rough cost estimate: Gemini 2.5-flash ~$0.025/CO generation (150K input + 50K output tokens).
+ *  Monthly cap per user: $500 (allows ~20,000 CO generations/month).
+ */
+async function checkUserQuotaAndIncrement(
+  db: D1Database | undefined,
+  email: string | null
+): Promise<{ ok: true } | Response> {
+  if (!db || !email) {
+    // No DB or no authenticated email — allow (fail open, but log it).
+    return { ok: true };
+  }
+
+  const monthKey = new Date().toISOString().slice(0, 7); // "2026-05"
+  const monthlyLimitUsd = 500;
+  const estimatedCostPerCall = 0.025; // Rough estimate for CO generation.
+
+  try {
+    // Check current spend for this user/month.
+    const row = await db
+      .prepare('SELECT current_spend_usd FROM monthly_quotas WHERE email = ? AND month = ?')
+      .bind(email, monthKey)
+      .first() as { current_spend_usd?: number } | null;
+
+    const currentSpend = row?.current_spend_usd ?? 0;
+
+    if (currentSpend + estimatedCostPerCall > monthlyLimitUsd) {
+      return json(
+        {
+          error: {
+            code: 429,
+            status: 'QUOTA_EXCEEDED',
+            message: `Monthly quota exceeded for ${email}. Monthly limit: $${monthlyLimitUsd}. Current spend: $${currentSpend.toFixed(2)}. Contact admin to reset quota.`
+          }
+        },
+        429,
+        { 'Retry-After': '86400' }
+      );
+    }
+
+    // Increment quota (insert or update).
+    await db
+      .prepare(
+        `INSERT INTO monthly_quotas (email, month, current_spend_usd, updated_at)
+         VALUES (?, ?, ?, datetime('now'))
+         ON CONFLICT(email, month) DO UPDATE SET
+           current_spend_usd = current_spend_usd + ?,
+           updated_at = datetime('now')`
+      )
+      .bind(email, monthKey, estimatedCostPerCall, estimatedCostPerCall)
+      .run();
+
+    return { ok: true };
+  } catch (e) {
+    // Quota check DB error — fail open but log it.
+    console.warn(`Quota check failed (error: ${e instanceof Error ? e.message : String(e)}); allowing call.`);
+    return { ok: true };
+  }
+}
+
 export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promise<Response> => {
   if (!env.GEMINI_API_KEY) {
     // Don't reveal which env var is missing — that's reconnaissance value.
@@ -255,6 +333,13 @@ export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promis
       429,
       { 'Retry-After': '60' }
     );
+  }
+
+  // ── Security: Per-user monthly quota (prevent runaway costs) ────────────────
+  const email = request.headers.get('Cf-Access-Authenticated-User-Email') || null;
+  const quotaCheck = await checkUserQuotaAndIncrement(env.DB, email);
+  if (!('ok' in quotaCheck)) {
+    return quotaCheck; // Return error response if quota exceeded.
   }
 
   // Read the body as text first so we can enforce the actual size against

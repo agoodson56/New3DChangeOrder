@@ -49,6 +49,23 @@ const json = (body: unknown, status = 200) =>
 export const onRequestGet = async ({ request, env }: PagesContext<Env>): Promise<Response> => {
   const accessEmail = request.headers.get('Cf-Access-Authenticated-User-Email') || null;
 
+  // ── SECURITY: Require Cloudflare Access authentication ───────────────────
+  // Health check endpoint leaks infrastructure details (which services are configured).
+  // Gate it behind Cloudflare Access to prevent unauthorized reconnaissance.
+  // Unauthenticated callers get a generic 401 with no state information.
+  if (!accessEmail) {
+    return json(
+      {
+        error: {
+          code: 401,
+          status: 'UNAUTHORIZED',
+          message: 'This endpoint requires Cloudflare Access authentication. Sign in via your Cloudflare Access portal.'
+        }
+      },
+      401
+    );
+  }
+
   const docusignFields = {
     integrationKey: !!env.DOCUSIGN_INTEGRATION_KEY,
     userId: !!env.DOCUSIGN_USER_ID,
@@ -57,39 +74,12 @@ export const onRequestGet = async ({ request, env }: PagesContext<Env>): Promise
   };
   const docusignConfigured = Object.values(docusignFields).every(Boolean);
 
-  // Unauthenticated callers get only the booleans the SetupBanner needs — no
-  // user email, no environment string, no notes. Reduces reconnaissance value
-  // while preserving first-time setup UX. Once Cloudflare Access is in front
-  // (see SETUP.md), the response below is upgraded with full diagnostics.
-  if (!accessEmail) {
-    return json({
-      ok: true,
-      timestamp: new Date().toISOString(),
-      authenticated: false,
-      integrations: {
-        gemini: {
-          configured: !!env.GEMINI_API_KEY,
-          note: env.GEMINI_API_KEY ? 'AI service ready' : 'Set GEMINI_API_KEY in Cloudflare Pages env vars',
-        },
-        cloudSync: {
-          d1Bound: !!env.DB,
-          accessEnabled: false,
-          ready: false,
-          note: 'Cloudflare Access not in front of /api/health — sign in to see full diagnostics.',
-        },
-        docusign: {
-          configured: docusignConfigured,
-          // No environment string when unauthenticated.
-          note: docusignConfigured ? 'DocuSign ready' : 'DocuSign not configured',
-        },
-      },
-    });
-  }
-
+  // Authenticated response: full diagnostics for operators.
   return json({
-    ok: true,
-    authenticated: true,
+    status: 'ok',
     timestamp: new Date().toISOString(),
+    authenticated: true,
+    userEmail: accessEmail,
     integrations: {
       gemini: {
         configured: !!env.GEMINI_API_KEY,
@@ -99,14 +89,10 @@ export const onRequestGet = async ({ request, env }: PagesContext<Env>): Promise
       },
       cloudSync: {
         d1Bound: !!env.DB,
-        accessEnabled: !!accessEmail,
-        userEmail: accessEmail,
-        ready: !!env.DB && !!accessEmail,
+        ready: !!env.DB,
         note: !env.DB
           ? 'Bind D1 database "co-storage" to "DB" in Pages → Settings → Functions'
-          : !accessEmail
-            ? 'Cloudflare Access is not in front of /api/health. Configure Zero Trust → Access for /api/data* and /api/health'
-            : 'Cloud sync ready',
+          : 'Cloud sync ready',
       },
       docusign: {
         configured: docusignConfigured,
