@@ -54,11 +54,28 @@ interface Env {
 
 type PagesContext<EnvT> = { request: Request; env: EnvT };
 
+// Sensitive: never cache envelope responses or error details.
+const NO_STORE_HEADERS = {
+  'Cache-Control': 'private, no-store, no-cache, max-age=0',
+  'Pragma': 'no-cache',
+  'X-Content-Type-Options': 'nosniff',
+};
+
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...NO_STORE_HEADERS },
   });
+
+/** Generate a short opaque request id for correlating client errors with server logs. */
+function requestId(): string {
+  return Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+}
+
+/** Basic email shape validation — rejects obvious garbage, not RFC-perfect. */
+function looksLikeEmail(s: unknown): s is string {
+  return typeof s === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s) && s.length <= 320;
+}
 
 interface RequestBody {
   pdfBase64?: string;
@@ -83,11 +100,22 @@ function b64urlEncode(input: ArrayBuffer | string): string {
 }
 
 function pemToPkcs8(pem: string): ArrayBuffer {
+  if (!pem || typeof pem !== 'string') {
+    throw new Error('DOCUSIGN_RSA_PRIVATE_KEY is empty or invalid type');
+  }
   const trimmed = pem
     .replace(/-----BEGIN [^-]+-----/g, '')
     .replace(/-----END [^-]+-----/g, '')
     .replace(/\s+/g, '');
-  const bin = atob(trimmed);
+  if (!trimmed || !/^[A-Za-z0-9+/=]+$/.test(trimmed)) {
+    throw new Error('DOCUSIGN_RSA_PRIVATE_KEY does not look like a valid PEM-encoded RSA key (expected base64 between BEGIN/END markers)');
+  }
+  let bin: string;
+  try {
+    bin = atob(trimmed);
+  } catch {
+    throw new Error('DOCUSIGN_RSA_PRIVATE_KEY base64 decode failed — check the env var value');
+  }
   const bytes = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
   return bytes.buffer;
@@ -137,8 +165,11 @@ async function getAccessToken(env: Env): Promise<string> {
     body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${encodeURIComponent(jwt)}`,
   });
   if (!r.ok) {
+    // Log detail server-side; opaque message to client (caller will log a
+    // request id below for correlation).
     const text = await r.text();
-    throw new Error(`DocuSign OAuth failed (${r.status}): ${text.slice(0, 300)}`);
+    console.error(`[docusign] OAuth ${r.status}:`, text.slice(0, 500));
+    throw new Error(`DocuSign OAuth failed (HTTP ${r.status})`);
   }
   const data = await r.json() as { access_token: string };
   return data.access_token;
@@ -168,13 +199,29 @@ export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promis
   if (!body.pdfBase64 || !body.signer?.email || !body.signer?.name) {
     return json({ error: 'pdfBase64, signer.email, signer.name are required' }, 400);
   }
+  // Validate signer + cc emails so we don't ask DocuSign to send an envelope
+  // to "admin@google.com" because someone fat-fingered. DocuSign will accept
+  // it; the legitimate recipient won't get an audit.
+  if (!looksLikeEmail(body.signer.email)) {
+    return json({ error: 'signer.email is not a valid email address' }, 400);
+  }
+  if (Array.isArray(body.ccs)) {
+    for (const cc of body.ccs) {
+      if (!looksLikeEmail(cc?.email) || typeof cc?.name !== 'string' || cc.name.trim() === '') {
+        return json({ error: 'each cc must have a valid email and non-empty name' }, 400);
+      }
+    }
+  }
 
   let accessToken: string;
   try {
     accessToken = await getAccessToken(env);
   } catch (e) {
+    const rid = requestId();
+    console.error(`[docusign:OAuth ${rid}]`, e instanceof Error ? e.message : String(e));
     return json({
-      error: e instanceof Error ? e.message : 'OAuth failed',
+      error: 'DocuSign authentication failed.',
+      requestId: rid,
       hint: 'Check DocuSign env vars and that the user has consented to the integration (visit consent URL once).',
     }, 500);
   }
@@ -246,9 +293,11 @@ export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promis
   );
   if (!r.ok) {
     const text = await r.text();
+    const rid = requestId();
+    console.error(`[docusign:envelope ${rid}] ${r.status}:`, text.slice(0, 500));
     return json({
-      error: `DocuSign envelope creation failed (${r.status})`,
-      detail: text.slice(0, 500),
+      error: 'DocuSign envelope creation failed.',
+      requestId: rid,
     }, 500);
   }
   const result = await r.json() as { envelopeId?: string; status?: string };

@@ -96,11 +96,16 @@ async function pullAll(): Promise<void> {
     setStatus('disabled');
     return;
   }
+  // If a previous attempt set status='disabled' due to transient 503/401, allow
+  // re-attempt (this function is the only path back to 'idle' anyway). The
+  // ultimate gate stays the response itself.
   setStatus('pulling');
   try {
     const res = await fetch('/api/data', { method: 'GET', credentials: 'same-origin' });
     if (res.status === 503) {
       // Backend not provisioned — fall back silently to local-only mode.
+      // We DO retry on the next interval; if the backend comes back, the next
+      // pullAll() will succeed and the status will clear to 'idle'.
       setStatus('disabled', 'Cloud sync not provisioned on server');
       return;
     }
@@ -143,13 +148,17 @@ async function pullAll(): Promise<void> {
   }
 }
 
-async function pushScope(scope: string): Promise<void> {
-  if (typeof localStorage === 'undefined') return;
-  if (localStorage.getItem('co_cloud_sync_disabled') === '1') return;
+/**
+ * Push one scope. Returns true on success, false on failure.
+ * Caller is expected to re-queue the scope on failure (see flushQueue).
+ */
+async function pushScope(scope: string): Promise<boolean> {
+  if (typeof localStorage === 'undefined') return false;
+  if (localStorage.getItem('co_cloud_sync_disabled') === '1') return false;
   const lsKey = lsKeyForScope(scope);
-  if (!lsKey) return;
+  if (!lsKey) return false;
   const content = localStorage.getItem(lsKey);
-  if (content === null) return;
+  if (content === null) return false;
   try {
     const res = await fetch(`/api/data/${encodeURIComponent(scope)}`, {
       method: 'PUT',
@@ -159,17 +168,19 @@ async function pushScope(scope: string): Promise<void> {
     });
     if (res.status === 503 || res.status === 401) {
       setStatus('disabled');
-      return;
+      return false;
     }
     if (!res.ok) {
       setStatus('error', `Push ${scope} failed: HTTP ${res.status}`);
-      return;
+      return false;
     }
     const data = await res.json() as { updatedAt: number };
     localStorage.setItem(`${lsKey}__pushed_at`, String(data.updatedAt));
     state.lastPushAt = Date.now();
+    return true;
   } catch (e) {
     setStatus('offline', e instanceof Error ? e.message : String(e));
+    return false;
   }
 }
 
@@ -185,10 +196,22 @@ async function flushQueue() {
   const scopes = Array.from(state.pendingScopes);
   state.pendingScopes.clear();
   notify();
+  // Re-queue any scope whose push failed so it gets another shot on the next
+  // online/focus event. Without this, a network blip during a push silently
+  // dropped the dirty flag and the next remote pull would clobber unsynced
+  // local edits.
+  const failed: string[] = [];
   for (const scope of scopes) {
-    await pushScope(scope);
+    const ok = await pushScope(scope);
+    if (!ok) failed.push(scope);
   }
-  if (state.status === 'pushing') setStatus('idle');
+  for (const s of failed) state.pendingScopes.add(s);
+  if (failed.length > 0) {
+    notify();
+    // Status was set by pushScope (offline/error/disabled). Don't override.
+  } else if (state.status === 'pushing') {
+    setStatus('idle');
+  }
 }
 
 /**

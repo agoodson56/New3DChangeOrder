@@ -129,7 +129,10 @@ const App: React.FC = () => {
       return;
     }
     setCoData(draft.coData);
-    setStatus(draft.stage === 'proposal' ? AppStatus.RESULT : AppStatus.RESULT);
+    // Always restore to RESULT (the editing surface) — proposal stage requires
+    // a freshly-generated proposalData object, which is not part of the draft.
+    // The user can re-trigger "Generate Proposal" from RESULT once restored.
+    setStatus(AppStatus.RESULT);
     setDraftPrompt(null);
   };
 

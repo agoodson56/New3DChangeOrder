@@ -3,13 +3,21 @@
  *
  *   GET /api/health
  *
- * Returns a JSON snapshot of which integrations are configured. Useful for:
- *   - Verifying setup after dashboard changes ("did my D1 binding take effect?")
- *   - Driving the in-app setup wizard (utils/setupStatus.ts polls this)
- *   - On-call diagnostics ("is DocuSign configured in production?")
+ * Two response modes:
+ *  - **Authenticated** (Cloudflare Access in front, Cf-Access-Authenticated-User-Email
+ *    header present): full diagnostic — env strings, configuration notes, signed-in
+ *    email. Drives the SetupBanner and on-call diagnostics.
+ *  - **Unauthenticated**: a minimal "is the backend reachable" response with no
+ *    configuration enumeration. Lets a brand-new operator see "the page works"
+ *    without leaking which integrations are wired before Access is configured.
  *
- * No secrets or sensitive identifiers are returned — only booleans and
- * non-sensitive metadata.
+ * Why split the modes: an unauthenticated /api/health was previously enumerating
+ * which integrations were enabled, which environment (demo vs production) DocuSign
+ * was pointing at, and other operational details — reconnaissance value to a
+ * would-be attacker. Now this is gated behind Access.
+ *
+ * No secrets are EVER returned. The booleans (configured/d1Bound/etc.) only
+ * reveal configuration STATE, never the value.
  */
 
 interface Env {
@@ -25,10 +33,17 @@ interface Env {
 
 type PagesContext<EnvT> = { request: Request; env: EnvT };
 
+// Sensitive operational data must not be cached at the edge.
+const NO_STORE_HEADERS = {
+  'Cache-Control': 'private, no-store, no-cache, max-age=0',
+  'Pragma': 'no-cache',
+  'X-Content-Type-Options': 'nosniff',
+};
+
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body, null, 2), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...NO_STORE_HEADERS },
   });
 
 export const onRequestGet = async ({ request, env }: PagesContext<Env>): Promise<Response> => {
@@ -42,8 +57,38 @@ export const onRequestGet = async ({ request, env }: PagesContext<Env>): Promise
   };
   const docusignConfigured = Object.values(docusignFields).every(Boolean);
 
+  // Unauthenticated callers get only the booleans the SetupBanner needs — no
+  // user email, no environment string, no notes. Reduces reconnaissance value
+  // while preserving first-time setup UX. Once Cloudflare Access is in front
+  // (see SETUP.md), the response below is upgraded with full diagnostics.
+  if (!accessEmail) {
+    return json({
+      ok: true,
+      timestamp: new Date().toISOString(),
+      authenticated: false,
+      integrations: {
+        gemini: {
+          configured: !!env.GEMINI_API_KEY,
+          note: env.GEMINI_API_KEY ? 'AI service ready' : 'Set GEMINI_API_KEY in Cloudflare Pages env vars',
+        },
+        cloudSync: {
+          d1Bound: !!env.DB,
+          accessEnabled: false,
+          ready: false,
+          note: 'Cloudflare Access not in front of /api/health — sign in to see full diagnostics.',
+        },
+        docusign: {
+          configured: docusignConfigured,
+          // No environment string when unauthenticated.
+          note: docusignConfigured ? 'DocuSign ready' : 'DocuSign not configured',
+        },
+      },
+    });
+  }
+
   return json({
     ok: true,
+    authenticated: true,
     timestamp: new Date().toISOString(),
     integrations: {
       gemini: {
@@ -55,7 +100,7 @@ export const onRequestGet = async ({ request, env }: PagesContext<Env>): Promise
       cloudSync: {
         d1Bound: !!env.DB,
         accessEnabled: !!accessEmail,
-        userEmail: accessEmail, // null if Access not enabled
+        userEmail: accessEmail,
         ready: !!env.DB && !!accessEmail,
         note: !env.DB
           ? 'Bind D1 database "co-storage" to "DB" in Pages → Settings → Functions'

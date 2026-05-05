@@ -47,10 +47,19 @@ const DEFAULT_MAX_BYTES = 1_000_000;
 // rate would still burn meaningful prepaid quota and warrant edge throttling).
 const DEFAULT_RATE_LIMIT = 200;
 
+// Shared no-store directive for sensitive/personalized responses. Prevents
+// Cloudflare or any intermediate corporate proxy from caching one user's AI
+// output and serving it to another.
+const NO_STORE_HEADERS = {
+  'Cache-Control': 'private, no-store, no-cache, max-age=0',
+  'Pragma': 'no-cache',
+  'X-Content-Type-Options': 'nosniff',
+};
+
 const json = (body: unknown, status = 200, extraHeaders: Record<string, string> = {}) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json', ...extraHeaders },
+    headers: { 'Content-Type': 'application/json', ...NO_STORE_HEADERS, ...extraHeaders },
   });
 
 // In-memory per-IP request log. Resets on worker cold-start. Each worker
@@ -195,7 +204,10 @@ function isAllowedOrigin(request: Request, env: Env): boolean {
 
 export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promise<Response> => {
   if (!env.GEMINI_API_KEY) {
-    return json({ error: { code: 500, status: 'CONFIG_ERROR', message: 'GEMINI_API_KEY not configured on server' } }, 500);
+    // Don't reveal which env var is missing — that's reconnaissance value.
+    // Operators see the truth on /api/health (which is now auth-gated).
+    console.warn('GEMINI_API_KEY not configured on server');
+    return json({ error: { code: 503, status: 'UNAVAILABLE', message: 'AI service is not currently available. Contact your administrator.' } }, 503);
   }
 
   // ── Security: Origin allowlist ─────────────────────────────────────────────
@@ -212,6 +224,8 @@ export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promis
   }
 
   // ── Security: Request size cap ─────────────────────────────────────────────
+  // Header check is a fast reject for honest clients. We re-check the actual
+  // body length below in case Content-Length was missing or lied.
   const maxBytes = Number(env.MAX_REQUEST_BYTES) || DEFAULT_MAX_BYTES;
   const contentLength = Number(request.headers.get('Content-Length') || '0');
   if (contentLength > maxBytes) {
@@ -220,9 +234,10 @@ export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promis
 
   // ── Security: Per-IP rate limit (best-effort, in-memory) ───────────────────
   const perMinute = Number(env.RATE_LIMIT_PER_MINUTE) || DEFAULT_RATE_LIMIT;
-  const ip = request.headers.get('CF-Connecting-IP')
-    || request.headers.get('X-Forwarded-For')?.split(',')[0]?.trim()
-    || 'unknown';
+  // Use ONLY CF-Connecting-IP (Cloudflare-trusted, set by their edge and not
+  // reachable by clients). X-Forwarded-For is client-mutable and previously
+  // allowed an attacker to rotate the header to bypass per-IP limits.
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
   if (!rateLimitOk(ip, perMinute)) {
     return json(
       {
@@ -237,9 +252,21 @@ export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promis
     );
   }
 
+  // Read the body as text first so we can enforce the actual size against
+  // maxBytes — Content-Length headers can be omitted or spoofed.
+  let bodyText: string;
+  try {
+    bodyText = await request.text();
+  } catch {
+    return json({ error: { code: 400, status: 'INVALID_JSON', message: 'Request body could not be read' } }, 400);
+  }
+  if (bodyText.length > maxBytes) {
+    return json({ error: { code: 413, status: 'PAYLOAD_TOO_LARGE', message: `Request body exceeds ${maxBytes} bytes` } }, 413);
+  }
+
   let body: GeminiProxyBody;
   try {
-    body = await request.json();
+    body = JSON.parse(bodyText);
   } catch {
     return json({ error: { code: 400, status: 'INVALID_JSON', message: 'Request body is not valid JSON' } }, 400);
   }
@@ -305,6 +332,10 @@ export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promis
 
   return new Response(upstream.body, {
     status: upstream.status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      // Sensitive AI output: never cache at edge or in shared proxies.
+      ...NO_STORE_HEADERS,
+    },
   });
 };

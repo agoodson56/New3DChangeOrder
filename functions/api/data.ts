@@ -44,11 +44,25 @@ type PagesContext<EnvT, Params extends Record<string, string> = Record<string, s
   params: Params;
 };
 
+// Sensitive multi-tenant data: never cached at edge or in shared corporate
+// proxies. Without these headers, an intermediate cache could replay one
+// coordinator's data to another.
+const NO_STORE_HEADERS = {
+  'Cache-Control': 'private, no-store, no-cache, max-age=0',
+  'Pragma': 'no-cache',
+  'X-Content-Type-Options': 'nosniff',
+};
+
 const json = (body: unknown, status = 200, headers: Record<string, string> = {}) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json', ...headers },
+    headers: { 'Content-Type': 'application/json', ...NO_STORE_HEADERS, ...headers },
   });
+
+/** Generate a short opaque request id for correlating client errors with server logs. */
+function requestId(): string {
+  return Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+}
 
 function authContext(request: Request): { email: string; orgId: string } | null {
   const email = request.headers.get('Cf-Access-Authenticated-User-Email');
@@ -101,7 +115,12 @@ export const onRequestGet = async ({ request, env }: PagesContext<Env>): Promise
     }
     return json({ orgId: auth.orgId, email: auth.email, blobs });
   } catch (e) {
-    return json({ error: `Database read failed: ${e instanceof Error ? e.message : String(e)}` }, 500);
+    // Log full error server-side; return generic message + correlation id.
+    // The previous version echoed schema/query info to clients which is
+    // reconnaissance value to attackers.
+    const rid = requestId();
+    console.error(`[data:GET ${rid}] db read failed:`, e instanceof Error ? e.message : String(e));
+    return json({ error: 'Database read failed.', requestId: rid }, 500);
   }
 };
 

@@ -26,11 +26,25 @@ type PagesContext<EnvT, Params extends Record<string, string> = Record<string, s
   params: Params;
 };
 
+// Sensitive multi-tenant data: never cached at edge or in shared corporate
+// proxies. Without these headers, an intermediate cache could replay one
+// coordinator's data to another.
+const NO_STORE_HEADERS = {
+  'Cache-Control': 'private, no-store, no-cache, max-age=0',
+  'Pragma': 'no-cache',
+  'X-Content-Type-Options': 'nosniff',
+};
+
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...NO_STORE_HEADERS },
   });
+
+/** Generate a short opaque request id for correlating client errors with server logs. */
+function requestId(): string {
+  return Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+}
 
 const KNOWN_SCOPES = ['history', 'customers', 'templates', 'rates'] as const;
 const MAX_BLOB_BYTES = 5_000_000;
@@ -63,7 +77,9 @@ export const onRequestPut = async ({ request, env, params }: PagesContext<Env, {
   if (!auth) return json({ error: 'Unauthenticated.' }, 401);
 
   const scope = params.scope || '';
-  if (!isValidScope(scope, auth.email)) return json({ error: `Unknown scope: ${scope}` }, 400);
+  // Don't echo the invalid scope back — could be used to enumerate other
+  // users' draft scope ids via timing/error-shape analysis.
+  if (!isValidScope(scope, auth.email)) return json({ error: 'Unknown scope.' }, 400);
 
   let bodyText: string;
   try { bodyText = await request.text(); }
@@ -86,6 +102,8 @@ export const onRequestPut = async ({ request, env, params }: PagesContext<Env, {
       .run();
     return json({ ok: true, scope, updatedAt: Date.now() });
   } catch (e) {
-    return json({ error: `Database write failed: ${e instanceof Error ? e.message : String(e)}` }, 500);
+    const rid = requestId();
+    console.error(`[data:PUT ${rid}] db write failed:`, e instanceof Error ? e.message : String(e));
+    return json({ error: 'Database write failed.', requestId: rid }, 500);
   }
 };
