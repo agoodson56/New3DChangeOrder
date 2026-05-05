@@ -124,14 +124,32 @@ async function pullAll(): Promise<void> {
     };
     if (data.email) draftScope = `draft_${emailKey(data.email)}`;
 
-    // Merge: server wins by default. Per-scope updated_at is checked against
-    // the last local push timestamp so we don't clobber pending local writes
-    // that haven't been pushed yet.
+    // Merge: check for conflicts (server newer + local unsaved edits).
+    // Per-scope updated_at is checked against the last local push timestamp
+    // so we don't clobber pending local writes that haven't been pushed yet.
     for (const [scope, payload] of Object.entries(data.blobs)) {
       const lsKey = lsKeyForScope(scope);
       if (!lsKey) continue;
       const localPushedAt = Number(localStorage.getItem(`${lsKey}__pushed_at`) || '0');
-      // If the server's copy is newer than what we last pushed, accept it.
+      const localDirtyAt = Number(localStorage.getItem(`${lsKey}__dirty_at`) || '0');
+
+      // ── CONFLICT DETECTION ─────────────────────────────────────────────────
+      // If server version is newer AND we have local unsaved changes, conflict.
+      // Keep local version (operator's in-progress work takes precedence).
+      const hasConflict = payload.updatedAt > localPushedAt && localDirtyAt > localPushedAt;
+      if (hasConflict) {
+        console.warn(
+          `Cloud sync: conflict on ${scope} — server updated after our last push, ` +
+          `but we have unsaved changes. Keeping local version.`
+        );
+        localStorage.setItem(`${lsKey}__conflict_at`, String(Date.now()));
+        state.lastError = `Sync conflict on ${scope} — your local changes were kept. ` +
+          `If the other tab's version is important, copy it and re-save manually.`;
+        notify();
+        continue;
+      }
+
+      // No conflict: server wins if it's newer.
       if (payload.updatedAt > localPushedAt) {
         try {
           localStorage.setItem(lsKey, JSON.stringify(payload.content));

@@ -241,14 +241,18 @@ You MUST respond with ONLY a JSON object in this exact format (no markdown, no b
         const jsonMatch = rawText.match(/\{[\s\S]*"validations"[\s\S]*\}/);
         const text = jsonMatch ? jsonMatch[0] : '{"validations":[]}';
         result = JSON.parse(text);
-    } catch (error: any) {
+    } catch (error) {
+        // Type-safe error handling: guard against unknown error shapes.
         if (error instanceof ApiKeyError) {
             console.error('Pricing validation: API key error', error);
             throw error;
         }
         // Any other failure (429, 503, parse error): degrade gracefully. Return DB-only validations.
-        const reason = error instanceof RateLimitError ? 'rate-limited'
-            : (error?.name === 'UnavailableError' ? 'unavailable' : 'failed');
+        const isRateLimit = error instanceof RateLimitError;
+        const isUnavailable = error instanceof Error && error.name === 'UnavailableError';
+        const reason = isRateLimit ? 'rate-limited'
+            : isUnavailable ? 'unavailable'
+            : 'failed';
         console.warn(`Pricing validation skipped (${reason}); using DB-only validations.`);
         return data.materials.map((item, index) => {
             const dbResult = isInDatabase(item.manufacturer, item.model, extractPartNumber(item.model));

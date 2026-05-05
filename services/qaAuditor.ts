@@ -200,13 +200,17 @@ Return:
             brandingIssues: result.brandingIssues || [],
             complianceNotes: result.complianceNotes || [],
         };
-    } catch (error: any) {
+    } catch (error) {
+        // Type-safe error handling: guard against unknown error shapes.
         if (error instanceof ApiKeyError) {
             console.error('QA audit: API key error', error);
             throw error;
         }
-        const reason = error instanceof RateLimitError ? 'rate limit reached'
-            : (error?.name === 'UnavailableError' ? 'AI service overloaded' : 'failed');
+        const isRateLimit = error instanceof RateLimitError;
+        const isUnavailable = error instanceof Error && error.name === 'UnavailableError';
+        const reason = isRateLimit ? 'rate limit reached'
+            : isUnavailable ? 'AI service overloaded'
+            : 'failed';
         console.warn(`QA audit skipped: ${reason}`);
         return {
             overallScore: 70,

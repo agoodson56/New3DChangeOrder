@@ -105,6 +105,10 @@ export function estimateStorageUsage(): { usedBytes: number; estimatedFraction: 
 /** Best-effort cloud sync notification. Imports lazily so tests / SSR don't break. */
 async function notifyCloudSync(key: string): Promise<void> {
   try {
+    // Mark the scope as dirty AND record the timestamp when it became dirty.
+    // This is used by the cloud sync conflict detection to know if there are
+    // unsaved local edits that would conflict with a server update.
+    localStorage.setItem(`${key}__dirty_at`, String(Date.now()));
     const mod = await import('./cloudSync');
     mod.markDirty(key);
   } catch {

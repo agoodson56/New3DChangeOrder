@@ -58,8 +58,10 @@ async function attemptOnce(req: GenerateRequest): Promise<GenerateResponse> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(req),
     });
-  } catch (e: any) {
-    throw new NetworkError(`Network error contacting AI service: ${e?.message || e}`);
+  } catch (e) {
+    // Type-safe error handling: guard against unknown error shapes.
+    const message = e instanceof Error ? e.message : String(e);
+    throw new NetworkError(`Network error contacting AI service: ${message}`);
   }
 
   const bodyText = await res.text();

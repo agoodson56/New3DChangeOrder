@@ -36,7 +36,13 @@ const App: React.FC = () => {
   // ── On mount: kick off cloud sync (pulls remote state into localStorage) ───
   useEffect(() => {
     void cloudSync.init();
-    const unsub = cloudSync.subscribe(s => setSyncState(s.status));
+    const unsub = cloudSync.subscribe(s => {
+      setSyncState(s.status);
+      // Surface sync conflicts and other errors to the operator.
+      if (s.lastError && s.lastError.includes('conflict')) {
+        setStorageWarning(`Sync conflict detected: ${s.lastError}`);
+      }
+    });
     return unsub;
   }, []);
 

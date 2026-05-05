@@ -205,6 +205,8 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
             className={`${editableNumberClass} w-12 text-center font-bold ${isDeduct ? 'text-red-600' : ''}`}
             min="0"
             step="1"
+            title={isDeduct ? 'Quantity for credit/deduct. Use the +/- button to toggle between add and deduct.' : 'Quantity must be 0 or greater. To deduct items, use the +/- button in the next column.'}
+            aria-label="Quantity"
           />
           {isCable && <span className="ml-0.5">ft</span>}
         </div>
