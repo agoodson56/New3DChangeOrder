@@ -77,6 +77,8 @@
   font-size: 14px;
   font-family: inherit;
   transition: border-color 0.2s;
+  color: #333;
+  background-color: #fff;
 }
 
 .form-group input:focus {
