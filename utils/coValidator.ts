@@ -127,14 +127,26 @@ export function validateChangeOrder(input: ChangeOrderData): ValidationOutput {
     // =========================================================================
     data.materials.forEach((item, idx) => {
         const isDeduct = item.isDeduct === true;
-        if (item.quantity <= 0) {
+        if (item.quantity < 0) {
+            // Negative quantity is always wrong — credits use isDeduct=true.
             warnings.push({
                 type: 'schema',
                 severity: 'error',
-                message: `${item.manufacturer} ${item.model}: quantity is ${item.quantity} (must be > 0; use isDeduct=true for credits, not negative qty)`,
+                message: `${item.manufacturer} ${item.model}: quantity is ${item.quantity} (must be ≥ 0; use isDeduct=true for credits, not negative qty)`,
                 itemIndex: idx
             });
             deductions += 3;
+        } else if (item.quantity === 0) {
+            // Zero quantity is suspicious but might be a placeholder during
+            // in-progress edits (operator added a row, hasn't filled qty yet).
+            // Flag as info, no score deduction. The UI shows the row visually,
+            // and the financial calc treats it as $0 contribution — no harm done.
+            warnings.push({
+                type: 'schema',
+                severity: 'info',
+                message: `${item.manufacturer || 'Item'} ${item.model || `[${idx}]`}: quantity is 0 — fill in before issuing`,
+                itemIndex: idx
+            });
         }
         if (item.msrp <= 0) {
             warnings.push({

@@ -54,6 +54,10 @@ export interface ValidationResult {
   autoCorrections: string[];
   qaIssues: string[];
   timestamp: string;
+  /** True when the AI's response was truncated and auto-repaired. The
+   *  resulting CO may have missing line items — the UI MUST surface this
+   *  to the operator so they can verify before issuing. */
+  jsonRepaired?: boolean;
 }
 
 export interface ChangeOrderData {

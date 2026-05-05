@@ -272,14 +272,16 @@ You MUST respond with ONLY a JSON object in this exact format (no markdown, no b
             const dbPrice = dbResult.dbProduct?.msrp ?? item.msrp;
             const delta = item.msrp > 0 ? Math.abs(dbPrice - item.msrp) / item.msrp * 100 : 0;
 
-            // If the DB price diverges from the AI's quoted price by >25%, the DB
-            // entry may be stale list MSRP. In that case prefer the LOWER price as
-            // the validated value (we bid to win — never quote above what the
-            // market shows) and lower confidence so coordinators inspect the line.
-            const isLargeDelta = delta > 25;
+            // If the DB price diverges from the AI's quoted price by >15%, the DB
+            // entry may be stale list MSRP, OR the AI is inflating to safe levels.
+            // Prefer the LOWER price as the validated value (we bid to win — never
+            // quote above what the market shows) and lower confidence so coordinators
+            // inspect the line. Threshold tightened from 25% → 15%; on a $1,000 item
+            // a 20% delta is $200 — that's worth a human eyeball, not auto-trust.
+            const isLargeDelta = delta > 15;
             const validatedPrice = isLargeDelta ? Math.min(dbPrice, item.msrp) : dbPrice;
             const source = isLargeDelta
-                ? 'Database (flagged: >25% delta from AI quote — verify)'
+                ? 'Database (flagged: >15% delta from AI quote — verify)'
                 : 'Verified Product Database';
             const confidence = isLargeDelta ? 75 : 100;
 

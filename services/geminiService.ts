@@ -142,11 +142,19 @@ const CO_SCHEMA = {
   required: ['customer', 'technicalScope', 'systemsImpacted', 'materials', 'labor', 'professionalNotes', 'confidenceScore', 'assumptions', 'exclusions', 'nextSteps']
 };
 
+/** Result of generateChangeOrder. Includes a flag if the AI's JSON was
+ *  truncated and had to be repaired heuristically — callers should surface
+ *  this to operators so they can verify line items aren't missing. */
+export interface GenerateChangeOrderResult {
+  data: ChangeOrderData;
+  jsonRepaired: boolean;
+}
+
 export async function generateChangeOrder(
   intent: string,
   images: string[] = [],
   adminData: AdminData = { ...DEFAULT_ADMIN_DATA }
-): Promise<ChangeOrderData> {
+): Promise<GenerateChangeOrderResult> {
   const model = MODEL_NAME;
 
   const systemInstruction = `
@@ -790,11 +798,13 @@ ${buildProductReference()}
   if (!rawText) throw new Error("No response from AI");
 
   let data: ChangeOrderData;
+  let jsonRepairApplied = false;
   try {
     data = JSON.parse(rawText) as ChangeOrderData;
   } catch (parseErr) {
     // Attempt to repair truncated JSON
     console.warn('JSON parse failed, attempting recovery:', parseErr);
+    jsonRepairApplied = true;
     let fixed = rawText;
 
     // Strategy: truncate back to the last complete value, then close all open brackets
@@ -877,7 +887,7 @@ ${buildProductReference()}
     l.hours = Math.max(0, Number.isFinite(l.hours) ? Math.round(l.hours * 100) / 100 : 0);
   });
 
-  return data;
+  return { data, jsonRepaired: jsonRepairApplied };
 }
 
 const PROPOSAL_SCHEMA = {
@@ -1050,7 +1060,7 @@ export async function generateValidatedChangeOrder(
 
   // ===== BRAIN 1: Generate initial Change Order =====
   onProgress?.('🧠 Brain 1: Generating Change Order...', 10);
-  const initialData = await generateChangeOrder(intent, images, adminData);
+  const { data: initialData, jsonRepaired } = await generateChangeOrder(intent, images, adminData);
   onProgress?.('✅ Change Order generated', 30);
 
   // ===== CODE VALIDATOR: Deterministic rule checks =====
@@ -1061,6 +1071,17 @@ export async function generateValidatedChangeOrder(
   const codeValidation = validateChangeOrder(initialData);
   const coData: ChangeOrderData = codeValidation.correctedData;
   onProgress?.(`⚙️ Code validation: ${codeValidation.score}/100`, 50);
+
+  // If the AI's JSON had to be repaired (truncation), emit a high-severity
+  // warning so the UI surfaces it. Operators must verify the line items
+  // weren't dropped before issuing the CO.
+  if (jsonRepaired) {
+    codeValidation.warnings.unshift({
+      type: 'schema',
+      severity: 'error',
+      message: 'AI response was truncated and auto-repaired. Verify all materials and labor lines are present before issuing this CO — some items may have been dropped.',
+    });
+  }
 
   // ===== BRAIN 2: Pricing Validation =====
   onProgress?.('🧠 Brain 2: Verifying pricing...', 55);
@@ -1165,7 +1186,13 @@ export async function generateValidatedChangeOrder(
       ...qaResult.complianceNotes.map(c => `Compliance: ${c}`),
     ],
     timestamp: new Date().toISOString(),
+    jsonRepaired,
   };
+  // If the AI's response was truncated, force the CO into manual review
+  // regardless of how the other passes scored.
+  if (jsonRepaired) {
+    validationResult.status = 'manual_review_required';
+  }
 
   onProgress?.('✅ Validation complete', 100);
 
