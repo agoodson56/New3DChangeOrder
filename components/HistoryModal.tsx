@@ -90,7 +90,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
         <div className="p-6 border-b border-gray-800 shrink-0">
           <div className="flex items-start justify-between mb-6">
             <div>
-              <h2 id="history-modal-title" className="text-2xl font-black gold-gradient uppercase tracking-tighter italic">Change Order History</h2>
+              <h2 id="history-modal-title" className="text-2xl font-black bg-gradient-to-r from-[#008b8b] to-[#20b2aa] bg-clip-text text-transparent uppercase tracking-tighter italic">Change Order History</h2>
               <p className="text-[10px] text-gray-500 uppercase font-bold tracking-[0.3em] mt-1">Win-rate tracking · stored locally on this device</p>
             </div>
             <button

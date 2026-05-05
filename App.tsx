@@ -222,7 +222,7 @@ const App: React.FC = () => {
             </div>
             <div className="h-10 w-px bg-gray-800 mx-2 hidden md:block"></div>
             <div className="hidden md:block">
-              <h1 className="text-xl font-black uppercase tracking-tighter leading-none italic">Intelligence <span className="gold-gradient">At Work</span></h1>
+              <h1 className="text-xl font-black uppercase tracking-tighter leading-none italic">Intelligence <span className="bg-gradient-to-r from-[#008b8b] to-[#20b2aa] bg-clip-text text-transparent">At Work</span></h1>
               <p className="text-[10px] text-gray-500 uppercase font-bold tracking-[0.4em] mt-1">3DTSI Service Estimator</p>
             </div>
           </div>
@@ -378,7 +378,7 @@ const App: React.FC = () => {
             <div className="space-y-10 md:space-y-16 animate-in fade-in zoom-in-95 duration-1000">
               <SetupBanner />
               <div className="text-center max-w-3xl mx-auto space-y-6">
-                <h2 className="text-3xl md:text-6xl font-serif-elegant font-medium tracking-wide leading-tight">Change Order <span className="gold-gradient italic">Requests</span></h2>
+                <h2 className="text-3xl md:text-6xl font-serif-elegant font-medium tracking-wide leading-tight">Change Order <span className="bg-gradient-to-r from-[#008b8b] to-[#20b2aa] bg-clip-text text-transparent italic">Requests</span></h2>
                 <div className="h-1.5 w-32 bg-[#008b8b] mx-auto"></div>
                 <p className="hidden md:block text-gray-400 text-lg font-medium leading-relaxed tracking-wide">
                   Submit coordinator intent with attached project collateral. Our multimodal reasoning engine will synthesize a defensible Change Order with deterministic labor units and infrastructure requirements.

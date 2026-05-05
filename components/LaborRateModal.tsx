@@ -51,7 +51,7 @@ export const LaborRateModal: React.FC<LaborRateModalProps> = ({ onSave, initialR
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md p-4" role="dialog" aria-modal="true" aria-labelledby="rate-modal-title">
-      <div className="w-full max-w-xl bg-black border-4 border-[#008b8b] p-12 shadow-[0_0_100px_rgba(212,175,55,0.25)] relative overflow-hidden">
+      <div className="w-full max-w-xl bg-black border-4 border-[#008b8b] p-12 shadow-[0_0_100px_rgba(0,139,139,0.25)] relative overflow-hidden">
         {/* Subtle Background Mark */}
         <div className="absolute -top-10 -right-10 opacity-5 pointer-events-none">
           <Icons.Logo className="w-96 h-96" />
@@ -61,7 +61,7 @@ export const LaborRateModal: React.FC<LaborRateModalProps> = ({ onSave, initialR
           <div className="w-64">
             <Icons.Logo className="w-full h-auto" />
           </div>
-          <h2 id="rate-modal-title" className="mt-6 text-3xl font-black gold-gradient text-center uppercase tracking-tighter italic">System Initialization</h2>
+          <h2 id="rate-modal-title" className="mt-6 text-3xl font-black bg-gradient-to-r from-[#008b8b] to-[#20b2aa] bg-clip-text text-transparent text-center uppercase tracking-tighter italic">System Initialization</h2>
           <p className="text-[#008a8a] text-xs mt-3 text-center uppercase font-bold tracking-[0.5em] animate-pulse">Labor Rate Deterministic Intake</p>
         </div>
 
