@@ -16,6 +16,7 @@
     "catalog:price-consistency": "node scripts/checkPriceConsistency.cjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.94.0",
     "@google/genai": "^1.35.0",
     "@google/generative-ai": "^0.24.1",
     "exceljs": "^4.4.0",

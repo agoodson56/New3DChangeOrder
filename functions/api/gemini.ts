@@ -1,14 +1,14 @@
 /**
- * Cloudflare Pages Function — Gemini API proxy using official Google SDK.
+ * Cloudflare Pages Function — Claude API proxy using official Anthropic SDK.
  *
  * The browser POSTs { model, contents, config } to /api/gemini.
  * This function injects the secret key (server-side env var) and forwards
- * to Google using the official SDK. The key is never exposed to the client.
+ * to Anthropic using the official SDK. The key is never exposed to the client.
  *
- * Required Pages env var: GEMINI_API_KEY (no VITE_ prefix — server-only).
+ * Required Pages env var: ANTHROPIC_API_KEY (no VITE_ prefix — server-only).
  */
 
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
+import Anthropic from '@anthropic-ai/sdk';
 
 type PagesContext<EnvT> = {
   request: Request;
@@ -16,7 +16,7 @@ type PagesContext<EnvT> = {
 };
 
 interface Env {
-  GEMINI_API_KEY?: string;
+  ANTHROPIC_API_KEY?: string;
   ALLOWED_ORIGINS?: string;
   MAX_REQUEST_BYTES?: string;
   RATE_LIMIT_PER_MINUTE?: string;
@@ -167,8 +167,8 @@ async function checkUserQuotaAndIncrement(
 }
 
 export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promise<Response> => {
-  if (!env.GEMINI_API_KEY) {
-    console.warn('GEMINI_API_KEY not configured on server');
+  if (!env.ANTHROPIC_API_KEY) {
+    console.warn('ANTHROPIC_API_KEY not configured on server');
     return json({ error: { code: 503, status: 'UNAVAILABLE', message: 'AI service is not currently available.' } }, 503);
   }
 
@@ -234,49 +234,46 @@ export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promis
   }
 
   try {
-    const client = new GoogleGenerativeAI(env.GEMINI_API_KEY);
-    const genModel = client.getGenerativeModel({ model });
+    const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
 
-    const requestBody: any = {
-      contents: Array.isArray(contents) ? contents : [contents],
-    };
+    // Convert contents to Claude message format
+    const messages: any[] = Array.isArray(contents) ? contents : [contents];
 
+    // Extract system instruction from config if present
+    let systemInstruction = '';
     if (config && typeof config === 'object') {
-      const cfg = { ...config } as Record<string, unknown>;
-      const sysInstruction = cfg.systemInstruction;
-      delete cfg.systemInstruction;
-
-      if (sysInstruction) {
-        requestBody.systemInstruction = sysInstruction;
-      }
-
-      if (cfg.generationConfig) {
-        requestBody.generationConfig = cfg.generationConfig;
-      }
-      if (cfg.tools) {
-        requestBody.tools = cfg.tools;
-      }
-      if (cfg.safetySettings) {
-        requestBody.safetySettings = cfg.safetySettings;
+      const cfg = config as Record<string, unknown>;
+      if (cfg.systemInstruction) {
+        systemInstruction = typeof cfg.systemInstruction === 'string'
+          ? cfg.systemInstruction
+          : JSON.stringify(cfg.systemInstruction);
       }
     }
 
-    const response = await genModel.generateContent(requestBody);
+    const response = await client.messages.create({
+      model: model || 'claude-3-5-sonnet-20241022',
+      max_tokens: 4096,
+      system: systemInstruction || undefined,
+      messages: messages,
+    });
 
-    const text = response.response?.text?.() || '';
+    const text = response.content
+      .filter((block: any) => block.type === 'text')
+      .map((block: any) => block.text)
+      .join('');
 
     return json({ candidates: [{ content: { parts: [{ text }] } }] });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.error('Gemini error:', message);
+    console.error('Claude error:', message);
 
-    if (message.includes('API key')) {
+    if (message.includes('API key') || message.includes('authentication')) {
       return json({ error: { code: 401, status: 'UNAUTHENTICATED', message: 'API key is invalid or not authorized' } }, 401);
     }
     if (message.includes('not found') || message.includes('not supported')) {
       return json({ error: { code: 404, status: 'NOT_FOUND', message: `Model or endpoint not found: ${message}` } }, 404);
     }
-    if (message.includes('quota') || message.includes('rate limit')) {
+    if (message.includes('quota') || message.includes('rate limit') || message.includes('overloaded')) {
       return json({ error: { code: 429, status: 'RATE_LIMITED', message: message } }, 429);
     }
 

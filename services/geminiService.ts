@@ -8,11 +8,11 @@ import { auditChangeOrder } from "./qaAuditor";
 import { generateContent, ApiKeyError, RateLimitError } from "./geminiClient";
 import type { Attachment } from "../utils/attachments";
 
-const MODEL_NAME = 'gemini-1.5-pro';
+const MODEL_NAME = 'claude-3-5-sonnet-20241022';
 /** Fallback chain when primary model returns persistent UnavailableError.
  *  Different model versions live on different compute pools, so a 503 spike
  *  on one rarely correlates with another. Tried in order until one succeeds. */
-const FALLBACK_MODELS = ['gemini-1.5-flash', 'gemini-pro'];
+const FALLBACK_MODELS = ['claude-3-opus-20250219', 'claude-3-sonnet-20240229'];
 
 /** Sanitize free-text user/AI strings before injection into prompts. */
 function sanitizeForPrompt(rawInput: string, maxLen = 8000): string {
