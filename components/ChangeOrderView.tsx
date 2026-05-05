@@ -379,14 +379,14 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
               {(data.validationResult.autoCorrections?.length ?? 0) > 0 && (
                 <div>
                   <h4 className="text-emerald-400 font-bold uppercase tracking-wider mb-1">🔧 Auto-Corrections Applied</h4>
-                  {(data.validationResult.autoCorrections ?? []).map((c, i) => <p key={i} className="text-gray-700">• {c}</p>)}
+                  {(data.validationResult.autoCorrections ?? []).map((c, i) => <p key={i} className="text-gray-300">• {c}</p>)}
                 </div>
               )}
               {(data.validationResult.warnings?.length ?? 0) > 0 && (
                 <div>
                   <h4 className="text-amber-400 font-bold uppercase tracking-wider mb-1">⚠️ Code Validation Warnings</h4>
                   {(data.validationResult.warnings ?? []).map((w, i) => (
-                    <p key={i} className={`${w.severity === 'error' ? 'text-red-400' : w.severity === 'warning' ? 'text-amber-300' : 'text-gray-600'
+                    <p key={i} className={`${w.severity === 'error' ? 'text-red-400' : w.severity === 'warning' ? 'text-amber-300' : 'text-gray-300'
                       }`}>• [{w.type}] {w.message}</p>
                   ))}
                 </div>

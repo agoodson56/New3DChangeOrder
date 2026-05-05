@@ -69,17 +69,33 @@ function addStandardHardware(data: ChangeOrderData): void {
   const totalFootage = cables.reduce((sum, m) => sum + (m.quantity || 0), 0);
   const cableCount = cables.length;
 
-  // J-hooks: 1 per 8 feet of cable
-  const jHooksNeeded = Math.ceil(totalFootage / 8);
+  // J-hooks: 1 per 45 feet of total cable footage.
+  // Reason: cables share the main pathway for 80%+ of any run, so a single j-hook
+  // supports the whole bundle. Dividing total footage by 45 approximates this
+  // bundled support pattern (vs. 1 per 8 feet, which would over-count for each cable).
+  const jHooksNeeded = Math.ceil(totalFootage / 45);
 
   // Labels: 2 per cable run
   const labelsNeeded = cableCount * 2;
 
-  // Check if J-hooks already exist (don't double-add)
+  // Check if J-hooks already exist (don't double-add).
+  // Match ANY j-hook: by model keyword OR by known j-hook brand/part-number patterns.
+  // Examples that should match:
+  //   - "Generic" "J-Hook Installation Hardware (2")"  → keyword match
+  //   - "nVent CADDY" "CAT21HP" / "CAT32HP" / "CAT64HP" → CADDY CAT-series j-hooks
+  //   - "Erico" "CAT21HP" or "CADDY CAT-line"          → CAT-line pattern
+  //   - any model containing "hook", "bridle", "hanger"
   const hasJHooks = data.materials.some(m => {
     const mfr = (m.manufacturer || '').toLowerCase();
     const mdl = (m.model || '').toLowerCase();
-    return mfr.includes('generic') && (mdl.includes('j-hook') || mdl.includes('hook'));
+    const notes = (m.notes || '').toLowerCase();
+    // Direct keyword match
+    if (mdl.includes('j-hook') || mdl.includes('hook') || mdl.includes('bridle') || mdl.includes('hanger')) return true;
+    // CADDY CAT-series j-hooks (CAT21HP, CAT32HP, CAT64HP, CAT12, etc.)
+    if ((mfr.includes('caddy') || mfr.includes('nvent') || mfr.includes('erico')) && /^cat\d/i.test(mdl)) return true;
+    // Notes mention j-hook (in case AI describes the item differently)
+    if (notes.includes('j-hook') || notes.includes('cable hanger') || notes.includes('bridle ring')) return true;
+    return false;
   });
 
   if (!hasJHooks && jHooksNeeded > 0) {
@@ -91,7 +107,7 @@ function addStandardHardware(data: ChangeOrderData): void {
       msrp: 3.50, // Mid-range of $2-6 pricing
       unitOfMeasure: 'ea',
       complexity: 'Low',
-      notes: `Standard cable support hardware: 1 per 8 feet (${totalFootage}ft ÷ 8 = ${jHooksNeeded})`,
+      notes: `Standard cable support hardware: 1 per 45 feet of total cable footage (${totalFootage}ft ÷ 45 = ${jHooksNeeded}) — cables share main pathway for 80%+ of runs.`,
       isDeduct: false
     });
   }
@@ -495,9 +511,12 @@ ${buildProductReference()}
        - Do NOT add 2 jacks per camera - cameras terminate with RJ45 plugs, not jacks
 
        J-HOOKS AND BEAM CLAMPS (3DTSI INSTALL STANDARD):
-       - Calculate: 1 J-hook per 10 feet of HORIZONTAL cable run
+       - Calculate: 1 J-hook per 45 feet of TOTAL cable footage across all cables
+       - Reason: cables share the main pathway for ~80% of any run, so a single
+         J-hook supports the entire bundle. Counting per cable per 8-10 feet
+         massively over-counts hardware that physically does the same job.
        - Calculate: 1 beam clamp per J-hook (1:1 ratio — each hook attaches to a beam clamp)
-       - Example: 1000ft horizontal run = 100 J-hooks + 100 beam clamps (NOT 200 of each)
+       - Example: 7 cables × 110ft = 770ft total → 770 ÷ 45 ≈ 18 J-hooks + 18 beam clamps
        - Vertical runs use different supports (not J-hooks)
        - Round up to nearest whole number
 
