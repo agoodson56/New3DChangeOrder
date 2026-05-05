@@ -14,11 +14,6 @@
 interface Env {
   GEMINI_API_KEY?: string;
   DB?: unknown;
-  DOCUSIGN_INTEGRATION_KEY?: string;
-  DOCUSIGN_USER_ID?: string;
-  DOCUSIGN_ACCOUNT_ID?: string;
-  DOCUSIGN_RSA_PRIVATE_KEY?: string;
-  DOCUSIGN_BASE_URL?: string;
   ALLOWED_ORIGINS?: string;
 }
 
@@ -40,14 +35,6 @@ const json = (body: unknown, status = 200) =>
 export const onRequestGet = async ({ request, env }: PagesContext<Env>): Promise<Response> => {
   const accessEmail = request.headers.get('Cf-Access-Authenticated-User-Email') || null;
 
-  const docusignFields = {
-    integrationKey: !!env.DOCUSIGN_INTEGRATION_KEY,
-    userId: !!env.DOCUSIGN_USER_ID,
-    accountId: !!env.DOCUSIGN_ACCOUNT_ID,
-    privateKey: !!env.DOCUSIGN_RSA_PRIVATE_KEY,
-  };
-  const docusignConfigured = Object.values(docusignFields).every(Boolean);
-
   // Full diagnostics response (Cloudflare Access handles authentication at the edge).
   return json({
     status: 'ok',
@@ -67,16 +54,6 @@ export const onRequestGet = async ({ request, env }: PagesContext<Env>): Promise
         note: !env.DB
           ? 'Bind D1 database "co-storage" to "DB" in Pages → Settings → Functions'
           : 'Cloud sync ready',
-      },
-      docusign: {
-        configured: docusignConfigured,
-        fields: docusignFields,
-        environment: env.DOCUSIGN_BASE_URL
-          ? (/demo/i.test(env.DOCUSIGN_BASE_URL) ? 'demo' : 'production')
-          : 'not-set',
-        note: docusignConfigured
-          ? 'DocuSign ready — test with a small envelope first'
-          : 'Set DOCUSIGN_INTEGRATION_KEY, DOCUSIGN_USER_ID, DOCUSIGN_ACCOUNT_ID, DOCUSIGN_RSA_PRIVATE_KEY in Pages env vars. See functions/api/docusign.ts for the JWT consent step.',
       },
       security: {
         allowedOrigins: env.ALLOWED_ORIGINS || '(default: same-origin)',

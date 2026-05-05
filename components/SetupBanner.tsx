@@ -43,7 +43,7 @@ export const SetupBanner: React.FC = () => {
 
   if (dismissed || !health?.integrations) return null;
 
-  const { gemini, cloudSync, docusign } = health.integrations;
+  const { gemini, cloudSync } = health.integrations;
   const issues: { severity: 'critical' | 'recommended'; message: string; hint: string }[] = [];
 
   if (gemini && !gemini.configured) {
@@ -67,13 +67,6 @@ export const SetupBanner: React.FC = () => {
         hint: 'Zero Trust → Access → Applications → Add Application for your-pages.pages.dev/api/data*.',
       });
     }
-  }
-  if (docusign && !docusign.configured) {
-    issues.push({
-      severity: 'recommended',
-      message: 'DocuSign not configured — "Send for e-signature" will be unavailable',
-      hint: 'Set DOCUSIGN_* env vars in Pages. See functions/api/docusign.ts for the JWT setup steps.',
-    });
   }
 
   if (issues.length === 0) return null;

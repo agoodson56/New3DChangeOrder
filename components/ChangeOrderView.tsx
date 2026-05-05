@@ -7,7 +7,6 @@ import { ProductSearchModal } from './ProductSearchModal';
 import { lookupMSRP } from '../services/productSearchService';
 import { calculateFinancials, fmtUSD } from '../utils/financials';
 import { saveTemplate } from '../utils/persistence';
-import { sendForSignature, DocusignNotConfiguredError } from '../services/docusignService';
 
 const clampNonNeg = (n: number) => Math.max(0, Number.isFinite(n) ? n : 0);
 const round2OnCommit = (n: number) => Math.round(clampNonNeg(n) * 100) / 100;
@@ -32,8 +31,6 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
   const [marginAcknowledged, setMarginAcknowledged] = useState(false);
   /** Per-item map: { itemId: true } for items the coordinator has checked off. */
   const [complianceChecked, setComplianceChecked] = useState<Record<string, boolean>>({});
-  const [docusignSending, setDocusignSending] = useState(false);
-  const docusignFileRef = useRef<HTMLInputElement>(null);
 
   // Helper to update a field and trigger recalculation
   const updateField = <K extends keyof ChangeOrderData>(field: K, value: ChangeOrderData[K]) => {
@@ -915,52 +912,6 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
             title="Save the current materials/labor/scope as a reusable template. Customer info is stripped."
           >
             💾 Save scope as template
-          </button>
-          <input
-            ref={docusignFileRef}
-            type="file"
-            accept="application/pdf"
-            className="hidden"
-            onChange={async (e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              if (e.target) e.target.value = '';
-              const customerEmail = window.prompt(`Customer email to send the signature request to:\n(${data.customer || 'this customer'})`);
-              if (!customerEmail || !customerEmail.includes('@')) {
-                if (customerEmail !== null) alert('A valid email is required.');
-                return;
-              }
-              const customerName = window.prompt('Customer signer name:', data.contact || data.customer || '') || data.customer || 'Customer';
-              setDocusignSending(true);
-              try {
-                const result = await sendForSignature({
-                  pdfFile: file,
-                  filename: file.name,
-                  subject: `Signature Required: Change Order${data.pcoNumber ? ` #${data.pcoNumber}` : ''} — ${data.customer || data.projectName}`,
-                  message: `Please review and sign the attached change order. Total: $${grandTotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.`,
-                  signer: { email: customerEmail.trim(), name: customerName.trim() },
-                  poNumber: data.pcoNumber,
-                });
-                alert(`Sent for signature.\nDocuSign envelope: ${result.envelopeId}\nThe customer will receive an email shortly.`);
-              } catch (err) {
-                if (err instanceof DocusignNotConfiguredError) {
-                  alert('DocuSign is not yet configured on the server. Ask your admin to set the DOCUSIGN_* env vars in Cloudflare Pages — see functions/api/docusign.ts for the steps.');
-                } else {
-                  console.error(err);
-                  alert(`Could not send for signature: ${err instanceof Error ? err.message : 'Unknown error'}`);
-                }
-              } finally {
-                setDocusignSending(false);
-              }
-            }}
-          />
-          <button
-            onClick={() => docusignFileRef.current?.click()}
-            disabled={docusignSending}
-            className="text-[11px] uppercase tracking-widest font-bold text-gray-700 hover:text-[#008a8a] border border-gray-400 hover:border-[#008a8a] px-5 py-2 transition-all disabled:opacity-50"
-            title="First save this CO as a PDF (Print → Save as PDF), then click here to upload that PDF and email it to the customer for e-signature."
-          >
-            {docusignSending ? '⏳ Sending…' : '✍️ Send for e-signature'}
           </button>
         </div>
         <p className="text-[10px] text-center text-gray-700 tracking-widest font-bold uppercase border-t border-gray-300 pt-4 leading-relaxed">
