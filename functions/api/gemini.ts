@@ -234,10 +234,25 @@ export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promis
   }
 
   try {
+    if (!env.ANTHROPIC_API_KEY) {
+      console.error('ANTHROPIC_API_KEY is empty or undefined');
+      return json({ error: { code: 503, status: 'UNAVAILABLE', message: 'API key not configured' } }, 503);
+    }
+
     const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
 
     // Convert contents to Claude message format
-    const messages: any[] = Array.isArray(contents) ? contents : [contents];
+    // Contents from frontend comes in Gemini format, need to convert to Claude format
+    let messages: any[] = Array.isArray(contents) ? contents : [contents];
+
+    // If messages are in Gemini format { role, parts }, convert to Claude format { role, content }
+    messages = messages.map((msg: any) => {
+      if (msg.parts && Array.isArray(msg.parts)) {
+        const content = msg.parts.map((part: any) => part.text || '').join('');
+        return { role: msg.role || 'user', content };
+      }
+      return msg;
+    });
 
     // Extract system instruction from config if present
     let systemInstruction = '';
@@ -250,6 +265,7 @@ export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promis
       }
     }
 
+    console.log('Calling Claude API with model:', model);
     const response = await client.messages.create({
       model: model || 'claude-3-5-sonnet-20241022',
       max_tokens: 4096,
