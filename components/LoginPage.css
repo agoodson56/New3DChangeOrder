@@ -74,13 +74,17 @@
 
 .form-group input {
   padding: 10px 12px;
-  border: 1px solid #ddd;
+  border: 2px solid #ddd;
   border-radius: 6px;
   font-size: 14px;
   font-family: inherit;
   transition: border-color 0.2s;
-  color: #333;
-  background-color: #fff;
+  color: #000 !important;
+  background-color: #ffffff !important;
+}
+
+.form-group input::placeholder {
+  color: #999;
 }
 
 .form-group input:focus {
