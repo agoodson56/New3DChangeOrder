@@ -5,7 +5,6 @@ export const CATALOG_BULK_EXPANSION_I: CompactProduct[] = [
     // ══════════ POWER SUPPLIES — Deep fill (100+) ══════════
     ['Altronix', 'AL400ULXPD16', 'AL400ULXPD16', 'E', 'Power Supply', 199, 'ea', '12/24VDC 4A 16 Fused Outputs', 1.5, 'M'],
     ['Altronix', 'AL600ULXPD16', 'AL600ULXPD16', 'E', 'Power Supply', 249, 'ea', '12/24VDC 6A 16 Fused Outputs', 1.5, 'M'],
-    ['Altronix', 'AL1012ULXPD16', 'AL1012ULXPD16', 'E', 'Power Supply', 349, 'ea', '12/24VDC 10A 16 Fused Out', 1.5, 'H'],
     ['Altronix', 'ALTV2416', 'ALTV2416', 'E', 'Power Supply', 79, 'ea', '24VAC 7A 16-output CCTV', 1.0, 'L'],
     ['Altronix', 'ALTV2416CB', 'ALTV2416CB', 'E', 'Power Supply', 109, 'ea', '24VAC 7A 16-out PTC CCTV', 1.0, 'M'],
     ['Altronix', 'ALTV2432300', 'ALTV2432300', 'E', 'Power Supply', 149, 'ea', '24VAC 12.5A 32-out CCTV', 1.5, 'M'],
@@ -28,11 +27,6 @@ export const CATALOG_BULK_EXPANSION_I: CompactProduct[] = [
     ['Altronix', 'NetWay1V', 'NETWAY1V', 'E', 'PoE Injector', 149, 'ea', 'NetWay 1-port PoE++ 90W', 0.5, 'M'],
     ['Altronix', 'HubWayLD82DS', 'HUBWAYLD82DS', 'E', 'Data/Power', 299, 'ea', 'IP 8-port Ethernet/Power Hub', 1.0, 'H'],
     // ── Batteries ──
-    ['Altronix', 'BT1212', 'BT1212', 'M', 'Battery', 25, 'ea', '12VDC 12Ah SLA Battery', 0.25, 'L'],
-    ['Altronix', 'BT124', 'BT124', 'M', 'Battery', 15, 'ea', '12VDC 4Ah SLA Battery', 0.1, 'L'],
-    ['Altronix', 'BT127', 'BT127', 'M', 'Battery', 19, 'ea', '12VDC 7Ah SLA Battery', 0.15, 'L'],
-    ['Altronix', 'BT1218', 'BT1218', 'M', 'Battery', 39, 'ea', '12VDC 18Ah SLA Battery', 0.5, 'M'],
-    ['Altronix', 'BT1240', 'BT1240', 'M', 'Battery', 79, 'ea', '12VDC 40Ah SLA Battery', 0.5, 'M'],
     ['UPG', 'UB1250', 'UB1250', 'M', 'Battery', 12, 'ea', '12V 5Ah SLA Battery', 0.1, 'L'],
     ['UPG', 'UB12120', 'UB12120', 'M', 'Battery', 29, 'ea', '12V 12Ah SLA Battery', 0.25, 'L'],
     ['UPG', 'UB12180', 'UB12180', 'M', 'Battery', 45, 'ea', '12V 18Ah SLA Battery', 0.5, 'M'],
@@ -56,7 +50,6 @@ export const CATALOG_BULK_EXPANSION_I: CompactProduct[] = [
     ['Ideal', '45-165', '45-165', 'E', 'Tool', 15, 'ea', 'Cable Stripper UTP 3-step', 0, 'L'],
     ['Ideal', '33-990', '33-990', 'E', 'Test Equipment', 399, 'ea', 'VDV II Pro Cable Tester', 0, 'M'],
     // ── Velcro / Cable Management ──
-    ['Panduit', 'HLS-15R0', 'HLS-15R0', 'M', 'Velcro', 19, 'ea', 'Hook & Loop Roll 15ft Black', 0, 'L'],
     ['Panduit', 'HLS-15R2', 'HLS-15R2', 'M', 'Velcro', 19, 'ea', 'Hook & Loop Roll 15ft Blue', 0, 'L'],
     ['Panduit', 'HLS-15R4', 'HLS-15R4', 'M', 'Velcro', 19, 'ea', 'Hook & Loop Roll 15ft Red', 0, 'L'],
     ['Panduit', 'HLS-15R6', 'HLS-15R6', 'M', 'Velcro', 19, 'ea', 'Hook & Loop Roll 15ft Green', 0, 'L'],
@@ -76,27 +69,15 @@ export const CATALOG_BULK_EXPANSION_I: CompactProduct[] = [
     ['Panduit', 'TM3S10-C', 'TM3S10-C', 'M', 'Cable Tie', 9, 'ea', 'Tie Mount Screw #10 100-pk', 0, 'L'],
 
     // ══════════ STRUCTURED CABLING — Additional jacks by color ══════════
-    ['Leviton', 'eXtreme 6+ Jack Blue', '61110-RL6', 'M', 'Jack', 9, 'ea', 'eXtreme Cat6 Jack Blue', 0.15, 'L'],
-    ['Leviton', 'eXtreme 6+ Jack White', '61110-RW6', 'M', 'Jack', 9, 'ea', 'eXtreme Cat6 Jack White', 0.15, 'L'],
-    ['Leviton', 'eXtreme 6+ Jack Ivory', '61110-RI6', 'M', 'Jack', 9, 'ea', 'eXtreme Cat6 Jack Ivory', 0.15, 'L'],
     ['Leviton', 'eXtreme 6+ Jack Yellow', '61110-RY6', 'M', 'Jack', 9, 'ea', 'eXtreme Cat6 Jack Yellow', 0.15, 'L'],
     ['Leviton', 'eXtreme 6+ Jack Red', '61110-RR6', 'M', 'Jack', 9, 'ea', 'eXtreme Cat6 Jack Red', 0.15, 'L'],
     ['Leviton', 'eXtreme 6+ Jack Orange', '61110-RO6', 'M', 'Jack', 9, 'ea', 'eXtreme Cat6 Jack Orange', 0.15, 'L'],
     ['Leviton', 'eXtreme 6+ Jack Green', '61110-RG6', 'M', 'Jack', 9, 'ea', 'eXtreme Cat6 Jack Green', 0.15, 'L'],
     ['Leviton', 'eXtreme 6+ Jack Black', '61110-RE6', 'M', 'Jack', 9, 'ea', 'eXtreme Cat6 Jack Black', 0.15, 'L'],
-    ['Leviton', 'Atlas-X1 Cat6 Blue', '6110G-RL6', 'M', 'Jack', 12, 'ea', 'Atlas-X1 Cat6 Jack Blue', 0.15, 'L'],
-    ['Leviton', 'Atlas-X1 Cat6 White', '6110G-RW6', 'M', 'Jack', 12, 'ea', 'Atlas-X1 Cat6 Jack White', 0.15, 'L'],
     ['Leviton', 'Atlas-X1 Cat6 Yellow', '6110G-RY6', 'M', 'Jack', 12, 'ea', 'Atlas-X1 Cat6 Jack Yellow', 0.15, 'L'],
     ['Leviton', 'Atlas-X1 Cat6 Red', '6110G-RR6', 'M', 'Jack', 12, 'ea', 'Atlas-X1 Cat6 Jack Red', 0.15, 'L'],
-    ['Leviton', 'Atlas-X1 Cat6 Orange', '6110G-RO6', 'M', 'Jack', 12, 'ea', 'Atlas-X1 Cat6 Jack Orange', 0.15, 'L'],
     ['Leviton', 'Atlas-X1 Cat6 Green', '6110G-RG6', 'M', 'Jack', 12, 'ea', 'Atlas-X1 Cat6 Jack Green', 0.15, 'L'],
-    ['Panduit', 'CJ688TGBL Jack', 'CJ688TGBL', 'M', 'Jack', 11, 'ea', 'Mini-Com Cat6 Jack Blue', 0.15, 'L'],
-    ['Panduit', 'CJ688TGWH Jack', 'CJ688TGWH', 'M', 'Jack', 11, 'ea', 'Mini-Com Cat6 Jack White', 0.15, 'L'],
     ['Panduit', 'CJ688TGIG Jack', 'CJ688TGIG', 'M', 'Jack', 11, 'ea', 'Mini-Com Cat6 Jack Intl Gray', 0.15, 'L'],
-    ['Panduit', 'CJ688TGRD Jack', 'CJ688TGRD', 'M', 'Jack', 11, 'ea', 'Mini-Com Cat6 Jack Red', 0.15, 'L'],
-    ['Panduit', 'CJ688TGYL Jack', 'CJ688TGYL', 'M', 'Jack', 11, 'ea', 'Mini-Com Cat6 Jack Yellow', 0.15, 'L'],
-    ['Panduit', 'CJ688TGOR Jack', 'CJ688TGOR', 'M', 'Jack', 11, 'ea', 'Mini-Com Cat6 Jack Orange', 0.15, 'L'],
-    ['Panduit', 'CJ688TGGR Jack', 'CJ688TGGR', 'M', 'Jack', 11, 'ea', 'Mini-Com Cat6 Jack Green', 0.15, 'L'],
     ['Panduit', 'CJ688TGBK Jack', 'CJ688TGBK', 'M', 'Jack', 11, 'ea', 'Mini-Com Cat6 Jack Black', 0.15, 'L'],
 
     // ══════════ INTRUSION — Photo beams, perimeter, specialty ══════════

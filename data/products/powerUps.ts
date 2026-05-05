@@ -3,10 +3,8 @@ import { CompactProduct } from './types';
 // New category: Power Supplies, UPS, Battery Backup, Enclosures
 export const CATALOG_POWER_UPS: CompactProduct[] = [
     // ── ALTRONIX — Power Supplies ──
-    ['Altronix', 'AL600ULACM', 'AL600ULACM', 'E', 'Power Supply', 299, 'ea', '6A 12/24VDC Power w/ Access', 1.0, 'M'],
     ['Altronix', 'AL600ULACMJ', 'AL600ULACMJ', 'E', 'Power Supply', 349, 'ea', '6A 12/24V Power Large Encl', 1.0, 'H'],
     ['Altronix', 'AL1024ULACM', 'AL1024ULACM', 'E', 'Power Supply', 399, 'ea', '10A 24VDC Power w/ Access', 1.0, 'H'],
-    ['Altronix', 'AL400ULACM', 'AL400ULACM', 'E', 'Power Supply', 249, 'ea', '4A 12/24VDC Power w/ Access', 1.0, 'M'],
     ['Altronix', 'AL300ULPD8CB', 'AL300ULPD8CB', 'E', 'Power Supply', 329, 'ea', '2.5A 12/24VDC 8-output w/CB', 1.0, 'M'],
     ['Altronix', 'AL600ULPD8CB', 'AL600ULPD8CB', 'E', 'Power Supply', 399, 'ea', '6A 12/24VDC 8-output w/CB', 1.0, 'H'],
     ['Altronix', 'ALTV2416ULCB', 'ALTV2416ULCB', 'E', 'Power Supply', 229, 'ea', '16-camera 24VAC Power Board', 1.0, 'M'],
@@ -31,8 +29,6 @@ export const CATALOG_POWER_UPS: CompactProduct[] = [
     ['LifeSafety Power', 'A100E', 'A100E', 'E', 'Power Supply', 299, 'ea', '6A 12/24VDC Intelligent Power', 1.0, 'M'],
     ['LifeSafety Power', 'A200E', 'A200E', 'E', 'Power Supply', 399, 'ea', '12A 12/24VDC Intelligent Power', 1.0, 'M'],
     // ── Batteries ──
-    ['Altronix', 'BT1212', 'BT1212', 'M', 'Battery', 29, 'ea', '12V 12Ah SLA Battery', 0.1, 'L'],
-    ['Altronix', 'BT1218', 'BT1218', 'M', 'Battery', 39, 'ea', '12V 18Ah SLA Battery', 0.1, 'L'],
     ['Altronix', 'BT124', 'BT124', 'M', 'Battery', 15, 'ea', '12V 4Ah SLA Battery', 0.1, 'L'],
     ['Altronix', 'BT127', 'BT127', 'M', 'Battery', 19, 'ea', '12V 7Ah SLA Battery', 0.1, 'L'],
     ['Altronix', 'BT1240', 'BT1240', 'M', 'Battery', 59, 'ea', '12V 40Ah SLA Battery', 0.1, 'M'],

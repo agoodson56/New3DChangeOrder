@@ -4,7 +4,6 @@ import { CompactProduct } from './types';
 export const CATALOG_BULK_EXPANSION_F: CompactProduct[] = [
     // ══════════ CCTV — License Plate Recognition, Body Worn, Thermal ══════════
     ['Axis', 'P1445-LE-3 License Plate', '02339-001', 'E', 'LPR Camera', 1299, 'ea', '2MP LPR Bullet IR', 2.5, 'H'],
-    ['Axis', 'P1455-LE-3 License Plate', '02341-001', 'E', 'LPR Camera', 1499, 'ea', '2MP LPR Bullet IR 50m', 2.5, 'H'],
     ['Hikvision', 'iDS-2CD7A46G0/P-IZHSY', 'iDS-2CD7A46G0P', 'E', 'LPR Camera', 999, 'ea', '4MP LPR DeepInView VF', 2.5, 'H'],
     ['Hikvision', 'DS-2CD4A26FWD-IZS/P', 'DS-2CD4A26FWD-P', 'E', 'LPR Camera', 699, 'ea', '2MP LPR Bullet DarkFighter', 2.5, 'H'],
     ['Hanwha', 'XNO-6120R/LPR', 'XNO-6120R-LPR', 'E', 'LPR Camera', 799, 'ea', '2MP LPR Bullet IR', 2.5, 'H'],
@@ -30,7 +29,6 @@ export const CATALOG_BULK_EXPANSION_F: CompactProduct[] = [
     ['Synology', 'Surveillance Station Per Cam', 'SSPC-01', 'E', 'VMS License', 49, 'ea', 'Per Camera License', 0, 'M'],
 
     // ══════════ ACCESS CONTROL — Elevator Control, Parking ══════════
-    ['Mercury', 'MR62e', 'MR62E', 'E', 'Access Panel', 799, 'ea', 'Elevator Controller 64-floor', 3.0, 'H'],
     ['Mercury', 'MR62eF', 'MR62EF', 'E', 'Access Panel', 499, 'ea', 'Floor Select 16-floor', 1.5, 'M'],
     ['GAI-Tronics', 'ICP-9000E', 'ICP-9000E', 'E', 'Elevator Phone', 399, 'ea', 'Elevator Emergency Phone IP', 1.0, 'M'],
     ['Kings III', 'Elevator Phone', 'K3-EP', 'E', 'Elevator Phone', 299, 'ea', 'ADA Elevator Emergency Phone', 1.0, 'M'],
@@ -58,9 +56,7 @@ export const CATALOG_BULK_EXPANSION_F: CompactProduct[] = [
 
     // ══════════ FIRE ALARM — Duct, Beam, VESDA, Sprinkler ══════════
     ['System Sensor', 'D2W', 'D2W', 'E', 'Duct Smoke', 149, 'ea', '2-wire Conventional Duct Smoke', 1.5, 'M'],
-    ['System Sensor', 'D4120', 'D4120', 'E', 'Duct Smoke', 199, 'ea', '4-wire Duct Smoke', 1.5, 'M'],
     ['System Sensor', 'InnovairFlex D4120', 'IF-D4120', 'E', 'Duct Smoke', 249, 'ea', 'InnovairFlex Duct Smoke 4-wire', 1.5, 'H'],
-    ['System Sensor', 'BEAM1224S', 'BEAM1224S', 'E', 'Beam Detector', 899, 'ea', 'Projected Beam Smoke 100m', 3.0, 'H'],
     ['System Sensor', 'BEAM200S', 'BEAM200S', 'E', 'Beam Detector', 599, 'ea', 'Projected Beam Smoke 60m', 2.0, 'M'],
     ['Xtralis', 'VESDA-E VEA-040', 'VEA-040-A00', 'E', 'Aspirating', 1999, 'ea', 'VESDA-E VEA Aspirating Low', 3.0, 'H'],
     ['Xtralis', 'VESDA-E VEP-A00', 'VEP-A00-P', 'E', 'Aspirating', 2999, 'ea', 'VESDA-E VEP Aspirating Standard', 3.0, 'H'],
@@ -89,6 +85,5 @@ export const CATALOG_BULK_EXPANSION_F: CompactProduct[] = [
     ['Panduit', 'H000X044H1C', 'H000X044H1C', 'M', 'Label', 69, 'ea', 'Heat Shrink Label 100/cassette', 0, 'L'],
     ['Brady', 'BMP21-PLUS', 'BMP21-PLUS', 'E', 'Label Printer', 199, 'ea', 'Portable Label Printer', 0, 'M'],
     ['Brady', 'M710', 'M710', 'E', 'Label Printer', 999, 'ea', 'Portable Label Printer Pro', 0, 'H'],
-    ['Brother', 'PT-E550W', 'PT-E550W', 'E', 'Label Printer', 179, 'ea', 'Industrial Labeler WiFi', 0, 'M'],
     ['Dymo', 'Rhino 6000+', 'RHINO-6000+', 'E', 'Label Printer', 249, 'ea', 'Industrial Labeler Pro', 0, 'M'],
 ];

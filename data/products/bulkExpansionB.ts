@@ -4,7 +4,6 @@ import { CompactProduct } from './types';
 export const CATALOG_BULK_EXPANSION_B: CompactProduct[] = [
     // ══════════ AV — Additional Conference, Digital Signage, Control ══════════
     ['Crestron', 'AirMedia AM-3200-WF', 'AM-3200-WF', 'E', 'AV Control', 999, 'ea', 'AirMedia Wireless Presentation', 1.0, 'H'],
-    ['Crestron', 'AirMedia AM-3100-WF', 'AM-3100-WF', 'E', 'AV Control', 799, 'ea', 'AirMedia Presentation WiFi', 1.0, 'M'],
     ['Crestron', 'CEN-GWEXER', 'CEN-GWEXER', 'E', 'AV Control', 599, 'ea', 'Cresnet to infiNET EX Gateway', 0.5, 'H'],
     ['Crestron', 'TSW-570-B-S', 'TSW-570-B-S', 'E', 'AV Touch Panel', 999, 'ea', '5" Wall Touch Panel Black', 1.0, 'M'],
     ['Crestron', 'TSW-1070-B-S', 'TSW-1070-B-S', 'E', 'AV Touch Panel', 1799, 'ea', '10.1" Wall Touch Panel Black', 1.0, 'H'],

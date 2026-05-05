@@ -32,6 +32,9 @@ jobs:
       - name: Price consistency check
         run: node scripts/checkPriceConsistency.cjs
 
+      - name: Catalog dedup check (no duplicate part numbers)
+        run: npm run catalog:check
+
       - name: Build
         run: npm run build
 

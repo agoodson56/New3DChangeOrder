@@ -14,13 +14,11 @@ export const CATALOG_BULK_EXPANSION_E: CompactProduct[] = [
     ['Hikvision', 'DS-2CD2046G2-IU/SL', 'DS-2CD2046G2-IU-SL', 'E', 'CCTV Camera', 199, 'ea', '4MP AcuSense Bullet Speaker', 2.5, 'M'],
     ['Hikvision', 'DS-2CD2T26G2-ISU/SL', 'DS-2CD2T26G2-ISU-SL', 'E', 'CCTV Camera', 199, 'ea', '2MP AcuSense Bullet Spkr Mic', 2.5, 'M'],
     ['Hikvision', 'DS-2CD2365G1-I', 'DS-2CD2365G1-I', 'E', 'CCTV Camera', 149, 'ea', '6MP Turret DarkFighter IR', 1.5, 'M'],
-    ['Hikvision', 'iDS-2CD7A46G0-IZHS', 'iDS-2CD7A46G0', 'E', 'CCTV Camera', 799, 'ea', '4MP DeepInView Bullet VF IR', 2.5, 'H'],
     ['Hikvision', 'iDS-2CD7A86G0-IZHS', 'iDS-2CD7A86G0', 'E', 'CCTV Camera', 999, 'ea', '4K DeepInView Bullet VF IR', 2.5, 'H'],
     ['Hikvision', 'DS-2CD6984G0-IHSO', 'DS-2CD6984G0', 'E', 'CCTV Camera', 1999, 'ea', '4x 8MP PanoVu 360°', 3.0, 'H'],
     ['Hikvision', 'DS-2CD2586G2-IS', 'DS-2CD2586G2-IS', 'E', 'CCTV Camera', 249, 'ea', '4K AcuSense Dome VF', 1.5, 'H'],
     ['Hikvision', 'DS-2DE4225IW-D(S6)', 'DS-2DE4225IW-D-S6', 'E', 'CCTV Camera', 999, 'ea', '2MP PTZ 25x Acusense VCA', 4.0, 'H'],
     ['Hikvision', 'DS-2DE4415IW-D', 'DS-2DE4415IW-D', 'E', 'CCTV Camera', 799, 'ea', '4MP PTZ 15x IR DarkFighter', 4.0, 'H'],
-    ['Hikvision', 'DS-2DE5225IW-AE(T5)', 'DS-2DE5225IW-AE', 'E', 'CCTV Camera', 1299, 'ea', '2MP PTZ 25x Pro IR 150m', 4.0, 'H'],
     ['Hikvision', 'DS-2SE7C124IW-AE', 'DS-2SE7C124IW-AE', 'E', 'CCTV Camera', 2999, 'ea', '4MP TandemVu PTZ+Fixed', 4.0, 'H'],
     ['Hikvision', 'DS-2SF8C442MXS-DL', 'DS-2SF8C442MXS', 'E', 'CCTV Camera', 4999, 'ea', '4MP+2MP TandemVu Positioning', 5.0, 'H'],
     // ── DAHUA — Deep full lineup ──
@@ -35,15 +33,9 @@ export const CATALOG_BULK_EXPANSION_E: CompactProduct[] = [
     ['Dahua', 'IPC-HFW5842TP-ASE', 'N58EF62-ASE', 'E', 'CCTV Camera', 449, 'ea', '4K WizMind Bullet IR', 2.5, 'H'],
     ['Dahua', 'SD6CE245XA-HNR', 'SD6CE245XA', 'E', 'CCTV Camera', 2999, 'ea', '2MP PTZ 45x WizMind IR', 4.0, 'H'],
     // ── VERKADA — Cloud ──
-    ['Verkada', 'CD42', 'CD42', 'E', 'CCTV Camera', 599, 'ea', 'Indoor Mini Dome 5MP Cloud', 1.5, 'M'],
-    ['Verkada', 'CD52', 'CD52', 'E', 'CCTV Camera', 999, 'ea', 'Outdoor Dome 5MP Cloud IR', 2.0, 'H'],
     ['Verkada', 'CB52', 'CB52', 'E', 'CCTV Camera', 999, 'ea', 'Outdoor Bullet 5MP Cloud IR', 2.5, 'H'],
-    ['Verkada', 'CD62', 'CD62', 'E', 'CCTV Camera', 1499, 'ea', 'Outdoor Dome 4K Cloud IR', 2.0, 'H'],
     ['Verkada', 'CB62', 'CB62', 'E', 'CCTV Camera', 1499, 'ea', 'Outdoor Bullet 4K Cloud IR', 2.5, 'H'],
     ['Verkada', 'CP62', 'CP62', 'E', 'CCTV Camera', 1999, 'ea', 'PTZ 4K Cloud 30x IR', 4.0, 'H'],
-    ['Verkada', 'CM41', 'CM41', 'E', 'CCTV Camera', 999, 'ea', 'Multi-Sensor 180° Cloud', 2.5, 'H'],
-    ['Verkada', 'CM61', 'CM61', 'E', 'CCTV Camera', 1999, 'ea', 'Multi-Sensor 360° 4K Cloud', 3.0, 'H'],
-    ['Verkada', 'SV11', 'SV11', 'E', 'Sensor', 199, 'ea', 'Environmental Sensor', 0.5, 'L'],
     ['Verkada', 'SV21', 'SV21', 'E', 'Sensor', 249, 'ea', 'Air Quality Sensor', 0.5, 'M'],
     // ── RHOMBUS ──
     ['Rhombus', 'R200', 'R200', 'E', 'CCTV Camera', 399, 'ea', 'Dome Camera 5MP Cloud', 1.5, 'M'],
@@ -57,7 +49,6 @@ export const CATALOG_BULK_EXPANSION_E: CompactProduct[] = [
     ['McKinney', 'QC-C4614P', 'QC-C4614P', 'M', 'Electric Hinge', 299, 'ea', 'ElectroLynx Concealed 4-wire', 1.5, 'M'],
     ['McKinney', 'QC-C4814P', 'QC-C4814P', 'M', 'Electric Hinge', 349, 'ea', 'ElectroLynx Concealed 8-wire', 1.5, 'H'],
     ['McKinney', 'TA2714 4.5x4.5 26D', 'TA2714-26D', 'M', 'Electric Hinge', 249, 'ea', 'ElectroLynx 4.5x4.5 4-wire', 1.5, 'M'],
-    ['Von Duprin', 'EPT-10', 'EPT-10', 'M', 'Power Transfer', 199, 'ea', 'Electric Power Transfer 4-wire', 0.5, 'M'],
     ['Von Duprin', 'EPT-20', 'EPT-20', 'M', 'Power Transfer', 249, 'ea', 'Electric Power Transfer 8-wire', 0.5, 'M'],
     ['Securitron', 'TSB-C', 'TSB-C', 'M', 'Power Transfer', 149, 'ea', 'Touch Sense Bar Clear', 0.5, 'L'],
     // ── Door Closers ──
@@ -80,11 +71,9 @@ export const CATALOG_BULK_EXPANSION_E: CompactProduct[] = [
     ['SARGENT', '8800 Rim', '8800-RIM', 'E', 'Exit Device', 499, 'ea', '8800 Series Rim Exit', 2.5, 'M'],
     ['SARGENT', '8900 Fire', '8900-FIRE', 'E', 'Exit Device', 699, 'ea', '8900 Fire Rated Exit', 2.5, 'H'],
     // ── REX / Request to Exit ──
-    ['Camden', 'CM-30E', 'CM-30E', 'E', 'REX Device', 69, 'ea', 'Touchless REX Switch', 0.5, 'L'],
     ['Camden', 'CM-324', 'CM-324', 'E', 'REX Device', 89, 'ea', 'REX Switch with Timer', 0.5, 'L'],
     ['Camden', 'CM-333', 'CM-333', 'E', 'REX Device', 99, 'ea', 'Mushroom REX Button Green', 0.5, 'L'],
     ['Camden', 'CX-33S', 'CX-33S', 'E', 'REX Device', 39, 'ea', 'Push to Exit Plate SS', 0.25, 'L'],
-    ['Alarm Controls', 'TS-2T', 'TS-2T', 'E', 'REX Device', 49, 'ea', 'REX Push Button Green LED', 0.5, 'L'],
     ['Alarm Controls', 'TS-14', 'TS-14', 'E', 'REX Device', 39, 'ea', 'REX Chrome Push-Plate', 0.25, 'L'],
     ['Securitron', 'PB4L-2', 'PB4L-2', 'E', 'REX Device', 79, 'ea', 'REX Push Button LED Green', 0.5, 'M'],
     // ── Door Position Switches / Contacts ──
@@ -105,7 +94,6 @@ export const CATALOG_BULK_EXPANSION_E: CompactProduct[] = [
     ['QSC', 'GXD 4', 'GXD4', 'E', 'AV Amplifier', 799, 'ea', 'Processing Amplifier 400W', 1.5, 'M'],
     ['QSC', 'GXD 8', 'GXD8', 'E', 'AV Amplifier', 999, 'ea', 'Processing Amplifier 800W', 1.5, 'H'],
     ['QSC', 'CXD4.2', 'CXD4.2', 'E', 'AV Amplifier', 499, 'ea', 'Compact Install Amplifier 4ch', 1.5, 'M'],
-    ['QSC', 'CXD4.5', 'CXD4.5', 'E', 'AV Amplifier', 999, 'ea', 'Compact Install Amplifier 4ch 500W', 1.5, 'H'],
     ['Biamp', 'Tesira SCM-1', 'SCM-1', 'E', 'AV DSP', 599, 'ea', 'Small Conference Module', 1.0, 'M'],
     ['Biamp', 'QTC', 'QTC', 'E', 'AV DSP', 299, 'ea', 'Qt Controller Ceiling', 1.0, 'M'],
     ['Biamp', 'Qt X 600', 'QTX-600', 'E', 'AV DSP', 1999, 'ea', 'Qt Sound Masking Processor', 2.0, 'H'],

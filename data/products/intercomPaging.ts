@@ -5,11 +5,8 @@ export const CATALOG_INTERCOM_PAGING: CompactProduct[] = [
     // ── AIPHONE — Video Intercoms ──
     ['Aiphone', 'IX-MV7-B', 'IX-MV7-B', 'E', 'Video Intercom', 899, 'ea', '7" IP Video Master Station Black', 2.0, 'H'],
     ['Aiphone', 'IX-MV7-W', 'IX-MV7-W', 'E', 'Video Intercom', 899, 'ea', '7" IP Video Master Station White', 2.0, 'H'],
-    ['Aiphone', 'IX-DV', 'IX-DV', 'E', 'Video Intercom', 499, 'ea', 'IP Video Door Station', 2.0, 'M'],
     ['Aiphone', 'IX-DVF', 'IX-DVF', 'E', 'Video Intercom', 549, 'ea', 'IP Video Door Station Flush', 2.5, 'H'],
     ['Aiphone', 'IX-DVF-P', 'IX-DVF-P', 'E', 'Video Intercom', 599, 'ea', 'IP Video Door Station PoE Flush', 2.5, 'H'],
-    ['Aiphone', 'IX-DA', 'IX-DA', 'E', 'Audio Intercom', 299, 'ea', 'IP Audio Door Station', 1.5, 'M'],
-    ['Aiphone', 'IX-SS-2G', 'IX-SS-2G', 'E', 'Audio Intercom', 249, 'ea', 'IP Audio Sub Station', 1.0, 'M'],
     ['Aiphone', 'IXG-2C7', 'IXG-2C7', 'E', 'Video Intercom', 699, 'ea', 'IXG Guard Station 7"', 2.0, 'H'],
     ['Aiphone', 'IXG-DM7-HID', 'IXG-DM7-HID', 'E', 'Video Intercom', 1499, 'ea', 'IXG Multi-tenant Door Station HID', 3.0, 'H'],
     ['Aiphone', 'JO-1MD', 'JO-1MD', 'E', 'Video Intercom', 199, 'ea', 'Residential Video Intercom 7"', 1.5, 'L'],
@@ -26,7 +23,6 @@ export const CATALOG_INTERCOM_PAGING: CompactProduct[] = [
     ['DoorKing', '1808', '1808-084', 'E', 'Telephone Entry', 999, 'ea', '25 Name Access Controller', 2.0, 'M'],
     ['DoorKing', '1503-080', '1503-080', 'E', 'Gate Operator', 1999, 'ea', 'Gate Barrier Arm Operator', 4.0, 'H'],
     ['DoorKing', '6524', '6524-083', 'E', 'Gate Operator', 2499, 'ea', 'Slide Gate Operator 1HP', 4.0, 'H'],
-    ['DoorKing', '9210-080', '9210-080', 'E', 'Gate Operator', 3499, 'ea', 'Vehicular Swing Gate Operator', 5.0, 'H'],
     // ── VIKING ──
     ['Viking', 'E-30', 'E-30', 'E', 'Audio Intercom', 149, 'ea', 'Handsfree Entry Phone', 1.0, 'L'],
     ['Viking', 'E-35', 'E-35', 'E', 'Audio Intercom', 199, 'ea', 'Handsfree Entry Phone IP', 1.0, 'M'],

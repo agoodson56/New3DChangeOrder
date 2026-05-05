@@ -10,7 +10,6 @@ export const CATALOG_CCTV_ACCESSORIES: CompactProduct[] = [
     ['Axis', 'T94B01P Pendant Kit', '5506-481', 'M', 'Camera Mount', 79, 'ea', 'Indoor/Outdoor Pendant Mount Kit', 0.5, 'L'],
     ['Axis', 'T94F01P Ceiling Mount', '5507-461', 'M', 'Camera Mount', 59, 'ea', 'Pendant Mount Ceiling Plate', 0.25, 'L'],
     ['Axis', 'T91B47 Pole Mount', '5504-711', 'M', 'Camera Mount', 119, 'ea', 'Outdoor Pole Mount Adapter', 0.5, 'M'],
-    ['Axis', 'T91A47 Wall Mount', '5017-641', 'M', 'Camera Mount', 99, 'ea', 'Wall Mount Bracket', 0.5, 'L'],
     ['Axis', 'T91B57 Ceiling Mount', '5505-461', 'M', 'Camera Mount', 89, 'ea', 'PTZ Ceiling Mount', 0.5, 'M'],
     ['Axis', 'T91B51 Ceiling Mount', '5505-051', 'M', 'Camera Mount', 129, 'ea', 'PTZ Indoor Ceiling Mount', 0.5, 'M'],
     ['Axis', 'T91B61 Wall Mount', '5505-571', 'M', 'Camera Mount', 149, 'ea', 'PTZ Wall Mount Heavy Duty', 0.5, 'M'],

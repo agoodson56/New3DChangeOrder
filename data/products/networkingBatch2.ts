@@ -60,6 +60,5 @@ export const CATALOG_NETWORKING_BATCH2: CompactProduct[] = [
     ['Comnet', 'CNGE4+2SMS/M', 'CNGE4-2SMS-M', 'E', 'PoE Switch', 499, 'ea', '4-port PoE Mini Switch', 0.5, 'M'],
     ['Comnet', 'CNGE2+2SMS/M', 'CNGE2-2SMS-M', 'E', 'PoE Switch', 349, 'ea', '2-port PoE Mini Switch', 0.5, 'L'],
     ['Veracity', 'VHW-1', 'VHW-1', 'E', 'PoE Extender', 129, 'ea', 'HIGHWIRE PoE over Coax', 0.25, 'M'],
-    ['Veracity', 'VLS-1P-C', 'VLS-1P-C', 'E', 'PoE Extender', 179, 'ea', 'LONGSPAN PoE Extender 500m', 0.25, 'M'],
     ['NVT Phybridge', 'EC-Link', 'NV-EC-04', 'E', 'PoE Extender', 149, 'ea', 'PoE over UTP Extender 1km', 0.25, 'M'],
 ];

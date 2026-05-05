@@ -21,9 +21,6 @@ export const CATALOG_BULK_EXPANSION_A: CompactProduct[] = [
     ['Paxton', 'Net2 Plus 2-door', 'NET2-PLUS-2', 'E', 'Access Panel', 449, 'ea', 'Net2 Plus Controller 2-door', 2.5, 'M'],
     // ── Additional Door Hardware ──
     ['HES', '1500C', '1500C-LBM', 'E', 'Electric Strike', 229, 'ea', 'Complete Latch/Bolt Monitor', 2.0, 'M'],
-    ['HES', '5000C', '5000C-630', 'E', 'Electric Strike', 249, 'ea', 'Heavy Duty Strike 12/24V', 2.5, 'H'],
-    ['HES', '8000C', '8000C-630', 'E', 'Electric Strike', 349, 'ea', 'Complete Fire-Rated Strike', 2.5, 'H'],
-    ['HES', '8300C', '8300C-630', 'E', 'Electric Strike', 299, 'ea', 'Fire-Rated Rim Strike', 2.5, 'H'],
     ['Adams Rite', '7130-515', '7130-515-628', 'E', 'Electric Strike', 299, 'ea', 'Electric Strike for Adams Rite Locks', 2.0, 'M'],
     ['Adams Rite', '7140-515', '7140-515-628', 'E', 'Electric Strike', 349, 'ea', 'Ultra Strike Fire-Rated', 2.5, 'H'],
     ['Adams Rite', 'MS1890-628', 'MS1890-628', 'E', 'Electric Lock', 449, 'ea', 'MS Hookbolt Deadlock', 2.0, 'H'],
@@ -59,7 +56,6 @@ export const CATALOG_BULK_EXPANSION_A: CompactProduct[] = [
     ['Axis', 'T8134 Midspan', '5900-011', 'E', 'PoE Injector', 129, 'ea', '1-port PoE++ Midspan 60W', 0.1, 'M'],
     ['Axis', 'T8504-R', '01232-001', 'E', 'PoE Switch', 999, 'ea', 'Industrial PoE+ Switch 4-port', 1.0, 'H'],
     // ── Surge Protection Extended ──
-    ['Ditek', 'DTK-MRJPOE', 'DTK-MRJPOE', 'E', 'Surge Protector', 49, 'ea', 'PoE Surge Protector RJ45', 0.1, 'L'],
     ['Ditek', 'DTK-MRJPOEX', 'DTK-MRJPOEX', 'E', 'Surge Protector', 69, 'ea', 'PoE+ Surge Protector Enhanced', 0.1, 'M'],
     ['Ditek', 'DTK-MRJ45C5E', 'DTK-MRJ45C5E', 'E', 'Surge Protector', 39, 'ea', 'Cat5e Surge Protector RJ45', 0.1, 'L'],
     ['Ditek', 'DTK-24LVLPX', 'DTK-24LVLPX', 'E', 'Surge Protector', 59, 'ea', '24V Low Voltage Surge', 0.1, 'L'],
@@ -69,9 +65,6 @@ export const CATALOG_BULK_EXPANSION_A: CompactProduct[] = [
     ['Axis', 'T90D40 IR', '01214-001', 'E', 'IR Illuminator', 399, 'ea', '850nm IR LED Illuminator 40°', 0.5, 'M'],
     ['Axis', 'T90D40 WL', '01215-001', 'E', 'IR Illuminator', 449, 'ea', '850nm White Light LED 40°', 0.5, 'M'],
     ['Axis', 'T90D20', '01216-001', 'E', 'IR Illuminator', 349, 'ea', '850nm IR LED Illuminator 20°', 0.5, 'M'],
-    ['Raytec', 'VARIO2 i2-1', 'VAR2-i2-1', 'E', 'IR Illuminator', 249, 'ea', '850nm IR Illuminator 10-20°', 0.5, 'M'],
-    ['Raytec', 'VARIO2 i4-1', 'VAR2-i4-1', 'E', 'IR Illuminator', 349, 'ea', '850nm IR Illuminator 10-60°', 0.5, 'M'],
-    ['Raytec', 'VARIO2 w2-1', 'VAR2-w2-1', 'E', 'IR Illuminator', 299, 'ea', 'White Light LED 10-20°', 0.5, 'M'],
     ['Raytec', 'VARIO2 i8-1', 'VAR2-i8-1', 'E', 'IR Illuminator', 499, 'ea', '850nm IR LED Long Range 120m', 0.5, 'H'],
     // ── Lenses ──
     ['Computar', 'HG3Z4512AFCS-IR', 'HG3Z4512', 'E', 'Camera Lens', 149, 'ea', 'Varifocal 4.5-12.5mm CS-mount IR', 0.25, 'M'],

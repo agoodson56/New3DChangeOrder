@@ -105,13 +105,32 @@ export {
 /**
  * Lookup a product by part number or model in the full catalog.
  * Returns the matching CompactProduct or undefined.
+ *
+ * If multiple entries match the SAME part number (post-dedup we expect
+ * exactly zero of these), a one-time warning is logged. Run
+ * `node scripts/dedupCatalog.cjs --check` in CI to catch this at build time.
  */
+const _lookupCollisionsWarned = new Set<string>();
 export function lookupProduct(query: string): CompactProduct | undefined {
     const q = query.toLowerCase().trim();
-    return FULL_CATALOG.find(p =>
-        p[2].toLowerCase() === q || // partNumber
-        p[1].toLowerCase() === q    // model
-    );
+    if (!q) return undefined;
+    let first: CompactProduct | undefined;
+    let collisionCount = 0;
+    for (const p of FULL_CATALOG) {
+        const partMatch = p[2].toLowerCase() === q;
+        const modelMatch = p[1].toLowerCase() === q;
+        if (!partMatch && !modelMatch) continue;
+        if (!first) first = p;
+        else if (partMatch) collisionCount++;
+    }
+    if (collisionCount > 0 && !_lookupCollisionsWarned.has(q)) {
+        _lookupCollisionsWarned.add(q);
+        console.warn(
+            `[catalog] lookupProduct("${query}") matched ${collisionCount + 1} entries for the same part number. ` +
+            `Returning the first match (${first?.[0]} ${first?.[1]}). Run scripts/dedupCatalog.cjs to clean up.`
+        );
+    }
+    return first;
 }
 
 /**

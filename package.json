@@ -10,7 +10,10 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "setup:d1": "node scripts/setup-d1.cjs"
+    "setup:d1": "node scripts/setup-d1.cjs",
+    "catalog:dedup": "node scripts/dedupCatalog.cjs",
+    "catalog:check": "node scripts/dedupCatalog.cjs --check",
+    "catalog:price-consistency": "node scripts/checkPriceConsistency.cjs"
   },
   "dependencies": {
     "@google/genai": "^1.35.0",
