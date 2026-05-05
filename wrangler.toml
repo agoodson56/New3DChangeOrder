@@ -15,11 +15,10 @@ pages_build_output_dir = "dist"
 
 # ── D1 binding (cloud sync backend) ───────────────────────────────────────────
 # Bound as `env.DB` inside functions/api/data.ts and functions/api/data/[scope].ts.
-# Replace `database_id` with the UUID printed by `wrangler d1 create co-storage`.
 [[d1_databases]]
 binding = "DB"
-database_name = "co-storage"
-database_id = "REPLACE_WITH_UUID_FROM_WRANGLER_D1_CREATE"
+database_name = "new3dchangeorder"
+database_id = "a37b3f37-0b67-45f6-8d1f-9918c517090c"
 
 # ── Optional: vars for non-sensitive config ───────────────────────────────────
 # Sensitive values (GEMINI_API_KEY, DOCUSIGN_RSA_PRIVATE_KEY, etc) live in the
