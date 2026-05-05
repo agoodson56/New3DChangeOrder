@@ -396,23 +396,25 @@ export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promis
       // Don't send systemInstruction inline when using cache — it's redundant
       // and may error.
     } else if (sysInstruction) {
-      upstreamBody.systemInstruction = typeof sysInstruction === 'string'
-        ? { parts: [{ text: sysInstruction }] }
-        : sysInstruction;
+      // v1 API doesn't support systemInstruction at the top level;
+      // embed it in the first message instead
+      if (Array.isArray(contents) && contents[0]) {
+        const firstContent = contents[0] as any;
+        if (!firstContent.parts) firstContent.parts = [];
+        firstContent.parts.unshift({
+          text: typeof sysInstruction === 'string' ? sysInstruction : JSON.stringify(sysInstruction)
+        });
+      }
     }
 
     if (tools) {
       upstreamBody.tools = tools;
     }
 
-    // Convert v1beta field names to v1 API snake_case format
+    // v1 API doesn't support responseSchema or responseMimeType — remove them
     const v1Config = {} as Record<string, unknown>;
     for (const [key, val] of Object.entries(cfg)) {
-      if (key === 'responseMimeType') {
-        v1Config['response_mime_type'] = val;
-      } else if (key === 'responseSchema') {
-        v1Config['response_schema'] = val;
-      } else {
+      if (key !== 'responseMimeType' && key !== 'responseSchema') {
         v1Config[key] = val;
       }
     }
