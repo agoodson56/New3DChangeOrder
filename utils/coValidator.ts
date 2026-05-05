@@ -256,7 +256,12 @@ export function validateChangeOrder(input: ChangeOrderData): ValidationOutput {
     data.materials.forEach((item, idx) => {
         if (item.unitOfMeasure === 'ft') return; // cable already handled in 1b
         if (item.msrp <= 0) return;
-        const haystack = `${item.manufacturer} ${item.model} ${(item as any).subcategory || ''}`;
+        // `subcategory` isn't on MaterialItem but may be carried opportunistically
+        // by AI output or by toProductDefinition() when items come from the
+        // catalog. Read defensively without an `as any` escape hatch.
+        const subcategory = (item as Partial<MaterialItem> & { subcategory?: unknown }).subcategory;
+        const subStr = typeof subcategory === 'string' ? subcategory : '';
+        const haystack = `${item.manufacturer} ${item.model} ${subStr}`;
         for (const band of PRICE_BANDS) {
             const matched = band.matchers.some(rx => rx.test(haystack));
             if (!matched) continue;

@@ -72,6 +72,13 @@ export function calculateFinancials(
         const hours = Number.isFinite(task.hours) ? task.hours : 0;
         return acc + (sign * hours * rate);
     }, 0));
+    // INTENTIONAL: markup applies symmetrically to deducts.
+    // Reasoning: when a coordinator credits back $500 of labor that was
+    // originally billed at +15% markup, the customer is owed BOTH the $500
+    // base credit AND the $75 markup credit. Stripping markup from negative
+    // subtotals would short-change the customer on credits — exactly the
+    // kind of small bias that erodes trust over the long run.
+    // (Mirrors the round2 sign-symmetry policy in the same file.)
     const laborMarkup = round2(laborSubtotal * LABOR_MARKUP_RATE);
     const laborTotal = round2(laborSubtotal + laborMarkup);
 

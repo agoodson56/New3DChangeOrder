@@ -51,19 +51,21 @@ function isInDatabase(manufacturer: string, model: string, partNumber?: string):
         };
     }
 
-    // 2. FULL_CATALOG fuzzy: match by subcategory keyword + manufacturer
-    const catalogFuzzy = FULL_CATALOG.find(p => {
+    // 2. FULL_CATALOG fuzzy: STRICT manufacturer match + meaningful keyword.
+    // Previously, mfrLower === 'generic' or pMfr === 'generic' was a free pass,
+    // and `keyMatch` accepted ANY substring overlap (incl. 1-char) between
+    // model/subcategory/description. That let the AI's "Cat6 patch cord" fuzzy-
+    // match a "Cat6 cable bulk" entry — wrong product family, wrong unit price.
+    // Now: require an exact manufacturer match (case-insensitive) AND the
+    // model token must be ≥4 chars and present in the catalog model name.
+    const catalogFuzzy = mfrLower && modelLower.length >= 4 ? FULL_CATALOG.find(p => {
         const pMfr = p[0].toLowerCase();
         const pModel = p[1].toLowerCase();
-        const pSub = p[4].toLowerCase();
-        const pDesc = p[7].toLowerCase();
-        const mfrMatch = pMfr === mfrLower || mfrLower === 'generic' || pMfr === 'generic';
-        const firstWord = pModel.split(' ')[0] || pModel;
-        const keyMatch = pSub.includes(modelLower) || pDesc.includes(modelLower) ||
-            modelLower.includes(pSub) || pModel.includes(modelLower) ||
-            modelLower.includes(firstWord);
-        return mfrMatch && keyMatch;
-    });
+        if (pMfr !== mfrLower) return false;
+        // Model match: catalog model contains the queried token, OR vice versa
+        // (so "P3245-V" matches catalog entry "P3245-V (02326-001)").
+        return pModel.includes(modelLower) || modelLower.includes(pModel);
+    }) : undefined;
     if (catalogFuzzy) {
         return {
             found: true, dbProduct: {

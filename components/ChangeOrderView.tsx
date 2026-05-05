@@ -302,6 +302,24 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
         <span className="text-xs opacity-75">• Click any highlighted field to edit • Totals recalculate automatically</span>
       </div>
 
+      {/* JSON-repair red flag — surfaces above the validation status bar
+          because it means the AI's output was truncated and heuristically
+          patched. Line items may have been silently dropped. The operator
+          MUST verify materials and labor counts match the request. */}
+      {data.validationResult?.jsonRepaired && (
+        <div className="print:hidden bg-red-100 border-2 border-red-600 text-red-900 px-4 py-3 flex items-start gap-3" role="alert">
+          <svg className="w-6 h-6 shrink-0 mt-0.5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <div>
+            <p className="font-black text-xs uppercase tracking-widest">⚠ AI response was truncated</p>
+            <p className="text-xs mt-1 leading-relaxed">
+              The AI's reply hit the token limit and was auto-repaired. <strong>Verify every material and labor line is present</strong> against the original intent before issuing this CO — items at the end of the response may be missing.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Validation Status Bar */}
       {data.validationResult && (
         <div className="print:hidden">
