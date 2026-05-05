@@ -80,14 +80,14 @@ export const SetupBanner: React.FC = () => {
 
   const hasCritical = issues.some(i => i.severity === 'critical');
   const tone = hasCritical
-    ? 'border-red-500 bg-red-950/30'
-    : 'border-amber-500 bg-amber-950/20';
+    ? 'border-red-600 bg-red-50'
+    : 'border-[#008b8b] bg-[#008b8b]/5';
 
   return (
     <div className={`max-w-3xl mx-auto mb-8 border-2 ${tone} text-black p-5 rounded-sm`}>
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
-          <h3 className={`text-sm font-black uppercase tracking-[0.2em] ${hasCritical ? 'text-red-300' : 'text-amber-300'}`}>
+          <h3 className={`text-sm font-black uppercase tracking-[0.2em] ${hasCritical ? 'text-red-700' : 'text-[#008b8b]'}`}>
             {hasCritical ? '🔴 Setup Incomplete' : '⚙️ Setup Recommended'}
           </h3>
           <p className="text-[11px] text-gray-700 mt-1">
@@ -110,7 +110,7 @@ export const SetupBanner: React.FC = () => {
       <ul className="space-y-2.5">
         {issues.map((issue, i) => (
           <li key={i} className="border-l-2 border-gray-700 pl-3">
-            <div className={`text-[12px] font-bold ${issue.severity === 'critical' ? 'text-red-200' : 'text-amber-200'}`}>
+            <div className={`text-[12px] font-bold ${issue.severity === 'critical' ? 'text-red-700' : 'text-[#008b8b]'}`}>
               {issue.message}
             </div>
             <div className="text-[10px] text-gray-700 mt-1 leading-relaxed">
