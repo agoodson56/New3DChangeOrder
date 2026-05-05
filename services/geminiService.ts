@@ -903,8 +903,8 @@ ${buildProductReference()}
   // Strip markdown code block wrapper if present (Claude often wraps JSON in ```json ... ```)
   // Handle various formats: ```json\n{...}\n```, ```\n{...}\n```, with or without "json", etc.
   rawText = rawText
-    .replace(/^```(?:json|JSON)?\s*\n?/m, '')  // Remove opening backticks + optional "json" + optional newline
-    .replace(/\n?```\s*$/m, '');  // Remove closing backticks + optional leading newline
+    .replace(/^```(?:json|JSON)?\s*\n?/, '')  // Remove opening backticks + optional "json" + optional newline
+    .replace(/\n?```\s*$/, '');  // Remove closing backticks + optional leading newline
 
   let data: ChangeOrderData;
   let jsonRepairApplied = false;
