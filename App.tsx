@@ -15,7 +15,7 @@ import { Icons, getOffice } from './constants';
 import {
   saveDraft, loadDraft, clearDraft,
   saveRates as persistRates, loadRates,
-  saveToHistory,
+  saveToHistory, onWriteFailure, onDraftFromOtherTab,
 } from './utils/persistence';
 import * as cloudSync from './utils/cloudSync';
 
@@ -29,6 +29,8 @@ const App: React.FC = () => {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [savedCoId, setSavedCoId] = useState<string | null>(null);
   const [syncState, setSyncState] = useState<cloudSync.SyncStatus>('idle');
+  const [storageWarning, setStorageWarning] = useState<string | null>(null);
+  const [otherTabWarning, setOtherTabWarning] = useState<boolean>(false);
   const draftSaveTimer = useRef<number | null>(null);
 
   // ── On mount: kick off cloud sync (pulls remote state into localStorage) ───
@@ -36,6 +38,26 @@ const App: React.FC = () => {
     void cloudSync.init();
     const unsub = cloudSync.subscribe(s => setSyncState(s.status));
     return unsub;
+  }, []);
+
+  // ── Surface localStorage write failures (especially quota-exceeded) ────────
+  // Without this, an operator could be saving a draft for an hour into a full
+  // localStorage and never know — refresh = lost work.
+  useEffect(() => {
+    return onWriteFailure(({ key, quotaExceeded }) => {
+      if (quotaExceeded) {
+        setStorageWarning(`Browser storage is full. Your most recent change to "${key}" was NOT saved. Clear old change orders from History (or close other tabs) to free up space, then re-save.`);
+      } else {
+        setStorageWarning(`Browser storage write failed for "${key}". Your most recent change may not have been saved. If this persists, try refreshing or check browser permissions.`);
+      }
+    });
+  }, []);
+
+  // ── Multi-tab draft awareness ──────────────────────────────────────────────
+  // If another tab saves the draft while this tab has unsaved edits, alert
+  // the operator so they don't accidentally overwrite the other tab's work.
+  useEffect(() => {
+    return onDraftFromOtherTab(() => setOtherTabWarning(true));
   }, []);
 
   // ── On mount: try to restore labor rates and check for saved draft ────────
@@ -249,6 +271,50 @@ const App: React.FC = () => {
         </header>
 
         <main className="container mx-auto px-3 md:px-6 py-6 md:py-16">
+          {/* Multi-tab draft conflict warning */}
+          {otherTabWarning && (
+            <div className="mb-6 max-w-3xl mx-auto bg-amber-950/40 border-2 border-amber-500 text-amber-100 p-4 rounded-sm flex items-start justify-between gap-4 print:hidden" role="alert">
+              <div className="flex items-start gap-3">
+                <svg className="w-6 h-6 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <p className="text-sm font-bold uppercase tracking-widest text-amber-300">Another tab updated this draft</p>
+                  <p className="text-xs text-amber-200 mt-1 leading-relaxed">
+                    Another tab saved a newer version of the draft. Saving from THIS tab will overwrite that work. Refresh to load the latest, or continue and overwrite.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setOtherTabWarning(false)}
+                className="text-[10px] uppercase tracking-widest text-amber-300 hover:text-white shrink-0"
+                aria-label="Dismiss tab conflict warning"
+              >
+                Dismiss ×
+              </button>
+            </div>
+          )}
+          {/* Storage write-failure banner — quota exceeded or storage disabled */}
+          {storageWarning && (
+            <div className="mb-6 max-w-3xl mx-auto bg-red-950/40 border-2 border-red-500 text-red-100 p-4 rounded-sm flex items-start justify-between gap-4 print:hidden" role="alert">
+              <div className="flex items-start gap-3">
+                <svg className="w-6 h-6 text-red-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                  <p className="text-sm font-bold uppercase tracking-widest text-red-300">Storage write failed</p>
+                  <p className="text-xs text-red-200 mt-1 leading-relaxed">{storageWarning}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setStorageWarning(null)}
+                className="text-[10px] uppercase tracking-widest text-red-300 hover:text-white shrink-0"
+                aria-label="Dismiss storage warning"
+              >
+                Dismiss ×
+              </button>
+            </div>
+          )}
           {/* Draft restore banner */}
           {draftPrompt && (
             <div className="mb-8 max-w-3xl mx-auto bg-[#D4AF37]/10 border border-[#D4AF37]/40 rounded-sm p-4 flex items-center justify-between gap-4 print:hidden">

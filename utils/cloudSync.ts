@@ -234,9 +234,24 @@ export function markDirty(lsKey: string): void {
 export async function init(): Promise<void> {
   if (typeof window === 'undefined') return;
   await pullAll();
-  // Periodic re-pull to catch updates from other devices.
-  // 60s is a sensible cadence for an internal team app.
-  setInterval(() => { void pullAll(); }, 60_000);
+  // Periodic re-pull to catch updates from other devices. 60s is a sensible
+  // cadence for an internal team app, but back off when the backend is
+  // disabled (503/401) — keep checking but at a slower pace so a recovered
+  // backend is detected without burning bandwidth on every cycle when down.
+  let pullsSinceLastSuccess = 0;
+  setInterval(() => {
+    // If permanently disabled by user, stop polling entirely.
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('co_cloud_sync_disabled') === '1') return;
+    // Backoff: when status is 'disabled', poll every 5 minutes instead of 1.
+    if (state.status === 'disabled') {
+      pullsSinceLastSuccess++;
+      if (pullsSinceLastSuccess < 5) return;
+      pullsSinceLastSuccess = 0;
+    } else {
+      pullsSinceLastSuccess = 0;
+    }
+    void pullAll();
+  }, 60_000);
   // Push any pending writes when the window regains focus / network.
   window.addEventListener('online', () => { void flushQueue(); });
   window.addEventListener('focus', () => { void pullAll(); });

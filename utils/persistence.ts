@@ -42,6 +42,25 @@ function readJson<T>(key: string, fallback: T): T {
   }
 }
 
+/** Subscribers to write failures (e.g., the UI quota banner). */
+type WriteFailureListener = (info: { key: string; error: unknown; quotaExceeded: boolean }) => void;
+const writeFailureListeners = new Set<WriteFailureListener>();
+export function onWriteFailure(fn: WriteFailureListener): () => void {
+  writeFailureListeners.add(fn);
+  return () => { writeFailureListeners.delete(fn); };
+}
+
+/** Heuristic: most browsers raise QuotaExceededError or DOMException(22) on quota. */
+function isQuotaError(e: unknown): boolean {
+  if (e instanceof DOMException) {
+    return e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014 /* Firefox NS_ERROR_DOM_QUOTA_REACHED */;
+  }
+  if (e instanceof Error) {
+    return /quota|exceeded|storage/i.test(e.message);
+  }
+  return false;
+}
+
 function writeJson(key: string, value: unknown): void {
   if (typeof localStorage === 'undefined') return;
   try {
@@ -51,9 +70,36 @@ function writeJson(key: string, value: unknown): void {
     // is not initialized (e.g., in tests).
     void notifyCloudSync(key);
   } catch (e) {
-    // Quota exceeded or storage disabled — best effort, drop silently.
-    console.warn(`localStorage write failed for ${key}:`, e);
+    // Surface the failure (especially quota errors) so the UI can warn the
+    // operator their work isn't being saved. Previously this was a silent
+    // console.warn that left coordinators unaware their draft wouldn't survive
+    // a refresh.
+    const quotaExceeded = isQuotaError(e);
+    console.warn(`localStorage write failed for ${key}${quotaExceeded ? ' (quota exceeded)' : ''}:`, e);
+    for (const fn of writeFailureListeners) {
+      try { fn({ key, error: e, quotaExceeded }); } catch { /* never let a listener error mask the original */ }
+    }
   }
+}
+
+/**
+ * Estimate localStorage usage as a fraction of the browser's typical 5MB cap.
+ * Best-effort — exact quota varies by browser and origin. Used to surface a
+ * "running low on space" warning before writes start failing.
+ */
+export function estimateStorageUsage(): { usedBytes: number; estimatedFraction: number } {
+  if (typeof localStorage === 'undefined') return { usedBytes: 0, estimatedFraction: 0 };
+  let total = 0;
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k) continue;
+      const v = localStorage.getItem(k) ?? '';
+      total += k.length + v.length;
+    }
+  } catch { /* storage disabled — return 0 */ }
+  // Most browsers cap at ~5MB. Treat 4MB as 80% to leave headroom.
+  return { usedBytes: total * 2 /* UTF-16 */, estimatedFraction: total * 2 / (5 * 1024 * 1024) };
 }
 
 /** Best-effort cloud sync notification. Imports lazily so tests / SSR don't break. */
@@ -82,8 +128,44 @@ export interface SavedDraft {
   stage: 'intake' | 'review' | 'proposal';
 }
 
+/** BroadcastChannel for cross-tab draft awareness. Each tab posts after a
+ *  draft write so other tabs can warn the operator if they're editing stale
+ *  data. Lazy-initialized; tests / SSR are unaffected. */
+type DraftBroadcastMessage = { type: 'draft-saved'; tabId: string; savedAt: number };
+let _draftChannel: BroadcastChannel | null = null;
+const TAB_ID = typeof crypto !== 'undefined' && 'randomUUID' in crypto
+  ? crypto.randomUUID()
+  : Math.random().toString(36).slice(2);
+function getDraftChannel(): BroadcastChannel | null {
+  if (typeof BroadcastChannel === 'undefined') return null;
+  if (_draftChannel === null) {
+    try { _draftChannel = new BroadcastChannel('co_draft_v1'); } catch { return null; }
+  }
+  return _draftChannel;
+}
+
+/** Subscribe to "another tab saved a draft" notifications. Returns unsubscribe. */
+export function onDraftFromOtherTab(fn: (msg: DraftBroadcastMessage) => void): () => void {
+  const ch = getDraftChannel();
+  if (!ch) return () => {};
+  const handler = (ev: MessageEvent<DraftBroadcastMessage>) => {
+    // Ignore our own broadcasts.
+    if (ev.data?.tabId === TAB_ID) return;
+    if (ev.data?.type === 'draft-saved') fn(ev.data);
+  };
+  ch.addEventListener('message', handler);
+  return () => ch.removeEventListener('message', handler);
+}
+
 export function saveDraft(draft: Omit<SavedDraft, 'savedAt'>): void {
-  writeJson(KEYS.draft, { ...draft, savedAt: Date.now() } satisfies SavedDraft);
+  const savedAt = Date.now();
+  writeJson(KEYS.draft, { ...draft, savedAt } satisfies SavedDraft);
+  // Notify other tabs they're now editing a stale view of the draft.
+  const ch = getDraftChannel();
+  if (ch) {
+    try { ch.postMessage({ type: 'draft-saved', tabId: TAB_ID, savedAt } satisfies DraftBroadcastMessage); }
+    catch { /* channel closed — ignore */ }
+  }
 }
 
 export function loadDraft(): SavedDraft | null {
@@ -399,7 +481,15 @@ export interface WinRateStats {
   accepted: number;
   rejected: number;
   withdrawn: number;
-  winRatePercent: number; // accepted / (accepted + rejected), 0-100
+  /** "Strict" win rate: accepted / (accepted + rejected). Excludes withdrawn.
+   *  Most flattering — answers "of bids the customer made a decision on, how
+   *  many did we win?" */
+  winRatePercent: number;
+  /** "Inclusive" win rate: accepted / (accepted + rejected + withdrawn).
+   *  Treats withdrawn as a loss (we walked away or the customer ghosted).
+   *  More conservative — answers "of all bids that left pending, how many
+   *  did we win?" */
+  inclusiveWinRatePercent: number;
   totalAcceptedRevenue: number;
   averageCoSize: number;
 }
@@ -410,14 +500,16 @@ export function getWinRateStats(): WinRateStats {
   const rejected = all.filter(c => c.status === 'rejected');
   const pending = all.filter(c => c.status === 'pending');
   const withdrawn = all.filter(c => c.status === 'withdrawn');
-  const closed = accepted.length + rejected.length;
+  const closedStrict = accepted.length + rejected.length;
+  const closedInclusive = accepted.length + rejected.length + withdrawn.length;
   return {
     total: all.length,
     pending: pending.length,
     accepted: accepted.length,
     rejected: rejected.length,
     withdrawn: withdrawn.length,
-    winRatePercent: closed === 0 ? 0 : Math.round((accepted.length / closed) * 100),
+    winRatePercent: closedStrict === 0 ? 0 : Math.round((accepted.length / closedStrict) * 100),
+    inclusiveWinRatePercent: closedInclusive === 0 ? 0 : Math.round((accepted.length / closedInclusive) * 100),
     totalAcceptedRevenue: accepted.reduce((sum, c) => sum + c.grandTotal, 0),
     averageCoSize: all.length === 0 ? 0 : all.reduce((sum, c) => sum + c.grandTotal, 0) / all.length,
   };

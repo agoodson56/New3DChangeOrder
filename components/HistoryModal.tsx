@@ -102,12 +102,24 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ onClose }) => {
             </button>
           </div>
 
-          {/* Stats grid */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          {/* Stats grid. We display two win-rate flavors so the metric isn't
+              gamed by withdrawing every shaky bid:
+                - Strict: accepted / (accepted + rejected) — decision rate
+                - All:    accepted / (accepted + rejected + withdrawn)     */}
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
             <StatCard label="Total" value={stats.total.toString()} />
             <StatCard label="Pending" value={stats.pending.toString()} accent="amber" />
             <StatCard label="Accepted" value={stats.accepted.toString()} accent="emerald" />
-            <StatCard label="Win Rate" value={`${stats.winRatePercent}%`} accent="gold" />
+            <StatCard
+              label="Win Rate (decided)"
+              value={`${stats.winRatePercent}%`}
+              accent="gold"
+            />
+            <StatCard
+              label="Win Rate (all closed)"
+              value={`${stats.inclusiveWinRatePercent}%`}
+              accent={stats.inclusiveWinRatePercent < stats.winRatePercent ? 'amber' : 'gold'}
+            />
             <StatCard label="Accepted Revenue" value={fmtUSD(stats.totalAcceptedRevenue)} accent="emerald" />
           </div>
 

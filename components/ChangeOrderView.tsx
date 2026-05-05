@@ -324,7 +324,15 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
             }}
           >
             <div className="flex items-center gap-3">
-              <span className="text-lg">
+              <span
+                className="text-lg"
+                role="img"
+                aria-label={
+                  data.validationResult.status === 'customer_ready' ? 'Validated, customer-ready' :
+                  data.validationResult.status === 'review_recommended' ? 'Review recommended' :
+                  'Manual review required'
+                }
+              >
                 {data.validationResult.status === 'customer_ready' ? '✅' : data.validationResult.status === 'review_recommended' ? '⚠️' : '🔴'}
               </span>
               <div>
@@ -705,6 +713,8 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
             : inWarnZone
               ? 'text-amber-700'
               : 'text-emerald-700';
+          // Emoji are decorative — the textual badge label communicates the
+          // status to screen readers, so no aria-label is needed here.
           const badge = belowFloor
             ? '🔴 BELOW MARGIN FLOOR'
             : inWarnZone
