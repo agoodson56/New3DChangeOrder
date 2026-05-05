@@ -893,9 +893,7 @@ ${buildProductReference()}
     config: {
       systemInstruction,
       temperature: 0,
-      maxOutputTokens: 65536,
-      responseMimeType: "application/json",
-      responseSchema: CO_SCHEMA
+      maxOutputTokens: 65536
     }
   }));
 
