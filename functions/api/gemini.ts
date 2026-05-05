@@ -131,7 +131,7 @@ async function getOrCreateSystemCache(
 
   try {
     const r = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/cachedContents',
+      'https://generativelanguage.googleapis.com/v1/cachedContents',
       {
         method: 'POST',
         headers: {
@@ -409,7 +409,7 @@ export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promis
 
   // Send the API key in the header rather than the URL so it doesn't show up
   // in any intermediate logs.
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+  const url = `https://generativelanguage.googleapis.com/v1/models/${encodeURIComponent(model)}:generateContent`;
 
   const upstream = await fetch(url, {
     method: 'POST',
