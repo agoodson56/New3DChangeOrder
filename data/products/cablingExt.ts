@@ -3,11 +3,12 @@ import { CompactProduct } from './types';
 // Extension: Additional cabling, fiber, and connectivity products
 export const CATALOG_CABLING_EXT: CompactProduct[] = [
     // ── LEVITON — Extended Jacks / Panels ──
-    ['Leviton', 'Atlas-X1 Cat6A Jack Blue', '6110G-RL6-AX', 'M', 'Jack', 19, 'ea', 'Atlas-X1 Cat6A UTP Jack Blue', 0.15, 'L'],
-    ['Leviton', 'Atlas-X1 Cat6A Jack White', '6110G-RW6-AX', 'M', 'Jack', 19, 'ea', 'Atlas-X1 Cat6A UTP Jack White', 0.15, 'L'],
-    ['Leviton', 'Atlas-X1 Cat6A STP Jack Blue', '6110G-RL6-AXS', 'M', 'Jack', 25, 'ea', 'Atlas-X1 Cat6A STP Jack Blue', 0.15, 'M'],
-    ['Leviton', 'Atlas-X1 Cat6A Keystone', '61110-RX6', 'M', 'Jack', 22, 'ea', 'Atlas-X1 Cat6A Keystone Snap', 0.15, 'L'],
-    ['Leviton', 'eXtreme Cat6 STP Jack', '6S108-RL6', 'M', 'Jack', 15, 'ea', 'Cat6 STP Jack Blue', 0.15, 'M'],
+    // Prices reflect STREET / distributor pricing — see cabling.ts header note.
+    ['Leviton', 'Atlas-X1 Cat6A Jack Blue', '6110G-RL6-AX', 'M', 'Jack', 13, 'ea', 'Atlas-X1 Cat6A UTP Jack Blue', 0.15, 'L'],
+    ['Leviton', 'Atlas-X1 Cat6A Jack White', '6110G-RW6-AX', 'M', 'Jack', 13, 'ea', 'Atlas-X1 Cat6A UTP Jack White', 0.15, 'L'],
+    ['Leviton', 'Atlas-X1 Cat6A STP Jack Blue', '6110G-RL6-AXS', 'M', 'Jack', 19, 'ea', 'Atlas-X1 Cat6A STP Jack Blue', 0.15, 'M'],
+    ['Leviton', 'Atlas-X1 Cat6A Keystone', '61110-RX6', 'M', 'Jack', 14, 'ea', 'Atlas-X1 Cat6A Keystone Snap', 0.15, 'L'],
+    ['Leviton', 'eXtreme Cat6 STP Jack', '6S108-RL6', 'M', 'Jack', 9, 'ea', 'Cat6 STP Jack Blue', 0.15, 'M'],
     ['Leviton', 'eXtreme Cat6A 48-port Angled', '69586-U48', 'E', 'Patch Panel', 299, 'ea', '48-port Cat6A Angled Panel', 2.0, 'H'],
     ['Leviton', 'eXtreme Cat6A 24-port Angled', '69586-U24', 'E', 'Patch Panel', 179, 'ea', '24-port Cat6A Angled Panel', 1.5, 'M'],
     ['Leviton', 'Cat6A STP 24-port Panel', '69586-S24', 'E', 'Patch Panel', 249, 'ea', '24-port Cat6A STP Panel', 1.5, 'H'],

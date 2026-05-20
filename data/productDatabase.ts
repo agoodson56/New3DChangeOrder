@@ -471,13 +471,17 @@ export const CABLING_PRODUCTS: ProductDefinition[] = [
         complexity: 'Medium'
     },
     // KEYSTONE JACKS
+    // Pricing philosophy: msrp here = competitive STREET / distributor price
+    // (Amazon, GraybaR/Anixter contractor rate, electrical wholesale), NOT
+    // list MSRP. We bid to win — list MSRP anchors inflate bids by 30-60% and
+    // lose deals to competitors who use street pricing.
     {
         manufacturer: 'Leviton',
         model: 'eXtreme Cat6A Jack',
         partNumber: '6110G-RW6',
         category: 'Material',
         subcategory: 'Keystone Jack - Cat6A',
-        msrp: 18.45,
+        msrp: 11.50, // Street: Amazon 25-pack ~$10/ea, single ~$13; 11.50 = mid-range competitive
         unitOfMeasure: 'ea',
         description: 'eXtreme Cat6A QuickPort jack, white',
         installationRequirements: [

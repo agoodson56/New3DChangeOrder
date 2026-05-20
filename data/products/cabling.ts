@@ -87,15 +87,17 @@ export const CATALOG_CABLING: CompactProduct[] = [
     // ══════════════════════════════════════════════════════════════
 
     // ── LEVITON — Jacks ──
-    ['Leviton', 'eXtreme Cat6A Jack Blue', '6110G-RL6', 'M', 'Jack', 18, 'ea', 'Cat6A UTP Jack Blue', 0.15, 'L'],
-    ['Leviton', 'eXtreme Cat6A Jack White', '6110G-RW6', 'M', 'Jack', 18, 'ea', 'Cat6A UTP Jack White', 0.15, 'L'],
-    ['Leviton', 'eXtreme Cat6A Jack Ivory', '6110G-RI6', 'M', 'Jack', 18, 'ea', 'Cat6A UTP Jack Ivory', 0.15, 'L'],
-    ['Leviton', 'eXtreme Cat6A Jack Orange', '6110G-RO6', 'M', 'Jack', 18, 'ea', 'Cat6A UTP Jack Orange', 0.15, 'L'],
-    ['Leviton', 'eXtreme Cat6 Jack Blue', '61110-RL6', 'M', 'Jack', 9, 'ea', 'Cat6 UTP Jack Blue', 0.15, 'L'],
-    ['Leviton', 'eXtreme Cat6 Jack White', '61110-RW6', 'M', 'Jack', 9, 'ea', 'Cat6 UTP Jack White', 0.15, 'L'],
-    ['Leviton', 'eXtreme Cat6 Jack Ivory', '61110-RI6', 'M', 'Jack', 9, 'ea', 'Cat6 UTP Jack Ivory', 0.15, 'L'],
-    ['Leviton', 'eXtreme Cat5e Jack Blue', '5G108-RL5', 'M', 'Jack', 6, 'ea', 'Cat5e UTP Jack Blue', 0.15, 'L'],
-    ['Leviton', 'eXtreme Cat5e Jack White', '5G108-RW5', 'M', 'Jack', 6, 'ea', 'Cat5e UTP Jack White', 0.15, 'L'],
+    // Prices reflect STREET / distributor pricing (Amazon, GraybaR/Anixter
+    // contractor rate, electrical wholesale), NOT list MSRP. We bid to win.
+    ['Leviton', 'eXtreme Cat6A Jack Blue', '6110G-RL6', 'M', 'Jack', 11.5, 'ea', 'Cat6A UTP Jack Blue', 0.15, 'L'],
+    ['Leviton', 'eXtreme Cat6A Jack White', '6110G-RW6', 'M', 'Jack', 11.5, 'ea', 'Cat6A UTP Jack White', 0.15, 'L'],
+    ['Leviton', 'eXtreme Cat6A Jack Ivory', '6110G-RI6', 'M', 'Jack', 11.5, 'ea', 'Cat6A UTP Jack Ivory', 0.15, 'L'],
+    ['Leviton', 'eXtreme Cat6A Jack Orange', '6110G-RO6', 'M', 'Jack', 11.5, 'ea', 'Cat6A UTP Jack Orange', 0.15, 'L'],
+    ['Leviton', 'eXtreme Cat6 Jack Blue', '61110-RL6', 'M', 'Jack', 5.5, 'ea', 'Cat6 UTP Jack Blue', 0.15, 'L'],
+    ['Leviton', 'eXtreme Cat6 Jack White', '61110-RW6', 'M', 'Jack', 5.5, 'ea', 'Cat6 UTP Jack White', 0.15, 'L'],
+    ['Leviton', 'eXtreme Cat6 Jack Ivory', '61110-RI6', 'M', 'Jack', 5.5, 'ea', 'Cat6 UTP Jack Ivory', 0.15, 'L'],
+    ['Leviton', 'eXtreme Cat5e Jack Blue', '5G108-RL5', 'M', 'Jack', 3.5, 'ea', 'Cat5e UTP Jack Blue', 0.15, 'L'],
+    ['Leviton', 'eXtreme Cat5e Jack White', '5G108-RW5', 'M', 'Jack', 3.5, 'ea', 'Cat5e UTP Jack White', 0.15, 'L'],
     // ── LEVITON — Patch Panels ──
     ['Leviton', '49255-H48', '49255-H48', 'E', 'Patch Panel', 249, 'ea', '48-port Cat6A Flat Patch Panel', 2.0, 'M'],
     ['Leviton', '49255-H24', '49255-H24', 'E', 'Patch Panel', 149, 'ea', '24-port Cat6A Flat Patch Panel', 1.5, 'M'],

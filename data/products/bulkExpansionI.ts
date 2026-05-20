@@ -69,16 +69,17 @@ export const CATALOG_BULK_EXPANSION_I: CompactProduct[] = [
     ['Panduit', 'TM3S10-C', 'TM3S10-C', 'M', 'Cable Tie', 9, 'ea', 'Tie Mount Screw #10 100-pk', 0, 'L'],
 
     // ══════════ STRUCTURED CABLING — Additional jacks by color ══════════
-    ['Leviton', 'eXtreme 6+ Jack Yellow', '61110-RY6', 'M', 'Jack', 9, 'ea', 'eXtreme Cat6 Jack Yellow', 0.15, 'L'],
-    ['Leviton', 'eXtreme 6+ Jack Red', '61110-RR6', 'M', 'Jack', 9, 'ea', 'eXtreme Cat6 Jack Red', 0.15, 'L'],
-    ['Leviton', 'eXtreme 6+ Jack Orange', '61110-RO6', 'M', 'Jack', 9, 'ea', 'eXtreme Cat6 Jack Orange', 0.15, 'L'],
-    ['Leviton', 'eXtreme 6+ Jack Green', '61110-RG6', 'M', 'Jack', 9, 'ea', 'eXtreme Cat6 Jack Green', 0.15, 'L'],
-    ['Leviton', 'eXtreme 6+ Jack Black', '61110-RE6', 'M', 'Jack', 9, 'ea', 'eXtreme Cat6 Jack Black', 0.15, 'L'],
-    ['Leviton', 'Atlas-X1 Cat6 Yellow', '6110G-RY6', 'M', 'Jack', 12, 'ea', 'Atlas-X1 Cat6 Jack Yellow', 0.15, 'L'],
-    ['Leviton', 'Atlas-X1 Cat6 Red', '6110G-RR6', 'M', 'Jack', 12, 'ea', 'Atlas-X1 Cat6 Jack Red', 0.15, 'L'],
-    ['Leviton', 'Atlas-X1 Cat6 Green', '6110G-RG6', 'M', 'Jack', 12, 'ea', 'Atlas-X1 Cat6 Jack Green', 0.15, 'L'],
-    ['Panduit', 'CJ688TGIG Jack', 'CJ688TGIG', 'M', 'Jack', 11, 'ea', 'Mini-Com Cat6 Jack Intl Gray', 0.15, 'L'],
-    ['Panduit', 'CJ688TGBK Jack', 'CJ688TGBK', 'M', 'Jack', 11, 'ea', 'Mini-Com Cat6 Jack Black', 0.15, 'L'],
+    // Prices reflect STREET / distributor pricing — see cabling.ts header note.
+    ['Leviton', 'eXtreme 6+ Jack Yellow', '61110-RY6', 'M', 'Jack', 5.5, 'ea', 'eXtreme Cat6 Jack Yellow', 0.15, 'L'],
+    ['Leviton', 'eXtreme 6+ Jack Red', '61110-RR6', 'M', 'Jack', 5.5, 'ea', 'eXtreme Cat6 Jack Red', 0.15, 'L'],
+    ['Leviton', 'eXtreme 6+ Jack Orange', '61110-RO6', 'M', 'Jack', 5.5, 'ea', 'eXtreme Cat6 Jack Orange', 0.15, 'L'],
+    ['Leviton', 'eXtreme 6+ Jack Green', '61110-RG6', 'M', 'Jack', 5.5, 'ea', 'eXtreme Cat6 Jack Green', 0.15, 'L'],
+    ['Leviton', 'eXtreme 6+ Jack Black', '61110-RE6', 'M', 'Jack', 5.5, 'ea', 'eXtreme Cat6 Jack Black', 0.15, 'L'],
+    ['Leviton', 'Atlas-X1 Cat6 Yellow', '6110G-RY6', 'M', 'Jack', 7, 'ea', 'Atlas-X1 Cat6 Jack Yellow', 0.15, 'L'],
+    ['Leviton', 'Atlas-X1 Cat6 Red', '6110G-RR6', 'M', 'Jack', 7, 'ea', 'Atlas-X1 Cat6 Jack Red', 0.15, 'L'],
+    ['Leviton', 'Atlas-X1 Cat6 Green', '6110G-RG6', 'M', 'Jack', 7, 'ea', 'Atlas-X1 Cat6 Jack Green', 0.15, 'L'],
+    ['Panduit', 'CJ688TGIG Jack', 'CJ688TGIG', 'M', 'Jack', 6.5, 'ea', 'Mini-Com Cat6 Jack Intl Gray', 0.15, 'L'],
+    ['Panduit', 'CJ688TGBK Jack', 'CJ688TGBK', 'M', 'Jack', 6.5, 'ea', 'Mini-Com Cat6 Jack Black', 0.15, 'L'],
 
     // ══════════ INTRUSION — Photo beams, perimeter, specialty ══════════
     ['Optex', 'AX-70TN', 'AX-70TN', 'E', 'Beam Sensor', 299, 'ea', 'Photoelectric Beam 70ft', 1.5, 'M'],

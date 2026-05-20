@@ -270,6 +270,14 @@ export async function generateChangeOrder(
     These are LOWER-QUARTILE contractor street prices verified against current distributor/reseller listings.
     A customer can Google any of these and verify within minutes — quoting above the ceiling destroys trust.
 
+    HARD PRICING RULE (do not violate):
+    When you pull a price for a specific part number, that price MUST reflect what
+    the customer would pay on Amazon Business, Anixter/GraybaR contractor account,
+    or a comparable wholesale source — NOT manufacturer list MSRP. Manufacturer
+    list prices on commercial low-voltage parts are often 30-60% above street.
+    A Leviton 6110G-RW6 Cat6A jack lists ~$18 but streets at ~$11; price it at $11.
+    If you only know list MSRP, use 65% of it as the working price.
+
     CCTV / Surveillance:
       - Entry IP cameras (1080p basic): $150-$300
       - Pro IP fixed/dome (4MP-8MP, WDR): $300-$1,000
