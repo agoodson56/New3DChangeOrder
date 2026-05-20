@@ -27,6 +27,7 @@ import {
     POE_SWITCHES,
     LABOR_STANDARDS,
     CABLE_STANDARDS,
+    calculateJHooks,
     type ProductDefinition
 } from '../data/productDatabase';
 
@@ -410,11 +411,13 @@ export function validateChangeOrder(input: ChangeOrderData): ValidationOutput {
     });
 
     // =========================================================================
-    // RULE 4: J-hooks — 1 per 10ft of cable run (3DTSI install standard)
+    // RULE 4: J-hooks — 3DTSI install standard. 75% of each run is bundled in a
+    // single shared pathway (1 set of hooks per 8ft); 25% is separate runs,
+    // summed across runs (1 hook per 8ft).
     // =========================================================================
     const totalCableFeet = cableItems.reduce((sum, item) => sum + item.quantity, 0);
     if (totalCableFeet > 0) {
-        const expectedJHooks = Math.ceil(totalCableFeet / CABLE_STANDARDS.jHookSpacingFeet);
+        const expectedJHooks = calculateJHooks(totalCableFeet);
         const jHookItems = data.materials.filter(m =>
             m.model.toLowerCase().includes('j-hook') || m.model.toLowerCase().includes('jhook')
         );
@@ -424,7 +427,7 @@ export function validateChangeOrder(input: ChangeOrderData): ValidationOutput {
             warnings.push({
                 type: 'material',
                 severity: 'warning',
-                message: `Missing J-hooks: ${totalCableFeet}ft of cable requires ~${expectedJHooks} J-hooks (1 per ${CABLE_STANDARDS.jHookSpacingFeet}ft)`
+                message: `Missing J-hooks: ${totalCableFeet}ft of cable requires ~${expectedJHooks} J-hooks (75% of each run bundled + 25% separate, 1 hook per ${CABLE_STANDARDS.jHookSpacingFeet}ft)`
             });
             deductions += 3;
         } else if (actualJHooks > 0 && actualJHooks < expectedJHooks * 0.5) {

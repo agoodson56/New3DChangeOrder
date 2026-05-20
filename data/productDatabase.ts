@@ -50,6 +50,7 @@ export interface CableCalculation {
     perDoorFeet: number;
     perDropFeet: number;
     jHookSpacingFeet: number;
+    bundledCableFraction: number;
     pullBoxIntervalFeet: number;
     wasteFactorPercent: number;
 }
@@ -841,10 +842,29 @@ export const CABLE_STANDARDS: CableCalculation = {
     perCameraFeet: 150,    // Average cable run per camera
     perDoorFeet: 200,      // Average cable run per access door (reader + lock + sensors)
     perDropFeet: 100,      // Average cable run per network drop
-    jHookSpacingFeet: 35,  // 3DTSI INSTALL STANDARD: 1 J-hook every 35 feet of TOTAL cable footage. Cables share the main pathway for ~80% of any run, so a single j-hook supports the whole bundle.
+    jHookSpacingFeet: 8,   // 3DTSI INSTALL STANDARD: 1 J-hook every 8 feet. Cable model: 75% of each run's length runs in one shared bundled pathway (one set of hooks supports all cables in the bundle); the remaining 25% of each run breaks out separately to its endpoint. Use calculateJHooks() for the split calculation.
+    bundledCableFraction: 0.75, // Fraction of EACH run that travels in the shared/bundled pathway
     pullBoxIntervalFeet: 100, // Pull box every 100 feet for long runs
     wasteFactorPercent: 10 // 10% waste factor for terminations and pulls (matches prompt rule)
 };
+
+// 3DTSI J-hook model: 75% of EACH run's length is shared in one bundled pathway
+// (only one set of hooks for the whole bundle); the remaining 25% of each run
+// is separate, summed across all runs. Both portions get 1 J-hook every 8 ft.
+//
+// Example: 40 runs × 100 ft each (4000 ft total, avg run 100 ft)
+//   bundled = ceil(0.75 × 100 / 8)   = ceil(9.375)  = 10
+//   separate = ceil(0.25 × 4000 / 8) = ceil(125)    = 125
+//   total = 135 J-hooks
+export function calculateJHooks(totalCableFeet: number, averageRunFeet?: number): number {
+    if (totalCableFeet <= 0) return 0;
+    const spacing = CABLE_STANDARDS.jHookSpacingFeet;
+    const bundled = CABLE_STANDARDS.bundledCableFraction;
+    const avgRun = averageRunFeet ?? CABLE_STANDARDS.perCameraFeet;
+    const bundledHooks = Math.ceil((avgRun * bundled) / spacing);
+    const separateHooks = Math.ceil((totalCableFeet * (1 - bundled)) / spacing);
+    return bundledHooks + separateHooks;
+}
 
 // =============================================================================
 // LABOR HOUR CALCULATIONS
@@ -1591,7 +1611,7 @@ export function calculateCableRequirements(
     const rawCableFeet = totalRuns * averageRunFeet;
     const totalCableFeet = Math.ceil(rawCableFeet * (1 + CABLE_STANDARDS.wasteFactorPercent / 100));
 
-    const jHooksNeeded = Math.ceil(totalCableFeet / CABLE_STANDARDS.jHookSpacingFeet);
+    const jHooksNeeded = calculateJHooks(totalCableFeet, averageRunFeet);
     const terminationsNeeded = totalRuns * 2; // Both ends
 
     const consumablesCost = calculateConsumablesCost(cameras, doors, drops);
@@ -1658,7 +1678,7 @@ export function calculateLaborHours(
     hours += (cableRuns * 2) * LABOR_STANDARDS.terminationPerEnd;
 
     // J-hooks
-    const jHooks = Math.ceil(totalRunFeet / CABLE_STANDARDS.jHookSpacingFeet);
+    const jHooks = calculateJHooks(totalRunFeet, averageRunFeet);
     hours += jHooks * LABOR_STANDARDS.jHookInstall;
 
     return Math.ceil(hours * 10) / 10; // Round to nearest 0.1

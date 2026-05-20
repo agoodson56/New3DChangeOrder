@@ -174,7 +174,7 @@ describe('coValidator — duplicate detection', () => {
 });
 
 // =============================================================================
-// RULE 4 — J-hooks at 10ft spacing (3DTSI standard)
+// RULE 4 — J-hooks: 75% bundled + 25% separate runs at 1 hook per 8ft (3DTSI standard)
 // =============================================================================
 describe('coValidator — J-hook coverage', () => {
   it('does not flag missing J-hooks for tiny cable runs (<= 100ft)', () => {
@@ -203,12 +203,12 @@ describe('coValidator — J-hook coverage', () => {
     expect(result.warnings.some(w => /missing j-hooks/i.test(w.message))).toBe(true);
   });
 
-  it('does not flag when J-hooks at 1-per-35ft are included', () => {
-    // 500ft / 35ft spacing = 15 J-hooks expected (cables share pathway, not per-cable)
+  it('does not flag when J-hooks at the 75/25 + 8ft spacing are included', () => {
+    // 500ft, default avg run 150ft → bundled ceil(0.75×150/8)=15, separate ceil(0.25×500/8)=16, total = 31
     const result = validateChangeOrder(makeCO({
       materials: [
         item({ unitOfMeasure: 'ft', manufacturer: 'Berk-Tek', model: 'LANmark-10G2', quantity: 500, msrp: 0.85 }),
-        item({ manufacturer: 'nVent CADDY', model: 'CAT HP J-Hook 2"', quantity: 15, msrp: 3.50 }),
+        item({ manufacturer: 'nVent CADDY', model: 'CAT HP J-Hook 2"', quantity: 31, msrp: 3.50 }),
       ],
     }));
     expect(result.warnings.some(w => /missing j-hooks/i.test(w.message))).toBe(false);
@@ -216,7 +216,8 @@ describe('coValidator — J-hook coverage', () => {
   });
 
   it('flags low J-hook count when significantly under-supplied', () => {
-    // 1000ft / 35ft = 29 expected, 50% threshold = ~14. Having 3 is clearly low.
+    // 1000ft, default avg run 150ft → bundled 15, separate ceil(0.25×1000/8)=32, total = 47 expected.
+    // 50% threshold ≈ 23. Having 3 is clearly low.
     const result = validateChangeOrder(makeCO({
       materials: [
         item({ unitOfMeasure: 'ft', model: 'Cat6A LANmark', quantity: 1000, msrp: 0.85 }),

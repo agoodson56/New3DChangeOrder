@@ -7,6 +7,7 @@ import { validatePricing, selfConsistencyCheck } from "./pricingValidator";
 import { auditChangeOrder } from "./qaAuditor";
 import { generateContent, ApiKeyError, RateLimitError } from "./geminiClient";
 import type { Attachment } from "../utils/attachments";
+import { calculateJHooks, CABLE_STANDARDS } from "../data/productDatabase";
 
 const MODEL_NAME = 'claude-sonnet-4-6';
 /** Fallback chain when primary model returns persistent UnavailableError.
@@ -69,11 +70,14 @@ function addStandardHardware(data: ChangeOrderData): void {
   const totalFootage = cables.reduce((sum, m) => sum + (m.quantity || 0), 0);
   const cableCount = cables.length;
 
-  // J-hooks: 3DTSI INSTALL STANDARD — 1 per 35 feet of total cable footage.
-  // Reason: cables share the main pathway for 80%+ of any run, so a single j-hook
-  // supports the whole bundle. Dividing total footage by 35 approximates this
-  // bundled support pattern (vs. 1 per 8 feet, which would over-count per cable).
-  const jHooksNeeded = Math.ceil(totalFootage / 35);
+  // J-hooks: 3DTSI INSTALL STANDARD — 75% of each run is bundled into a single
+  // shared pathway (1 set of hooks per 8ft of that bundled path); the remaining
+  // 25% of each run is separate, summed across all runs (1 hook per 8ft).
+  // Use the canonical helper so this formula stays in one place.
+  const jHooksNeeded = calculateJHooks(totalFootage);
+  const avgRun = CABLE_STANDARDS.perCameraFeet;
+  const bundledHooks = Math.ceil((avgRun * CABLE_STANDARDS.bundledCableFraction) / CABLE_STANDARDS.jHookSpacingFeet);
+  const separateHooks = jHooksNeeded - bundledHooks;
 
   // Labels: 2 per cable run
   const labelsNeeded = cableCount * 2;
@@ -107,7 +111,7 @@ function addStandardHardware(data: ChangeOrderData): void {
       msrp: 3.50, // Mid-range of $2-6 pricing
       unitOfMeasure: 'ea',
       complexity: 'Low',
-      notes: `Standard cable support hardware: 1 per 35 feet of total cable footage (${totalFootage}ft ÷ 35 = ${jHooksNeeded}) — cables share main pathway for 80%+ of runs.`,
+      notes: `Standard cable support hardware (3DTSI install standard): 75% of each run shares one bundled pathway + 25% separate runs, 1 J-hook every 8 ft. ${totalFootage}ft total (avg run ${avgRun}ft) → ${bundledHooks} bundled + ${separateHooks} separate = ${jHooksNeeded} J-hooks.`,
       isDeduct: false
     });
   }
@@ -474,7 +478,7 @@ ${buildProductReference()}
          * IMPORTANT: If NO patch panel is in the scope, you MUST include 2 jacks per cable run
        - PATCH CORD 7ft: 1 per camera (switch to patch panel, only if patch panel included)
        - PATCH CORD 2ft: 1 per camera (patch panel daisy-chain/short run)
-       - J-HOOKS: 1 per every 10 feet of horizontal cable run (3DTSI install standard)
+       - J-HOOKS: 3DTSI install standard. 75% of EACH cable run is bundled in a single shared pathway (one set of hooks supports all cables); the remaining 25% of each run breaks out separately. Both portions get 1 J-hook every 8 ft. See full formula below.
        - BEAM CLAMPS: 1 per J-hook, 1:1 ratio (each J-hook attaches to a beam clamp on overhead steel)
        - TIE WRAPS/VELCRO: 10 per cable run (bundling at J-hooks)
        - LABELS: 2 per cable run (both ends)
@@ -511,14 +515,22 @@ ${buildProductReference()}
        - Do NOT add 2 jacks per camera - cameras terminate with RJ45 plugs, not jacks
 
        J-HOOKS AND BEAM CLAMPS (3DTSI INSTALL STANDARD — MANDATORY):
-       - Calculate: 1 J-hook per 35 feet of TOTAL cable footage across all cables
-       - Reason: cables share the main pathway for ~80% of any run, so a single
-         J-hook supports the entire bundle. Counting per cable per 8-10 feet
-         massively over-counts hardware that physically does the same job.
+       - Cable model: 75% of EACH run's length runs in a single shared bundled
+         pathway (one set of hooks supports all bundled cables); the remaining
+         25% of each run breaks out separately to its endpoint.
+       - Calculate J-hooks in TWO parts, both at 1 J-hook every 8 feet:
+         (1) Bundled portion = ONE physical pathway of length (0.75 × average_run_feet)
+             → bundled hooks = ceil(0.75 × average_run_feet / 8)
+         (2) Separate portion = sum of the separated ends across ALL runs
+             = 0.25 × total_cable_footage
+             → separate hooks = ceil(0.25 × total_cable_footage / 8)
+         Round each part UP independently, then add them.
        - Calculate: 1 beam clamp per J-hook (1:1 ratio — each hook attaches to a beam clamp)
-       - Example: 7 cables × 110ft = 770ft total → 770 ÷ 35 ≈ 22 J-hooks + 22 beam clamps
+       - Worked example: 40 runs × 100 ft each = 4000 ft total, avg run = 100 ft
+         → bundled: ceil(0.75 × 100 / 8) = ceil(9.375) = 10
+         → separate: ceil(0.25 × 4000 / 8) = ceil(125) = 125
+         → 10 + 125 = 135 J-hooks + 135 beam clamps
        - Vertical runs use different supports (not J-hooks)
-       - Round up to nearest whole number
 
        PATCH CORDS:
        - 1 patch cord per camera/device (for switch to patch panel connection)
@@ -617,7 +629,7 @@ ${buildProductReference()}
        - Difficult (tight space): 0.75 hours
        - Very Difficult (existing walls): 1.00 hours
        
-       J-Hook Installation: 0.05 hours per hook (1 per 10ft per 3DTSI standard)
+       J-Hook Installation: 0.05 hours per hook (3DTSI standard: 75% of each run bundled in 1 shared pathway + 25% separate runs at 1 hook per 8ft)
        
        Data Drop/Outlet (complete with terminations):
        - Normal: 1.50 hours per drop
@@ -1293,7 +1305,21 @@ export async function generateProposal(
   const rawText = response.text;
   if (!rawText) throw new Error("No response from AI");
 
-  const proposalContent = JSON.parse(rawText);
+  // Claude often wraps JSON in ```json fences or prefixes a markdown header
+  // ("# CHANGE ORDER PROPOSAL", etc.). Strip wrappers, then fall back to
+  // first-brace/last-brace extraction so JSON.parse doesn't choke on prose.
+  let proposalText = rawText.trim()
+    .replace(/^```(?:json|JSON)?\s*\n?/, '')
+    .replace(/\n?```\s*$/, '')
+    .trim();
+  if (!proposalText.startsWith('{')) {
+    const firstBrace = proposalText.indexOf('{');
+    const lastBrace = proposalText.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      proposalText = proposalText.substring(firstBrace, lastBrace + 1);
+    }
+  }
+  const proposalContent = JSON.parse(proposalText);
 
   return {
     ...proposalContent,
