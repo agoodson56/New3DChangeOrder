@@ -132,10 +132,12 @@
                 page-break-before: auto;
             }
 
-            /* Table headers repeat on new pages (browser support varies) */
-            .bg-gray-200 {
-                display: table-header-group;
-            }
+            /* Note: previous rule set "display: table-header-group" on every
+               .bg-gray-200 element. That broke the labor/materials column
+               headers (which are CSS grids, not table thead rows) — the cells
+               collapsed into a single vertical stack on the printed PDF.
+               Removed. We rely on page-break-inside: avoid (above) to keep
+               sections coherent across pages. */
 
             /* PROPOSAL PRINT STYLES */
             .proposal-page {
