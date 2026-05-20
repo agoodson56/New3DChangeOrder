@@ -423,6 +423,15 @@ export async function generateChangeOrder(
           * Boom lift rental (daily rate) - for outdoor/high exterior work
           * Safety harness/fall protection - required at 6ft+ elevated work
        
+       OWNED TOOLS (DO NOT include as material line items):
+       - Fluke DSX-series cable analyzers / certifiers
+       - Other cable testers / certifiers / time-domain reflectometers
+       - Crimpers, punch-down tools, fish tape, label printers
+       - Any company-owned hand tool or test equipment
+       These are tools 3D Technology Services already owns. The labor task
+       "Cable Testing and Fluke Certification" already accounts for using them.
+       NEVER add them to "materials" — not as $0, not as "(Rental/Use)", not at all.
+
        GENERIC ITEMS RULE: NEVER use manufacturer name "Generic" for materials.
        Always specify a real brand. Use these defaults for common items:
        - Labels: Brady or Panduit

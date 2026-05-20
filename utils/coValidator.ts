@@ -339,6 +339,13 @@ export function validateChangeOrder(input: ChangeOrderData): ValidationOutput {
             combined.includes('adapter') ||
             combined.includes('crimper') ||
             combined.includes('tester') ||
+            combined.includes('analyzer') ||
+            combined.includes('certifier') ||
+            combined.includes('fluke') ||
+            combined.includes('dsx') ||
+            combined.includes('(rental') ||
+            combined.includes('(use') ||
+            combined.includes('(owned') ||
             combined.includes('tool') ||
             combined.includes('bag of') ||
             combined.includes('pack') ||
@@ -418,9 +425,19 @@ export function validateChangeOrder(input: ChangeOrderData): ValidationOutput {
     const totalCableFeet = cableItems.reduce((sum, item) => sum + item.quantity, 0);
     if (totalCableFeet > 0) {
         const expectedJHooks = calculateJHooks(totalCableFeet);
-        const jHookItems = data.materials.filter(m =>
-            m.model.toLowerCase().includes('j-hook') || m.model.toLowerCase().includes('jhook')
-        );
+        // Detect j-hooks broadly so the validator doesn't false-flag installs that
+        // used the manufacturer part number (e.g., nVent CADDY CAT21HP/CAT41HP are
+        // j-hooks, but their model strings don't contain the word "j-hook").
+        // Keep aligned with addStandardHardware() in services/geminiService.ts.
+        const jHookItems = data.materials.filter(m => {
+            const mfr = (m.manufacturer || '').toLowerCase();
+            const mdl = (m.model || '').toLowerCase();
+            const notes = (m.notes || '').toLowerCase();
+            if (mdl.includes('j-hook') || mdl.includes('jhook') || mdl.includes('bridle') || mdl.includes('hanger')) return true;
+            if ((mfr.includes('caddy') || mfr.includes('nvent') || mfr.includes('erico')) && /^cat\d/i.test(mdl)) return true;
+            if (notes.includes('j-hook') || notes.includes('cable hanger') || notes.includes('bridle ring')) return true;
+            return false;
+        });
         const actualJHooks = jHookItems.reduce((sum, item) => sum + item.quantity, 0);
 
         if (actualJHooks === 0 && totalCableFeet > 100) {

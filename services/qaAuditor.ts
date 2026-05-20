@@ -195,7 +195,7 @@ Return:
     // (coValidator) and any pricing checks that did succeed.
     try {
         const response = await generateContent({
-            model: 'gemini-1.5-flash',
+            model: 'claude-haiku-4-5-20251001',
             nonEssential: true,
             contents: { parts: [{ text: prompt }] },
             config: {
@@ -205,7 +205,20 @@ Return:
             }
         });
 
-        const text = response.text || '{}';
+        // Claude often wraps JSON in ```json fences or prefixes commentary.
+        // Strip fences, then fall back to first-brace/last-brace extraction so
+        // JSON.parse doesn't choke on the wrapper.
+        let text = (response.text || '{}').trim()
+            .replace(/^```(?:json|JSON)?\s*\n?/, '')
+            .replace(/\n?```\s*$/, '')
+            .trim();
+        if (!text.startsWith('{')) {
+            const firstBrace = text.indexOf('{');
+            const lastBrace = text.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+                text = text.substring(firstBrace, lastBrace + 1);
+            }
+        }
         const result = JSON.parse(text);
 
         return {
