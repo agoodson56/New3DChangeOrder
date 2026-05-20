@@ -1271,34 +1271,52 @@ export async function generateProposal(
   `;
 
   const prompt = `
-    Create a compelling professional proposal based on this Change Order:
-    
+    Create a compelling professional proposal based on this Change Order.
+
     PROJECT DETAILS:
     - Customer: ${coData.customer}
     - Contact: ${coData.contact}
     - Project Name: ${coData.projectName}
     - Location: ${coData.address}
-    
+
     TECHNICAL SCOPE:
     ${coData.technicalScope}
-    
+
     SYSTEMS IMPACTED:
     ${coData.systemsImpacted.join(', ')}
-    
+
     MATERIALS & EQUIPMENT:
     ${materialsList}
-    
+
     LABOR TASKS:
     ${laborList}
-    
+
     INVESTMENT BREAKDOWN:
     - Labor: $${financials.laborTotal.toLocaleString()}
     - Materials & Equipment: $${financials.materialsTotal.toLocaleString()}
     - Tax: $${financials.taxTotal.toLocaleString()}
     - TOTAL INVESTMENT: $${financials.grandTotal.toLocaleString()}
-    
-    Generate a COMPELLING, PROFESSIONAL proposal that would excite and convince the client to approve this investment immediately.
-    Use current industry knowledge to add relevant statistics, trends, and insights.
+
+    CRITICAL OUTPUT REQUIREMENTS:
+    Respond with ONE raw JSON object. NO markdown, NO triple-backtick json fences,
+    NO leading "# CHANGE ORDER" headers, NO commentary before or after. The
+    response MUST begin with the character "{" and end with the character "}".
+
+    JSON SCHEMA (all string fields, arrays are arrays of strings):
+    {
+      "projectTitle": "string — compelling project title",
+      "clientName": "string — customer name",
+      "executiveSummary": "string — 3-4 sentences on business value + ROI",
+      "problemStatement": "string — 2-3 sentences on the business challenge",
+      "solutionOverview": "string — 3-4 sentences on the solution, benefits-focused",
+      "technicalHighlights": ["5-7 strings, each a bullet of key technical capability"],
+      "valueProposition": ["5-7 strings on ROI, efficiency, risk reduction, edge"],
+      "industryInsights": ["3-5 strings with current (2024-2026) stats / trends"],
+      "companyCredentials": ["5-7 strings on certifications, experience, warranty"],
+      "whyChooseUs": ["4-6 strings, differentiators vs competitors"],
+      "nextSteps": ["3-5 strings, action items for project initiation"],
+      "callToAction": "string — compelling closing urging immediate action"
+    }
   `;
 
   const response = await callWithRetry(() => generateContent({
@@ -1330,7 +1348,31 @@ export async function generateProposal(
       proposalText = proposalText.substring(firstBrace, lastBrace + 1);
     }
   }
-  const proposalContent = JSON.parse(proposalText);
+
+  let proposalContent: Record<string, unknown>;
+  try {
+    proposalContent = JSON.parse(proposalText) as Record<string, unknown>;
+  } catch (parseErr) {
+    // The AI ignored the JSON instruction and returned prose. Synthesize a
+    // minimal proposal from the raw text + investment numbers so the user
+    // sees SOMETHING rather than a hard failure. They can still edit it.
+    console.warn('Proposal JSON parse failed; building minimal proposal from raw text.', parseErr);
+    const firstLine = rawText.split('\n').find(l => l.trim().length > 0)?.replace(/^#+\s*/, '').trim() || 'Proposal';
+    proposalContent = {
+      projectTitle: firstLine.slice(0, 120),
+      clientName: coData.customer,
+      executiveSummary: rawText.slice(0, 800),
+      problemStatement: '',
+      solutionOverview: coData.technicalScope || '',
+      technicalHighlights: [],
+      valueProposition: [],
+      industryInsights: [],
+      companyCredentials: [],
+      whyChooseUs: [],
+      nextSteps: [],
+      callToAction: 'Please review and approve this change order.'
+    };
+  }
 
   return {
     ...proposalContent,
@@ -1340,7 +1382,7 @@ export async function generateProposal(
       month: 'long',
       day: 'numeric'
     })
-  } as ProposalData;
+  } as unknown as ProposalData;
 }
 
 /**
