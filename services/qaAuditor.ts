@@ -182,13 +182,23 @@ Check each of these and report issues:
    - Only flag pricing as an issue if it exceeds 50% above bulk rates or appears to have calculation errors
    - Database pricing assumes volume discounts not available on small COs
 
-Return:
-- overallScore: 0-100 (95+ = customer ready, 80-94 = needs minor fixes, <80 = needs major rework)
-- issues: specific problems found (focus on structural/safety/compliance issues, not pricing variance)
-- recommendations: improvements to make it customer-ready
-- missingItems: materials or labor tasks that should be added (especially safety-critical items)
-- brandingIssues: manufacturer mixing or warranty concerns
-- complianceNotes: code/standard violations (firestopping, cable support, labeling requirements)`;
+CRITICAL OUTPUT REQUIREMENTS:
+Respond with ONE raw JSON object. NO markdown, NO triple-backtick fences,
+NO leading "# AUDIT" headers, NO commentary before or after the JSON.
+The response MUST begin with "{" and end with "}".
+
+JSON SCHEMA (every field required, arrays are arrays of strings):
+{
+  "overallScore": 92,
+  "issues": ["string — specific problem (structural/safety/compliance, not pricing variance)"],
+  "recommendations": ["string — improvement to make it customer-ready"],
+  "missingItems": ["string — material or labor task that should be added (esp. safety-critical)"],
+  "brandingIssues": ["string — manufacturer mixing or warranty concern"],
+  "complianceNotes": ["string — code/standard violation (firestopping, cable support, labeling)"]
+}
+
+Scoring guidance: 95+ = customer ready, 80-94 = needs minor fixes, <80 = needs major rework.
+If you have nothing to say in a category, use an empty array []. Do not omit any field.`;
 
     // Single attempt, fail fast. QA audit is non-essential — if it doesn't
     // succeed, the change order still ships with deterministic validation
