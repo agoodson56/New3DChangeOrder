@@ -425,11 +425,13 @@ export async function generateChangeOrder(
        
        OWNED TOOLS (DO NOT include as material line items):
        - Fluke DSX-series cable analyzers / certifiers
+       - Fiber fusion splicers (Fujikura, Sumitomo, INNO, etc.) and cleavers
+       - OTDRs, optical power meters, visual fault locators, light sources
        - Other cable testers / certifiers / time-domain reflectometers
        - Crimpers, punch-down tools, fish tape, label printers
        - Any company-owned hand tool or test equipment
-       These are tools 3D Technology Services already owns. The labor task
-       "Cable Testing and Fluke Certification" already accounts for using them.
+       These are tools 3D Technology Services already owns. The labor tasks
+       (Fluke certification, fiber splicing, etc.) already account for their use.
        NEVER add them to "materials" — not as $0, not as "(Rental/Use)", not at all.
 
        GENERIC ITEMS RULE: NEVER use manufacturer name "Generic" for materials.

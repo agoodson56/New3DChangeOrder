@@ -343,6 +343,14 @@ export function validateChangeOrder(input: ChangeOrderData): ValidationOutput {
             combined.includes('certifier') ||
             combined.includes('fluke') ||
             combined.includes('dsx') ||
+            combined.includes('splicer') ||
+            combined.includes('fusion') ||
+            combined.includes('cleaver') ||
+            combined.includes('otdr') ||
+            combined.includes('vfl') ||
+            combined.includes('power meter') ||
+            combined.includes('light source') ||
+            combined.includes('fault locator') ||
             combined.includes('(rental') ||
             combined.includes('(use') ||
             combined.includes('(owned') ||
