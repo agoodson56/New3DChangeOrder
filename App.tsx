@@ -15,9 +15,12 @@ import { Icons, getOffice } from './constants';
 import {
   saveDraft, loadDraft, clearDraft,
   saveRates as persistRates, loadRates,
-  saveToHistory, onWriteFailure, onDraftFromOtherTab,
+  onWriteFailure, onDraftFromOtherTab,
 } from './utils/persistence';
 import * as cloudSync from './utils/cloudSync';
+import {
+  createChangeOrder, updateChangeOrder, reviseChangeOrder, getChangeOrder,
+} from './services/changeOrderApi';
 import { useAuth } from './contexts/AuthContext';
 
 const App: React.FC = () => {
@@ -29,7 +32,12 @@ const App: React.FC = () => {
   const [isGeneratingProposal, setIsGeneratingProposal] = useState(false);
   const [draftPrompt, setDraftPrompt] = useState<{ found: true } | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  /** ID of the DB row this in-memory CO corresponds to (null = not yet saved). */
   const [savedCoId, setSavedCoId] = useState<string | null>(null);
+  /** True if `coData` was hydrated from an existing history entry — next save creates a revision. */
+  const [wasLoadedFromHistory, setWasLoadedFromHistory] = useState(false);
+  const [isSavingCo, setIsSavingCo] = useState(false);
+  const [isLoadingCo, setIsLoadingCo] = useState(false);
   const [syncState, setSyncState] = useState<cloudSync.SyncStatus>('idle');
   const [storageWarning, setStorageWarning] = useState<string | null>(null);
   const [otherTabWarning, setOtherTabWarning] = useState<boolean>(false);
@@ -140,6 +148,7 @@ const App: React.FC = () => {
     setCoData(data);
     setStatus(AppStatus.RESULT);
     setSavedCoId(null);
+    setWasLoadedFromHistory(false);
   };
 
   const handleReset = () => {
@@ -149,6 +158,7 @@ const App: React.FC = () => {
     setCoData(null);
     setProposalData(null);
     setSavedCoId(null);
+    setWasLoadedFromHistory(false);
     setStatus(AppStatus.IDLE);
     clearDraft();
   };
@@ -176,13 +186,60 @@ const App: React.FC = () => {
     setDraftPrompt(null);
   };
 
-  // Save snapshot to history (called on print or when explicitly archived)
-  const handleSnapshotToHistory = () => {
-    if (!coData || !rates || savedCoId) return;
+  // Save the current CO to the cloud. Called on print or when explicitly archived.
+  // Behavior depends on what we're editing:
+  //   - Fresh CO (no savedCoId)              → POST /api/co       (create new)
+  //   - In-place re-save (savedCoId, NOT loaded from history) → PUT /api/co/:id  (update same row)
+  //   - Loaded from history                  → POST /api/co/:id/revise (creates R{N+1})
+  const handleSnapshotToHistory = async () => {
+    if (!coData || !rates || !token) return;
+    if (isSavingCo) return;
     const office = getOffice(coData.officeId);
     const financials = calculateFinancials(coData, rates, office.salesTaxRate);
-    const entry = saveToHistory(coData, financials.grandTotal);
-    setSavedCoId(entry.id);
+    setIsSavingCo(true);
+    try {
+      let saved;
+      if (savedCoId && wasLoadedFromHistory) {
+        // Each save of a loaded CO creates the next revision (R1, R2, ...).
+        saved = await reviseChangeOrder(token, savedCoId, coData, financials.grandTotal);
+        // Mirror the server's revised PCO number into in-memory state so the
+        // print/preview reflects "-R{N}" without requiring a reload.
+        if (saved.pcoNumber && saved.pcoNumber !== coData.pcoNumber) {
+          setCoData({ ...coData, pcoNumber: saved.pcoNumber });
+        }
+      } else if (savedCoId) {
+        saved = await updateChangeOrder(token, savedCoId, coData, financials.grandTotal);
+      } else {
+        saved = await createChangeOrder(token, coData, financials.grandTotal);
+      }
+      setSavedCoId(saved.id);
+    } catch (e) {
+      setStorageWarning(`Could not save change order to cloud: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setIsSavingCo(false);
+    }
+  };
+
+  // Open a saved CO from history into the editor. Subsequent saves become revisions.
+  const handleLoadFromHistory = async (id: string) => {
+    if (!token || isLoadingCo) return;
+    setIsLoadingCo(true);
+    try {
+      const co = await getChangeOrder(token, id);
+      if (!co.data) {
+        setStorageWarning('Loaded change order has no data payload — cannot open.');
+        return;
+      }
+      setCoData(co.data);
+      setSavedCoId(co.id);
+      setWasLoadedFromHistory(true);
+      setProposalData(null);
+      setStatus(AppStatus.RESULT);
+    } catch (e) {
+      setStorageWarning(`Could not load change order: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      setIsLoadingCo(false);
+    }
   };
 
   const handleGenerateProposal = async () => {
@@ -400,7 +457,7 @@ const App: React.FC = () => {
                   onDataChange={handleDataChange}
                   onGenerateProposal={handleGenerateProposal}
                   isGeneratingProposal={isGeneratingProposal}
-                  onArchive={handleSnapshotToHistory}
+                  onArchive={() => { void handleSnapshotToHistory(); }}
                   archivedId={savedCoId}
                 />
               </ErrorBoundary>
@@ -423,7 +480,19 @@ const App: React.FC = () => {
 
       {/* History modal */}
       {historyOpen && (
-        <HistoryModal onClose={() => setHistoryOpen(false)} />
+        <HistoryModal
+          onClose={() => setHistoryOpen(false)}
+          onLoad={handleLoadFromHistory}
+        />
+      )}
+
+      {/* Loading-from-cloud overlay — covers screen while fetching a CO to edit. */}
+      {isLoadingCo && (
+        <div className="fixed inset-0 z-50 bg-white/90 flex items-center justify-center print:hidden" aria-live="polite">
+          <div className="bg-white border-2 border-[#008b8b] px-6 py-4 shadow-2xl">
+            <p className="text-sm font-black uppercase tracking-widest text-[#008b8b]">Loading from cloud…</p>
+          </div>
+        </div>
       )}
 
       {/* Cinematic Background Ambience */}
