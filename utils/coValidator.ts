@@ -427,7 +427,7 @@ export function validateChangeOrder(input: ChangeOrderData): ValidationOutput {
             warnings.push({
                 type: 'material',
                 severity: 'warning',
-                message: `Missing J-hooks: ${totalCableFeet}ft of cable requires ~${expectedJHooks} J-hooks (75% of each run bundled + 25% separate, 1 hook per ${CABLE_STANDARDS.jHookSpacingFeet}ft)`
+                message: `Missing J-hooks: ${totalCableFeet}ft of cable requires ~${expectedJHooks} J-hooks`
             });
             deductions += 3;
         } else if (actualJHooks > 0 && actualJHooks < expectedJHooks * 0.5) {
