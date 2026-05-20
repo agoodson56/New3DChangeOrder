@@ -114,14 +114,15 @@ export const CATALOG_CABLING: CompactProduct[] = [
     ['Leviton', '2-Port Faceplate Ivory', '41080-2IP', 'M', 'Faceplate', 2.50, 'ea', 'QuickPort 2-Port Ivory', 0.1, 'L'],
     ['Leviton', '2-Port Surface Box White', '41089-2WP', 'M', 'Surface Box', 4, 'ea', 'Surface Mount Box 2-Port White', 0.1, 'L'],
     // ── LEVITON — Patch Cables ──
-    ['Leviton', 'Cat6A Patch 3ft Blue', '6A460-03L', 'M', 'Patch Cable', 12, 'ea', 'Cat6A Slim Patch 3ft Blue', 0, 'L'],
-    ['Leviton', 'Cat6A Patch 5ft Blue', '6A460-05L', 'M', 'Patch Cable', 15, 'ea', 'Cat6A Slim Patch 5ft Blue', 0, 'L'],
-    ['Leviton', 'Cat6A Patch 7ft Blue', '6A460-07L', 'M', 'Patch Cable', 18, 'ea', 'Cat6A Slim Patch 7ft Blue', 0, 'L'],
-    ['Leviton', 'Cat6A Patch 10ft Blue', '6A460-10L', 'M', 'Patch Cable', 22, 'ea', 'Cat6A Slim Patch 10ft Blue', 0, 'L'],
-    ['Leviton', 'Cat6 Patch 3ft Blue', '62460-03L', 'M', 'Patch Cable', 6, 'ea', 'Cat6 Patch 3ft Blue', 0, 'L'],
-    ['Leviton', 'Cat6 Patch 5ft Blue', '62460-05L', 'M', 'Patch Cable', 8, 'ea', 'Cat6 Patch 5ft Blue', 0, 'L'],
-    ['Leviton', 'Cat6 Patch 7ft Blue', '62460-07L', 'M', 'Patch Cable', 10, 'ea', 'Cat6 Patch 7ft Blue', 0, 'L'],
-    ['Leviton', 'Cat6 Patch 10ft Blue', '62460-10L', 'M', 'Patch Cable', 13, 'ea', 'Cat6 Patch 10ft Blue', 0, 'L'],
+    // STREET pricing (Anixter / Graybar / CDW distributor) — was list MSRP.
+    ['Leviton', 'Cat6A Patch 3ft Blue', '6A460-03L', 'M', 'Patch Cable', 3.5, 'ea', 'Cat6A Slim Patch 3ft Blue', 0, 'L'],
+    ['Leviton', 'Cat6A Patch 5ft Blue', '6A460-05L', 'M', 'Patch Cable', 4, 'ea', 'Cat6A Slim Patch 5ft Blue', 0, 'L'],
+    ['Leviton', 'Cat6A Patch 7ft Blue', '6A460-07L', 'M', 'Patch Cable', 4.5, 'ea', 'Cat6A Slim Patch 7ft Blue', 0, 'L'],
+    ['Leviton', 'Cat6A Patch 10ft Blue', '6A460-10L', 'M', 'Patch Cable', 6, 'ea', 'Cat6A Slim Patch 10ft Blue', 0, 'L'],
+    ['Leviton', 'Cat6 Patch 3ft Blue', '62460-03L', 'M', 'Patch Cable', 2.5, 'ea', 'Cat6 Patch 3ft Blue', 0, 'L'],
+    ['Leviton', 'Cat6 Patch 5ft Blue', '62460-05L', 'M', 'Patch Cable', 3, 'ea', 'Cat6 Patch 5ft Blue', 0, 'L'],
+    ['Leviton', 'Cat6 Patch 7ft Blue', '62460-07L', 'M', 'Patch Cable', 3.5, 'ea', 'Cat6 Patch 7ft Blue', 0, 'L'],
+    ['Leviton', 'Cat6 Patch 10ft Blue', '62460-10L', 'M', 'Patch Cable', 4.5, 'ea', 'Cat6 Patch 10ft Blue', 0, 'L'],
 
     // ── PANDUIT — Jacks ──
     ['Panduit', 'CJ688TGBL', 'CJ688TGBL', 'M', 'Jack', 11, 'ea', 'Mini-Com Cat6 Jack Blue', 0.15, 'L'],
@@ -144,12 +145,12 @@ export const CATALOG_CABLING: CompactProduct[] = [
     ['Panduit', 'CFPE4IWY', 'CFPE4IWY', 'M', 'Faceplate', 3, 'ea', '4-Port Faceplate Off-White', 0.1, 'L'],
     ['Panduit', 'CBXF6IW-AY', 'CBXF6IW-AY', 'M', 'Surface Box', 5, 'ea', '6-port Surface Mount Box', 0.1, 'L'],
     // ── PANDUIT — Patch Cables ──
-    ['Panduit', 'UTPSP3BUY Cat6 3ft', 'UTPSP3BUY', 'M', 'Patch Cable', 5, 'ea', 'Cat6 Patch 3ft Blue', 0, 'L'],
-    ['Panduit', 'UTPSP5BUY Cat6 5ft', 'UTPSP5BUY', 'M', 'Patch Cable', 7, 'ea', 'Cat6 Patch 5ft Blue', 0, 'L'],
-    ['Panduit', 'UTPSP7BUY Cat6 7ft', 'UTPSP7BUY', 'M', 'Patch Cable', 9, 'ea', 'Cat6 Patch 7ft Blue', 0, 'L'],
-    ['Panduit', 'UTP6AX3BU Cat6A 3ft', 'UTP6AX3BU', 'M', 'Patch Cable', 14, 'ea', 'Cat6A Patch 3ft Blue', 0, 'L'],
-    ['Panduit', 'UTP6AX5BU Cat6A 5ft', 'UTP6AX5BU', 'M', 'Patch Cable', 17, 'ea', 'Cat6A Patch 5ft Blue', 0, 'L'],
-    ['Panduit', 'UTP6AX7BU Cat6A 7ft', 'UTP6AX7BU', 'M', 'Patch Cable', 21, 'ea', 'Cat6A Patch 7ft Blue', 0, 'L'],
+    ['Panduit', 'UTPSP3BUY Cat6 3ft', 'UTPSP3BUY', 'M', 'Patch Cable', 3, 'ea', 'Cat6 Patch 3ft Blue', 0, 'L'],
+    ['Panduit', 'UTPSP5BUY Cat6 5ft', 'UTPSP5BUY', 'M', 'Patch Cable', 3.5, 'ea', 'Cat6 Patch 5ft Blue', 0, 'L'],
+    ['Panduit', 'UTPSP7BUY Cat6 7ft', 'UTPSP7BUY', 'M', 'Patch Cable', 4.5, 'ea', 'Cat6 Patch 7ft Blue', 0, 'L'],
+    ['Panduit', 'UTP6AX3BU Cat6A 3ft', 'UTP6AX3BU', 'M', 'Patch Cable', 5.5, 'ea', 'Cat6A Patch 3ft Blue', 0, 'L'],
+    ['Panduit', 'UTP6AX5BU Cat6A 5ft', 'UTP6AX5BU', 'M', 'Patch Cable', 6, 'ea', 'Cat6A Patch 5ft Blue', 0, 'L'],
+    ['Panduit', 'UTP6AX7BU Cat6A 7ft', 'UTP6AX7BU', 'M', 'Patch Cable', 7, 'ea', 'Cat6A Patch 7ft Blue', 0, 'L'],
 
     // ── HUBBELL — Jacks & Panels ──
     ['Hubbell', 'HJ6A1 Cat6A Jack Blue', 'HJ6A1', 'M', 'Jack', 14, 'ea', 'SpeedGain Cat6A Jack Blue', 0.15, 'L'],

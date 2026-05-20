@@ -70,7 +70,7 @@ export const CATALOG_BULK_EXPANSION_D: CompactProduct[] = [
     ['Notifier', 'B200S-LF', 'B200S-LF', 'M', 'Detector Base', 49, 'ea', 'Sounder Base Low Frequency', 0.25, 'M'],
 
     // ════════ PATHWAY — Additional firestop, test equipment ════════
-    ['3M', 'Fire Barrier Sealant CP25WB+', 'CP-25WB+', 'M', 'Firestop', 29, 'ea', 'Firestop Sealant 27oz Caulk', 0.1, 'L'],
+    ['3M', 'Fire Barrier Sealant CP25WB+', 'CP-25WB+', 'M', 'Firestop', 18.75, 'ea', 'Firestop Sealant 27oz Caulk', 0.1, 'L'],
     ['3M', 'Fire Barrier RC-1 Collar', 'RC-1', 'M', 'Firestop', 19, 'ea', 'Retrofit Collar 1" Pipe', 0.25, 'L'],
     ['3M', 'Fire Barrier RC-2 Collar', 'RC-2', 'M', 'Firestop', 25, 'ea', 'Retrofit Collar 2" Pipe', 0.25, 'L'],
     ['Hilti', 'FS-ONE MAX', 'FS-ONE-MAX', 'M', 'Firestop', 35, 'ea', 'Intumescent Firestop Sealant', 0.1, 'L'],

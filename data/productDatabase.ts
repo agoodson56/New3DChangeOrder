@@ -458,13 +458,13 @@ export const CABLING_PRODUCTS: ProductDefinition[] = [
         partNumber: '6A586-U48',
         category: 'Equipment',
         subcategory: 'Patch Panel - Cat6A 48-Port',
-        msrp: 595.00, // Lower-quartile street price (was $744.42 list MSRP)
+        msrp: 425.00, // Anixter / Graybar contractor street — was $595 (list-anchored)
         unitOfMeasure: 'ea',
         description: 'Cat6A+ 48-port patch panel with cable management',
         installationRequirements: [
-            { type: 'consumable', name: 'Cage Nuts and Screws', quantityPerUnit: 12, msrp: 0.50 },
-            { type: 'consumable', name: 'Horizontal Cable Manager 2U', quantityPerUnit: 1, msrp: 65.00 },
-            { type: 'consumable', name: 'Panel Labels', quantityPerUnit: 48, msrp: 0.10 }
+            { type: 'consumable', name: 'Cage Nuts and Screws', quantityPerUnit: 12, msrp: 0.30 },
+            { type: 'consumable', name: 'Horizontal Cable Manager 2U', quantityPerUnit: 1, msrp: 38.00 },
+            { type: 'consumable', name: 'Panel Labels', quantityPerUnit: 48, msrp: 0.06 }
         ],
         accessories: [],
         laborHours: 2.5,
@@ -521,11 +521,11 @@ export const PATHWAY_PRODUCTS: ProductDefinition[] = [
         partNumber: 'CAT21HP',
         category: 'Material',
         subcategory: 'J-Hook - Cat6A Rated',
-        msrp: 5.86,
+        msrp: 3.20, // Graybar / Wesco distributor stock — street pricing, not list MSRP
         unitOfMeasure: 'ea',
         description: '2" J-hook with 3" bend radius for Cat6A',
         installationRequirements: [
-            { type: 'consumable', name: 'Beam Clamp or Threaded Rod', quantityPerUnit: 1, msrp: 2.50 }
+            { type: 'consumable', name: 'Beam Clamp or Threaded Rod', quantityPerUnit: 1, msrp: 1.35 }
         ],
         accessories: [],
         laborHours: 0.1,
@@ -537,11 +537,11 @@ export const PATHWAY_PRODUCTS: ProductDefinition[] = [
         partNumber: 'CAT41HP',
         category: 'Material',
         subcategory: 'J-Hook - Cat6A Rated',
-        msrp: 5.25,
+        msrp: 3.00, // Graybar / Wesco distributor stock
         unitOfMeasure: 'ea',
         description: '4" J-hook with 3" bend radius for Cat6A, high capacity',
         installationRequirements: [
-            { type: 'consumable', name: 'Beam Clamp or Threaded Rod', quantityPerUnit: 1, msrp: 2.50 }
+            { type: 'consumable', name: 'Beam Clamp or Threaded Rod', quantityPerUnit: 1, msrp: 1.35 }
         ],
         accessories: [],
         laborHours: 0.1,
@@ -585,16 +585,18 @@ export const CONSUMABLES_KIT: ProductDefinition = {
 };
 
 export const STANDARD_CONSUMABLES = [
-    { name: 'Cable Ties 8" Black (bag of 100)', partNumber: 'CT-8-100', msrp: 8.50, perProject: true },
-    { name: 'Velcro Cable Straps 6" (25 pack)', partNumber: 'VCS-6-25', msrp: 15.00, perProject: true },
-    { name: 'Cable Labels (roll of 100)', partNumber: 'CL-100', msrp: 12.00, perProject: true },
-    { name: 'Tapcon Anchors 1/4x1-3/4 (box of 100)', partNumber: 'TA-1434-100', msrp: 35.00, perCameraSet: 6 },
-    { name: 'Drywall Anchors Assorted (kit)', partNumber: 'DA-KIT', msrp: 18.00, perProject: true },
-    { name: 'Wire Nuts Assorted (bag of 50)', partNumber: 'WN-50', msrp: 8.00, perProject: true },
-    { name: 'Electrical Tape 3/4" (3 pack)', partNumber: 'ET-34-3', msrp: 12.00, perProject: true },
-    { name: 'Silicone Sealant Clear (tube)', partNumber: 'SS-CLR', msrp: 8.50, perOutdoorCamera: 1 },
-    { name: 'Split Loom Tubing 1" (10ft)', partNumber: 'SL-1-10', msrp: 15.00, perProject: true },
-    { name: 'Heat Shrink Assortment Kit', partNumber: 'HS-KIT', msrp: 22.00, perProject: true }
+    // All prices below are STREET / distributor (Amazon Business, Anixter,
+    // Graybar contractor rate), NOT list MSRP. See cabling.ts header note.
+    { name: 'Cable Ties 8" Black (bag of 100)', partNumber: 'PLT2S-M0', msrp: 5.50, perProject: true },
+    { name: 'Velcro Cable Straps 6" (25 pack)', partNumber: 'VCS-6-25', msrp: 8.75, perProject: true },
+    { name: 'Cable Labels (roll of 100)', partNumber: 'BM-35-427', msrp: 6.50, perProject: true },
+    { name: 'Tapcon Anchors 1/4x1-3/4 (box of 100)', partNumber: '24355', msrp: 22.00, perCameraSet: 6 },
+    { name: 'Drywall Anchors Assorted (kit)', partNumber: 'DA-KIT', msrp: 10.00, perProject: true },
+    { name: 'Wire Nuts Assorted (bag of 50)', partNumber: '30-072', msrp: 5.00, perProject: true },
+    { name: 'Electrical Tape 3/4" (3 pack)', partNumber: '6132-BA-10', msrp: 7.00, perProject: true },
+    { name: 'Silicone Sealant Clear (tube)', partNumber: '08641', msrp: 5.50, perOutdoorCamera: 1 },
+    { name: 'Split Loom Tubing 1" (10ft)', partNumber: 'CLT100F-X20', msrp: 9.00, perProject: true },
+    { name: 'Heat Shrink Assortment Kit', partNumber: 'Q2-KIT', msrp: 13.00, perProject: true }
 ];
 
 // =============================================================================
@@ -610,7 +612,7 @@ export const CONSUMABLE_PRODUCTS: ProductDefinition[] = [
         partNumber: 'PLT2S-M0',
         category: 'Material',
         subcategory: 'Cable Management',
-        msrp: 8.50,
+        msrp: 5.50,
         unitOfMeasure: 'ea',
         description: '8" nylon cable ties, 50lb tensile, 100/bag',
         installationRequirements: [],
@@ -624,7 +626,7 @@ export const CONSUMABLE_PRODUCTS: ProductDefinition[] = [
         partNumber: '95172',
         category: 'Material',
         subcategory: 'Cable Management',
-        msrp: 15.00,
+        msrp: 8.75, // B&H Photo / Amazon Business — was $15 list
         unitOfMeasure: 'ea',
         description: 'Reusable hook-and-loop cable straps, 8" x 1/2", 25/pack',
         installationRequirements: [],
@@ -635,10 +637,10 @@ export const CONSUMABLE_PRODUCTS: ProductDefinition[] = [
     {
         manufacturer: 'Brady',
         model: 'Cable Labels (roll of 100)',
-        partNumber: 'M21-500-499',
+        partNumber: 'BM-35-427',
         category: 'Material',
         subcategory: 'Labeling',
-        msrp: 12.00,
+        msrp: 6.50, // CDW / Anixter — was $12 list
         unitOfMeasure: 'ea',
         description: 'Self-laminating vinyl cable labels, roll of 100',
         installationRequirements: [],
@@ -652,7 +654,7 @@ export const CONSUMABLE_PRODUCTS: ProductDefinition[] = [
         partNumber: '24355',
         category: 'Material',
         subcategory: 'Fasteners',
-        msrp: 35.00,
+        msrp: 22.00, // Home Depot / Amazon Business — was $35 list
         unitOfMeasure: 'ea',
         description: '1/4" x 1-3/4" hex-head concrete anchors, 100/box',
         installationRequirements: [],
@@ -666,7 +668,7 @@ export const CONSUMABLE_PRODUCTS: ProductDefinition[] = [
         partNumber: 'DA-KIT',
         category: 'Material',
         subcategory: 'Fasteners',
-        msrp: 18.00,
+        msrp: 10.00, // Amazon Business — was $18
         unitOfMeasure: 'ea',
         description: 'Assorted drywall anchors kit for mounting',
         installationRequirements: [],
@@ -680,7 +682,7 @@ export const CONSUMABLE_PRODUCTS: ProductDefinition[] = [
         partNumber: '30-072',
         category: 'Material',
         subcategory: 'Electrical',
-        msrp: 8.00,
+        msrp: 5.00, // Home Depot / Amazon — was $8
         unitOfMeasure: 'ea',
         description: 'Assorted wire connectors, 50/bag',
         installationRequirements: [],
@@ -694,7 +696,7 @@ export const CONSUMABLE_PRODUCTS: ProductDefinition[] = [
         partNumber: '6132-BA-10',
         category: 'Material',
         subcategory: 'Electrical',
-        msrp: 12.00,
+        msrp: 7.00, // Amazon / Home Depot — was $12
         unitOfMeasure: 'ea',
         description: 'Scotch Super 33+ vinyl electrical tape, 3/4" x 66ft, 3-pack',
         installationRequirements: [],
@@ -708,7 +710,7 @@ export const CONSUMABLE_PRODUCTS: ProductDefinition[] = [
         partNumber: '08641',
         category: 'Material',
         subcategory: 'Sealants',
-        msrp: 8.50,
+        msrp: 5.50, // Home Depot — was $8.50
         unitOfMeasure: 'ea',
         description: 'Clear 100% silicone sealant for outdoor camera entries, 10.1oz',
         installationRequirements: [],
@@ -722,7 +724,7 @@ export const CONSUMABLE_PRODUCTS: ProductDefinition[] = [
         partNumber: 'CLT100F-X20',
         category: 'Material',
         subcategory: 'Cable Protection',
-        msrp: 15.00,
+        msrp: 9.00, // Amazon Business — was $15
         unitOfMeasure: 'ea',
         description: 'Corrugated split loom tubing 1" ID, 10ft section',
         installationRequirements: [],
@@ -736,7 +738,7 @@ export const CONSUMABLE_PRODUCTS: ProductDefinition[] = [
         partNumber: 'Q2-KIT',
         category: 'Material',
         subcategory: 'Electrical',
-        msrp: 22.00,
+        msrp: 13.00, // Amazon Business — was $22
         unitOfMeasure: 'ea',
         description: 'Assorted heat shrink tubing kit, multiple sizes',
         installationRequirements: [],
@@ -750,7 +752,7 @@ export const CONSUMABLE_PRODUCTS: ProductDefinition[] = [
         partNumber: 'CP-25WB-PLUS',
         category: 'Material',
         subcategory: 'Firestop',
-        msrp: 19.79,
+        msrp: 18.75, // ADI Global / Wesco distributor — was $35 list MSRP
         unitOfMeasure: 'ea',
         description: 'Intumescent firestop sealant, 10.1oz cartridge, up to 4-hour rating',
         installationRequirements: [],

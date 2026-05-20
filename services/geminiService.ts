@@ -328,6 +328,17 @@ export async function generateChangeOrder(
     The customer-facing price is built downstream by adding 15% markup + sales tax to your 'msrp'.
     Quote LEAN — markup happens after. The deterministic validator will FLAG any line >10% above
     the band ceiling, so don't try to inflate.
+
+    YOUR DEFAULT IS THE DISTRIBUTOR FLOOR, NOT THE MIDDLE.
+    When you choose a number for any 'msrp' field, pick what an account holder pays at
+    Amazon Business / Anixter / GraybaR contractor rate / Wesco / CDW, NOT manufacturer
+    list MSRP and NOT the mid-band. For commodity line items (jacks, patch cords, ties,
+    labels, anchors, sealants, beam clamps, j-hooks, faceplates), reach for the LOWER
+    end of any range I gave above — that's where street pricing lives. A downstream
+    pricing validator will compare your number to real distributor listings; if your
+    number is more than 10% above what they're showing, the line WILL be auto-repriced
+    downward and your bid will look inflated to the operator. Be aggressive on
+    low-margin commodities. Bid to win.
     </conservative_pricing_policy>
 
     <sales_focused_summary>
@@ -1461,6 +1472,39 @@ export async function generateValidatedChangeOrder(
     }
   }
 
+  // ===== APPLY VALIDATED PRICES =====
+  // When pricingValidator found a lower distributor/Amazon price with high
+  // confidence, REWRITE the line item to that price. The validator used to
+  // just report deltas and the inflated price still shipped to the customer.
+  // Rules:
+  //   - Only DROP prices (never raise) — the AI's price was already supposed
+  //     to be a floor; if a verified source is lower, prefer it.
+  //   - Confidence >= 85% AND delta >= 10% — below those, treat as noise.
+  //   - Skip "Validation skipped..." sources (validator was offline).
+  //   - Skip suspect deltas (>10000%) — those are wrong-DB-match bugs, not
+  //     genuine repricing signals.
+  const priceAdjustments: string[] = [];
+  pricingValidations.forEach(v => {
+    const item = coData.materials[v.itemIndex];
+    if (!item) return;
+    const sourceIsTrusted = !v.source.startsWith('Validation skipped')
+      && v.source !== 'Not Verified';
+    const goodConfidence = v.confidence >= 85;
+    const meaningfulDelta = Math.abs(v.delta) >= 10 && Math.abs(v.delta) < 10000;
+    const isDrop = v.validatedMsrp > 0 && v.validatedMsrp < v.originalMsrp;
+    if (sourceIsTrusted && goodConfidence && meaningfulDelta && isDrop) {
+      const before = item.msrp;
+      item.msrp = v.validatedMsrp;
+      priceAdjustments.push(
+        `${item.manufacturer} ${item.model}: $${before.toFixed(2)} → $${v.validatedMsrp.toFixed(2)} (${v.source})`
+      );
+    }
+  });
+  if (priceAdjustments.length > 0) {
+    onProgress?.(`💰 Applied ${priceAdjustments.length} distributor-priced corrections`, 72);
+    console.log('[Pricing] Auto-applied lower prices:\n  ' + priceAdjustments.join('\n  '));
+  }
+
   // ===== BRAIN 3: QA Audit =====
   onProgress?.('🧠 Brain 3: QA Audit...', 75);
   let qaResult: {
@@ -1527,7 +1571,10 @@ export async function generateValidatedChangeOrder(
     status,
     warnings: codeValidation.warnings,
     pricingValidations,
-    autoCorrections: codeValidation.autoCorrections,
+    autoCorrections: [
+      ...codeValidation.autoCorrections,
+      ...priceAdjustments.map(p => `Repriced to distributor: ${p}`),
+    ],
     qaIssues: [
       ...qaResult.issues,
       ...qaResult.missingItems.map(m => `Missing: ${m}`),
