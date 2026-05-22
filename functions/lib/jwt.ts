@@ -32,7 +32,7 @@ function arrayBufferToBase64Url(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
   let binary = '';
   for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
+    binary += String.fromCharCode(bytes[i]!);
   }
   return base64UrlEncode(binary);
 }
@@ -60,7 +60,7 @@ export async function verifyToken(token: string, secret: string): Promise<JWTPay
   const parts = token.split('.');
   if (parts.length !== 3) return null;
 
-  const [headerEncoded, payloadEncoded, signatureEncoded] = parts;
+  const [headerEncoded, payloadEncoded, signatureEncoded] = parts as [string, string, string];
 
   try {
     const payload = JSON.parse(base64UrlDecode(payloadEncoded));

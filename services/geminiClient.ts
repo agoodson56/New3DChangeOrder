@@ -51,6 +51,18 @@ const MAX_RETRIES = 3;
 const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
 
 async function attemptOnce(req: GenerateRequest): Promise<GenerateResponse> {
+  // Observability: time every AI call and log a single structured line on
+  // completion (ok/fail + ms + model). Previously a failing pricing/QA pass
+  // degraded silently and the only symptom was a stuck confidence number.
+  const _t0 = Date.now();
+  const _log = (ok: boolean, reason?: string) => {
+    try {
+      console.log('[ai_call] ' + JSON.stringify({
+        model: req.model, ok, ms: Date.now() - _t0,
+        ...(reason ? { reason } : {}),
+      }));
+    } catch { /* never let logging throw */ }
+  };
   let res: Response;
   try {
     res = await fetch('/api/gemini', {
@@ -61,12 +73,14 @@ async function attemptOnce(req: GenerateRequest): Promise<GenerateResponse> {
   } catch (e) {
     // Type-safe error handling: guard against unknown error shapes.
     const message = e instanceof Error ? e.message : String(e);
+    _log(false, 'network');
     throw new NetworkError(`Network error contacting AI service: ${message}`);
   }
 
   const bodyText = await res.text();
 
   if (!res.ok) {
+    _log(false, 'http_' + res.status);
     if (res.status === 401 || res.status === 403) {
       throw new ApiKeyError(`API key invalid, suspended, or unauthorized (HTTP ${res.status}).`);
     }
@@ -81,11 +95,12 @@ async function attemptOnce(req: GenerateRequest): Promise<GenerateResponse> {
 
   let data: any;
   try { data = JSON.parse(bodyText); }
-  catch { throw new Error('AI service returned non-JSON response'); }
+  catch { _log(false, 'non_json'); throw new Error('AI service returned non-JSON response'); }
 
   if (data?.error) {
     const code = data.error.code;
     const msg = data.error.message || 'Unknown AI error';
+    _log(false, 'api_' + (code || 'error'));
     if (code === 401 || code === 403 || data.error.status === 'PERMISSION_DENIED' || /suspended/i.test(msg)) {
       throw new ApiKeyError(msg);
     }
@@ -96,6 +111,7 @@ async function attemptOnce(req: GenerateRequest): Promise<GenerateResponse> {
     throw new Error(`AI service error: ${msg}`);
   }
 
+  _log(true);
   const text: string = data?.candidates?.[0]?.content?.parts
     ?.map((p: any) => p?.text || '')
     .join('') || '';
