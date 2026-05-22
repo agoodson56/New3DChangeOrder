@@ -79,24 +79,24 @@ export const onRequestPost = async ({ request, env, params }: PagesContext<CoEnv
     const id = newCoId();
     const now = Date.now();
 
-    await env.DB
-      .prepare(
-        `INSERT INTO change_orders
-         (id, user_id, org_id, pco_number, revision, parent_id, customer, project_name,
-          data, grand_total, status, saved_at, updated_at, updated_by)
-         VALUES (?, ?, 'default', ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)`,
-      )
-      .bind(
-        id, auth.userId, newPcoNumber, nextRev, rootId,
-        meta.customer ?? parent.customer, meta.projectName ?? parent.project_name,
-        dataJson, grandTotal, now, now, auth.email,
-      )
-      .run();
-
-    const row = await env.DB
-      .prepare('SELECT * FROM change_orders WHERE id = ?')
-      .bind(id)
-      .first<CoRow>();
+    // Batch the insert + re-read into one atomic round-trip (batches run as a
+    // single sequential SQL transaction in D1), instead of two network calls.
+    const batchResults = await env.DB.batch([
+      env.DB
+        .prepare(
+          `INSERT INTO change_orders
+           (id, user_id, org_id, pco_number, revision, parent_id, customer, project_name,
+            data, grand_total, status, saved_at, updated_at, updated_by)
+           VALUES (?, ?, 'default', ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?)`,
+        )
+        .bind(
+          id, auth.userId, newPcoNumber, nextRev, rootId,
+          meta.customer ?? parent.customer, meta.projectName ?? parent.project_name,
+          dataJson, grandTotal, now, now, auth.email,
+        ),
+      env.DB.prepare('SELECT * FROM change_orders WHERE id = ?').bind(id),
+    ]);
+    const row = (batchResults[1] as { results?: CoRow[] })?.results?.[0];
     if (!row) return json({ error: 'Created but could not re-read row.' }, 500);
     return json({ item: rowToResponse(row) }, 201);
   } catch (e) {

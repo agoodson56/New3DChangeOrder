@@ -11,7 +11,7 @@ export interface CoEnv {
 
 export interface D1Database {
   prepare(query: string): D1PreparedStatement;
-  batch?(statements: D1PreparedStatement[]): Promise<unknown>;
+  batch<T = unknown>(statements: D1PreparedStatement[]): Promise<Array<{ results?: T[]; success: boolean }>>;
 }
 export interface D1PreparedStatement {
   bind(...values: unknown[]): D1PreparedStatement;

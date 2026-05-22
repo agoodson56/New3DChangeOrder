@@ -67,22 +67,21 @@ export const onRequestPut = async ({ request, env, params }: PagesContext<CoEnv,
   const now = Date.now();
 
   try {
-    const result = await env.DB
-      .prepare(
-        `UPDATE change_orders
-         SET data = ?, grand_total = ?, pco_number = ?, customer = ?, project_name = ?,
-             updated_at = ?, updated_by = ?
-         WHERE id = ? AND user_id = ?`,
-      )
-      .bind(dataJson, grandTotal, meta.pcoNumber, meta.customer, meta.projectName, now, auth.email, id, auth.userId)
-      .run();
-    // D1 doesn't expose rowsAffected uniformly; re-read to confirm we updated something the caller owns.
-    const row = await env.DB
-      .prepare('SELECT * FROM change_orders WHERE id = ? AND user_id = ?')
-      .bind(id, auth.userId)
-      .first<CoRow>();
+    // Batch the update + re-read into one atomic round-trip. D1 doesn't expose
+    // rowsAffected uniformly, so we re-select to confirm the caller owns the row.
+    const batchResults = await env.DB.batch<CoRow>([
+      env.DB
+        .prepare(
+          `UPDATE change_orders
+           SET data = ?, grand_total = ?, pco_number = ?, customer = ?, project_name = ?,
+               updated_at = ?, updated_by = ?
+           WHERE id = ? AND user_id = ?`,
+        )
+        .bind(dataJson, grandTotal, meta.pcoNumber, meta.customer, meta.projectName, now, auth.email, id, auth.userId),
+      env.DB.prepare('SELECT * FROM change_orders WHERE id = ? AND user_id = ?').bind(id, auth.userId),
+    ]);
+    const row = batchResults[1]?.results?.[0];
     if (!row) return json({ error: 'Not found.' }, 404);
-    void result;
     return json({ item: rowToResponse(row) });
   } catch (e) {
     const rid = requestId();
