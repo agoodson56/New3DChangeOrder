@@ -1323,11 +1323,84 @@ export async function generateProposal(
   } as unknown as ProposalData;
 }
 
+// ── Intake triage ───────────────────────────────────────────────────────────
+// Before running the (slow, expensive) 3-brain pipeline, a fast Haiku pass
+// decides whether the coordinator's intent has enough to produce a defensible
+// estimate. If not, it returns up to 5 specific clarifying questions so the UI
+// can ask the coordinator first. Non-blocking by design: any failure or
+// ambiguity defaults to "sufficient" so it never traps a valid request.
+const TRIAGE_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    sufficient: { type: "boolean" },
+    questions: { type: "array", items: { type: "string" } },
+    reason: { type: "string" },
+  },
+  required: ["sufficient", "questions", "reason"],
+};
+
+export interface IntakeTriage {
+  sufficient: boolean;
+  questions: string[];
+  reason: string;
+}
+
+export async function triageIntent(
+  intent: string,
+  attachments: Attachment[] = [],
+): Promise<IntakeTriage> {
+  const attachmentNote = attachments.length
+    ? `\n\nThe coordinator also attached ${attachments.length} file(s): ${attachments.map(a => a.name).join(', ')}. Assume these may contain floor plans, specs, or photos that add context — do not ask for information they likely cover.`
+    : '';
+
+  const systemInstruction = `You are an intake triage assistant for a low-voltage systems integrator (CCTV, access control, structured cabling, AV, intrusion, fire alarm). A coordinator describes a change order. Decide whether there is ENOUGH information to produce a defensible estimate.
+
+"Sufficient" means you can reasonably infer: which system(s) are involved, roughly how many devices / drops / cable runs, and the key site factors that drive labor and materials. Use professional judgment — experienced coordinators write terse but complete intent, so do NOT demand every nicety.
+
+If something essential is missing, return sufficient=false with up to 5 SPECIFIC, short clarifying questions about ONLY the missing essentials — for example: device/drop counts, ceiling height or mounting surface, indoor vs outdoor, cable run distances or destination (MDF/IDF), existing infrastructure to tie into, or required brand/model. Never ask about information already present in the intent or likely covered by an attachment. If the intent is sufficient, return sufficient=true and an empty questions array.`;
+
+  const prompt = `Coordinator intent:\n"""\n${intent}\n"""${attachmentNote}\n\nRespond with ONE raw JSON object only (no markdown, no fences): {"sufficient": boolean, "questions": string[], "reason": string}.`;
+
+  try {
+    const response = await generateContent({
+      model: 'claude-haiku-4-5-20251001',
+      nonEssential: true,
+      contents: { parts: [{ text: prompt }] },
+      config: {
+        systemInstruction,
+        temperature: 0,
+        responseMimeType: 'application/json',
+        responseSchema: TRIAGE_SCHEMA,
+      },
+    });
+    let raw = (response.text || '{}').trim()
+      .replace(/^```(?:json|JSON)?\s*\n?/, '')
+      .replace(/\n?```\s*$/, '')
+      .trim();
+    if (!raw.startsWith('{')) {
+      const a = raw.indexOf('{'), b = raw.lastIndexOf('}');
+      if (a !== -1 && b !== -1 && b > a) raw = raw.slice(a, b + 1);
+    }
+    const parsed = JSON.parse(raw) as Partial<IntakeTriage>;
+    const questions = Array.isArray(parsed.questions)
+      ? parsed.questions.filter((q): q is string => typeof q === 'string' && q.trim().length > 0).slice(0, 5)
+      : [];
+    // Default to sufficient unless the model explicitly says otherwise AND gave
+    // at least one question — never block on an empty/ambiguous triage result.
+    const sufficient = parsed.sufficient !== false || questions.length === 0;
+    return { sufficient, questions: sufficient ? [] : questions, reason: typeof parsed.reason === 'string' ? parsed.reason : '' };
+  } catch (e) {
+    console.warn('Intake triage skipped (treating as sufficient):', e);
+    return { sufficient: true, questions: [], reason: 'triage unavailable' };
+  }
+}
+
 /**
  * 3-Brain Pipeline: Generate a validated, customer-ready Change Order.
- * 
+ *
  * Pipeline: Brain 1 (Estimator) → Code Validator → Brain 2 (Pricing) → Brain 3 (QA)
- * 
+ *
  * @param onProgress - Callback for progress updates during the pipeline
  */
 export async function generateValidatedChangeOrder(

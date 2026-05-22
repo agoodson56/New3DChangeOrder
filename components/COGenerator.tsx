@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useMemo } from 'react';
 import { GoldButton } from './GoldButton';
-import { generateValidatedChangeOrder } from '../services/geminiService';
+import { generateValidatedChangeOrder, triageIntent, type IntakeTriage } from '../services/geminiService';
 import { describeAiError } from '../services/geminiClient';
 import { ChangeOrderData } from '../types';
 import { OFFICES, DEFAULT_OFFICE_ID } from '../constants';
@@ -21,6 +21,11 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
   const [pipelineStatus, setPipelineStatus] = useState('');
   const [pipelinePercent, setPipelinePercent] = useState(0);
   const [intentError, setIntentError] = useState<string | null>(null);
+  // Intake triage: clarifying questions shown before generation when the
+  // coordinator's intent looks too thin to estimate from.
+  const [triage, setTriage] = useState<IntakeTriage | null>(null);
+  const [triageAnswers, setTriageAnswers] = useState<string[]>([]);
+  const [triaging, setTriaging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
 
@@ -144,20 +149,14 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
     setAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async () => {
-    if (loading) return; // guard against double-submit
-    const trimmed = intent.trim();
-    if (!trimmed) {
-      setIntentError('Please describe the work before generating.');
-      return;
-    }
-    setIntentError(null);
+  // Runs the actual 3-brain pipeline against a finalized intent string.
+  const runGeneration = async (finalIntent: string) => {
     setLoading(true);
     setPipelineStatus('🧠 Initializing 3-Brain Pipeline...');
     setPipelinePercent(5);
     try {
       const result = await generateValidatedChangeOrder(
-        trimmed,
+        finalIntent,
         attachments,
         adminData,
         (stage, percent) => {
@@ -169,6 +168,7 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
       if (adminData.customer.trim()) {
         rememberCustomer(adminData);
       }
+      setTriage(null);
       onResult(result);
     } catch (error) {
       console.error(error);
@@ -178,6 +178,54 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
       setPipelineStatus('');
       setPipelinePercent(0);
     }
+  };
+
+  const handleSubmit = async () => {
+    if (loading || triaging) return; // guard against double-submit
+    const trimmed = intent.trim();
+    if (!trimmed) {
+      setIntentError('Please describe the work before generating.');
+      return;
+    }
+    setIntentError(null);
+
+    // Pre-flight: ask the AI whether the intake has enough to estimate from.
+    // If not, surface clarifying questions instead of generating a thin CO.
+    setTriaging(true);
+    let result: IntakeTriage;
+    try {
+      result = await triageIntent(trimmed, attachments);
+    } catch {
+      result = { sufficient: true, questions: [], reason: '' }; // never block on triage failure
+    } finally {
+      setTriaging(false);
+    }
+
+    if (result.sufficient || result.questions.length === 0) {
+      await runGeneration(trimmed);
+    } else {
+      setTriage(result);
+      setTriageAnswers(result.questions.map(() => ''));
+    }
+  };
+
+  // Coordinator answered the clarifying questions: fold the Q/A pairs into the
+  // intent and run generation.
+  const handleAnswerAndContinue = async () => {
+    if (!triage) return;
+    const qa = triage.questions
+      .map((q, i) => (triageAnswers[i]?.trim() ? `Q: ${q}\nA: ${triageAnswers[i]!.trim()}` : null))
+      .filter(Boolean)
+      .join('\n\n');
+    const finalIntent = qa
+      ? `${intent.trim()}\n\n--- Additional details ---\n${qa}`
+      : intent.trim();
+    await runGeneration(finalIntent);
+  };
+
+  // Coordinator chose to bypass the questions and generate from the original intent.
+  const handleGenerateAnyway = async () => {
+    await runGeneration(intent.trim());
   };
 
   const inputClasses = "w-full bg-gray-50 border border-gray-800 text-black p-2.5 focus:border-[#008b8b] outline-none transition-all text-sm placeholder-gray-700";
@@ -522,13 +570,59 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
             </p>
           </div>
         )}
+        {/* Intake triage: clarifying questions when the intent looks too thin */}
+        {triage && !triage.sufficient && !loading && (
+          <div className="bg-amber-950/30 border-2 border-amber-500 p-5 rounded-sm space-y-4 print:hidden" role="region" aria-label="Clarifying questions">
+            <div>
+              <h3 className="text-sm font-black text-amber-300 uppercase tracking-[0.2em]">A few details first</h3>
+              <p className="text-xs text-amber-100/90 mt-1 leading-relaxed">
+                Answering these gives a tighter, more defensible estimate. You can also generate from what you have.
+                {triage.reason ? <span className="block text-amber-200/70 mt-1 italic">{triage.reason}</span> : null}
+              </p>
+            </div>
+            <div className="space-y-3">
+              {triage.questions.map((q, i) => (
+                <div key={i}>
+                  <label className="block text-xs font-bold text-amber-200 mb-1">{q}</label>
+                  <input
+                    type="text"
+                    value={triageAnswers[i] ?? ''}
+                    onChange={(e) => setTriageAnswers(prev => {
+                      const next = [...prev];
+                      next[i] = e.target.value;
+                      return next;
+                    })}
+                    className="w-full bg-gray-50 border border-amber-700 text-black p-2 text-sm focus:border-amber-400 outline-none"
+                    placeholder="Your answer (optional)…"
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 justify-end pt-1">
+              <button
+                type="button"
+                onClick={handleGenerateAnyway}
+                className="px-4 py-2 text-xs font-black uppercase tracking-widest border border-gray-700 bg-white/5 text-gray-300 hover:bg-white/10 transition-all"
+              >
+                Generate anyway
+              </button>
+              <button
+                type="button"
+                onClick={handleAnswerAndContinue}
+                className="px-4 py-2 text-xs font-black uppercase tracking-widest bg-[#008b8b] text-black hover:bg-[#20b2aa] transition-all"
+              >
+                Answer &amp; Continue
+              </button>
+            </div>
+          </div>
+        )}
         <div className="flex justify-end">
           <GoldButton
             onClick={handleSubmit}
-            loading={loading}
+            loading={loading || triaging}
             className="w-full md:w-auto"
           >
-            Generate Validated Change Order
+            {triaging ? 'Checking the intake…' : 'Generate Validated Change Order'}
           </GoldButton>
         </div>
       </div>
