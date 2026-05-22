@@ -84,16 +84,22 @@ export const onRequestPut = async ({ request, env, params }: PagesContext<Env, {
   try { JSON.parse(bodyText); } catch { return json({ error: 'Body must be valid JSON' }, 400); }
 
   try {
+    // DATA-INTEGRITY FIX: org_id was hardcoded to the literal 'user', so every
+    // user's rates/customers/templates collided on the (org_id, scope) primary
+    // key and overwrote each other across offices. Keying org_id to the
+    // authenticated user id makes each user's row unique under the EXISTING
+    // schema — no migration needed, and GET still filters by the user_id column.
+    const orgId = `u_${auth.userId}`;
     await env.DB
       .prepare(
         `INSERT INTO blobs (user_id, scope, content, updated_at, updated_by, org_id)
-         VALUES (?, ?, ?, ?, ?, 'user')
+         VALUES (?, ?, ?, ?, ?, ?)
          ON CONFLICT (org_id, scope) DO UPDATE SET
            content = excluded.content,
            updated_at = excluded.updated_at,
            updated_by = excluded.updated_by`
       )
-      .bind(auth.userId, scope, bodyText, Date.now(), auth.email)
+      .bind(auth.userId, scope, bodyText, Date.now(), auth.email, orgId)
       .run();
     return json({ ok: true, scope, updatedAt: Date.now() });
   } catch (e) {
