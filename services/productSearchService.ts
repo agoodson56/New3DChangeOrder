@@ -1,5 +1,4 @@
 
-import { Type } from "@google/genai";
 import { MaterialItem } from "../types";
 import { generateContent } from "./geminiClient";
 
@@ -17,21 +16,23 @@ export interface ProductSearchResult {
 }
 
 const PRODUCT_SEARCH_SCHEMA = {
-  type: Type.OBJECT,
+  type: "object",
+  additionalProperties: false,
   properties: {
     products: {
-      type: Type.ARRAY,
+      type: "array",
       items: {
-        type: Type.OBJECT,
+        type: "object",
+        additionalProperties: false,
         properties: {
-          manufacturer: { type: Type.STRING, description: "Product manufacturer/brand name" },
-          model: { type: Type.STRING, description: "Complete model number or product name" },
-          partNumber: { type: Type.STRING, description: "Official manufacturer part number or SKU" },
-          msrp: { type: Type.NUMBER, description: "Conservative competitive-bid unit price in USD — lower-quartile current street price, NOT inflated list MSRP." },
-          description: { type: Type.STRING, description: "Brief product description" },
-          category: { type: Type.STRING, enum: ['Material', 'Equipment'], description: "Material for passive items (cables, jacks), Equipment for active devices (cameras, switches)" },
-          unitOfMeasure: { type: Type.STRING, description: "Unit of measure: 'ft' for cables, 'ea' for individual items" },
-          confidence: { type: Type.STRING, enum: ['high', 'medium', 'low'], description: "Confidence level in the pricing accuracy" }
+          manufacturer: { type: "string", description: "Product manufacturer/brand name" },
+          model: { type: "string", description: "Complete model number or product name" },
+          partNumber: { type: "string", description: "Official manufacturer part number or SKU" },
+          msrp: { type: "number", description: "Conservative competitive-bid unit price in USD — lower-quartile current street price, NOT inflated list MSRP." },
+          description: { type: "string", description: "Brief product description" },
+          category: { type: "string", enum: ['Material', 'Equipment'], description: "Material for passive items (cables, jacks), Equipment for active devices (cameras, switches)" },
+          unitOfMeasure: { type: "string", description: "Unit of measure: 'ft' for cables, 'ea' for individual items" },
+          confidence: { type: "string", enum: ['high', 'medium', 'low'], description: "Confidence level in the pricing accuracy" }
         },
         required: ['manufacturer', 'model', 'partNumber', 'msrp', 'description', 'category', 'unitOfMeasure', 'confidence']
       }

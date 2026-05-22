@@ -52,30 +52,17 @@ function isDbVerified(manufacturer: string, model: string): boolean {
     return inDb;
 }
 
+// Plain JSON Schema for Claude structured outputs (output_config.format).
 const QA_SCHEMA = {
-    type: 'OBJECT' as const,
+    type: 'object' as const,
+    additionalProperties: false,
     properties: {
-        overallScore: { type: 'INTEGER' as const },
-        issues: {
-            type: 'ARRAY' as const,
-            items: { type: 'STRING' as const }
-        },
-        recommendations: {
-            type: 'ARRAY' as const,
-            items: { type: 'STRING' as const }
-        },
-        missingItems: {
-            type: 'ARRAY' as const,
-            items: { type: 'STRING' as const }
-        },
-        brandingIssues: {
-            type: 'ARRAY' as const,
-            items: { type: 'STRING' as const }
-        },
-        complianceNotes: {
-            type: 'ARRAY' as const,
-            items: { type: 'STRING' as const }
-        }
+        overallScore: { type: 'integer' as const },
+        issues: { type: 'array' as const, items: { type: 'string' as const } },
+        recommendations: { type: 'array' as const, items: { type: 'string' as const } },
+        missingItems: { type: 'array' as const, items: { type: 'string' as const } },
+        brandingIssues: { type: 'array' as const, items: { type: 'string' as const } },
+        complianceNotes: { type: 'array' as const, items: { type: 'string' as const } }
     },
     required: ['overallScore', 'issues', 'recommendations', 'missingItems', 'brandingIssues', 'complianceNotes']
 };

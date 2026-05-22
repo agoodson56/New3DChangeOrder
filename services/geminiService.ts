@@ -1,5 +1,4 @@
 
-import { Type } from "@google/genai";
 import { ChangeOrderData, ProposalData, LaborRates, AdminData, Financials, ValidationResult, PricingValidation, DEFAULT_ADMIN_DATA } from "../types";
 import { buildProductReference } from "../utils/productReference";
 import { validateChangeOrder } from "../utils/coValidator";
@@ -162,71 +161,11 @@ function defaultFillCO(data: ChangeOrderData): ChangeOrderData {
 }
 
 
-const CO_SCHEMA = {
-  type: Type.OBJECT,
-  properties: {
-    customer: { type: Type.STRING },
-    contact: { type: Type.STRING },
-    projectName: { type: Type.STRING },
-    address: { type: Type.STRING },
-    phone: { type: Type.STRING },
-    projectNumber: { type: Type.STRING },
-    rfiNumber: { type: Type.STRING },
-    pcoNumber: { type: Type.STRING },
-    technicalScope: { type: Type.STRING, description: "Prepared Work Summary - must be 6-8 sentences as ONE paragraph. Include: (1) Opening with '3D Technology Services proposes...', (2) Solution overview with equipment and quantities, (3) Key installation methods (J-hooks, lift equipment, cable certification), (4) Applicable codes (BICSI, NEC, OSHA), (5) Business benefits and warranty coverage, (6) Closing value statement. Be comprehensive but CONCISE - do not exceed 8 sentences." },
-    systemsImpacted: { type: Type.ARRAY, items: { type: Type.STRING } },
-    materials: {
-      type: Type.ARRAY,
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          manufacturer: { type: Type.STRING },
-          model: { type: Type.STRING },
-          category: { type: Type.STRING, enum: ['Material', 'Equipment'] },
-          quantity: { type: Type.NUMBER },
-          msrp: { type: Type.NUMBER, description: "Unit value. If cable, this MUST be the price per foot." },
-          unitOfMeasure: { type: Type.STRING, description: "If cabling, this MUST be 'ft'. Otherwise 'ea'." },
-          complexity: { type: Type.STRING, enum: ['Low', 'Medium', 'High'] },
-          notes: { type: Type.STRING, description: "The purpose or dependency for this item." },
-          isDeduct: { type: Type.BOOLEAN, description: "Set to true if this item is being REMOVED/DEDUCTED/CREDITED from the existing scope. Default false for new additions." }
-        },
-        required: ['manufacturer', 'model', 'quantity', 'msrp', 'category', 'unitOfMeasure']
-      }
-    },
-    labor: {
-      type: Type.ARRAY,
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          class: { type: Type.STRING, description: "Lead, Tech, or Programmer" },
-          task: { type: Type.STRING },
-          hours: { type: Type.NUMBER },
-          rateType: { type: Type.STRING, enum: ['base', 'afterHours', 'emergency'] },
-          notes: { type: Type.STRING },
-          isDeduct: { type: Type.BOOLEAN, description: "Set to true if this labor is being CREDITED BACK (removal labor). Default false for new work." }
-        },
-        required: ['class', 'task', 'hours', 'rateType']
-      }
-    },
-    standardsReview: {
-      type: Type.ARRAY,
-      items: {
-        type: Type.OBJECT,
-        properties: {
-          standard: { type: Type.STRING },
-          compliance: { type: Type.STRING },
-          action: { type: Type.STRING }
-        }
-      }
-    },
-    assumptions: { type: Type.ARRAY, items: { type: Type.STRING } },
-    exclusions: { type: Type.ARRAY, items: { type: Type.STRING } },
-    professionalNotes: { type: Type.STRING, description: "Senior estimator reasoning summary." },
-    confidenceScore: { type: Type.NUMBER },
-    nextSteps: { type: Type.ARRAY, items: { type: Type.STRING } }
-  },
-  required: ['customer', 'technicalScope', 'systemsImpacted', 'materials', 'labor', 'professionalNotes', 'confidenceScore', 'assumptions', 'exclusions', 'nextSteps']
-};
+// NOTE: The estimator (generateChangeOrder) constrains output via explicit
+// prompt instructions, not a forwarded schema, because its object is large
+// enough to risk the structured-output complexity limits. The old Gemini-style
+// CO_SCHEMA here was never wired to a responseSchema, so it was dead code and
+// was removed when we dropped the @google/genai Type.* dependency.
 
 /** Result of generateChangeOrder. Includes a flag if the AI's JSON was
  *  truncated and had to be repaired heuristically — callers should surface
@@ -1194,47 +1133,27 @@ ${buildProductReference()}
   return { data, jsonRepaired: jsonRepairApplied };
 }
 
+// Plain JSON Schema (not @google/genai Type.*) so the proxy can forward it as
+// output_config.format json_schema for guaranteed-valid output. All fields are
+// required and additionalProperties:false per Anthropic structured-output rules.
 const PROPOSAL_SCHEMA = {
-  type: Type.OBJECT,
+  type: "object",
+  additionalProperties: false,
   properties: {
-    projectTitle: { type: Type.STRING, description: "A compelling, professional project title" },
-    clientName: { type: Type.STRING },
-    executiveSummary: { type: Type.STRING, description: "A compelling 3-4 sentence executive summary highlighting the business value and ROI of this investment" },
-    problemStatement: { type: Type.STRING, description: "2-3 sentences describing the business challenge or opportunity this addresses" },
-    solutionOverview: { type: Type.STRING, description: "3-4 sentences describing the proposed solution in compelling, benefits-focused language" },
-    technicalHighlights: {
-      type: Type.ARRAY,
-      items: { type: Type.STRING },
-      description: "5-7 bullet points of key technical features and capabilities being delivered"
-    },
-    valueProposition: {
-      type: Type.ARRAY,
-      items: { type: Type.STRING },
-      description: "5-7 compelling value statements about ROI, efficiency gains, risk reduction, competitive advantage"
-    },
-    industryInsights: {
-      type: Type.ARRAY,
-      items: { type: Type.STRING },
-      description: "3-5 relevant industry statistics, trends, or benchmarks that support the investment (use current 2024-2026 data)"
-    },
-    companyCredentials: {
-      type: Type.ARRAY,
-      items: { type: Type.STRING },
-      description: "5-7 compelling credentials about 3D Technology Services including certifications, years experience, project count, warranty coverage"
-    },
-    whyChooseUs: {
-      type: Type.ARRAY,
-      items: { type: Type.STRING },
-      description: "4-6 differentiators that set 3D Technology Services apart from competitors"
-    },
-    nextSteps: {
-      type: Type.ARRAY,
-      items: { type: Type.STRING },
-      description: "3-5 clear action items for project initiation"
-    },
-    callToAction: { type: Type.STRING, description: "A compelling closing statement urging immediate action" }
+    projectTitle: { type: "string", description: "A compelling, professional project title" },
+    clientName: { type: "string" },
+    executiveSummary: { type: "string", description: "A compelling 3-4 sentence executive summary highlighting the business value and ROI of this investment" },
+    problemStatement: { type: "string", description: "2-3 sentences describing the business challenge or opportunity this addresses" },
+    solutionOverview: { type: "string", description: "3-4 sentences describing the proposed solution in compelling, benefits-focused language" },
+    technicalHighlights: { type: "array", items: { type: "string" }, description: "5-7 bullet points of key technical features and capabilities being delivered" },
+    valueProposition: { type: "array", items: { type: "string" }, description: "5-7 compelling value statements about ROI, efficiency gains, risk reduction, competitive advantage" },
+    industryInsights: { type: "array", items: { type: "string" }, description: "3-5 relevant industry statistics, trends, or benchmarks (use current 2024-2026 data)" },
+    companyCredentials: { type: "array", items: { type: "string" }, description: "5-7 compelling credentials about 3D Technology Services" },
+    whyChooseUs: { type: "array", items: { type: "string" }, description: "4-6 differentiators vs competitors" },
+    nextSteps: { type: "array", items: { type: "string" }, description: "3-5 clear action items for project initiation" },
+    callToAction: { type: "string", description: "A compelling closing statement urging immediate action" }
   },
-  required: ['projectTitle', 'clientName', 'executiveSummary', 'solutionOverview', 'technicalHighlights', 'valueProposition', 'industryInsights', 'companyCredentials', 'whyChooseUs', 'nextSteps', 'callToAction']
+  required: ['projectTitle', 'clientName', 'executiveSummary', 'problemStatement', 'solutionOverview', 'technicalHighlights', 'valueProposition', 'industryInsights', 'companyCredentials', 'whyChooseUs', 'nextSteps', 'callToAction']
 };
 
 export async function generateProposal(
