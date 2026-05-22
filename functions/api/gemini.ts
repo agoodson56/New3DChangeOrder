@@ -273,13 +273,48 @@ export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promis
       ? Math.min(maxTokensFromConfig, 16384)
       : 16384;
 
-    console.log('Calling Claude API with model:', model, 'max_tokens:', maxTokens);
-    const response = await client.messages.create({
+    // Prompt caching: when the client opts in (body.useCache) and there's a
+    // system prompt, send it as a content-block with cache_control:ephemeral.
+    // The product-DB system prompt is ~15-25k tokens and identical across the
+    // estimate→price→QA passes, so cached reads bill at ~10% of input price and
+    // the 5-min TTL refreshes free on each hit. Falls back to a plain string
+    // (no caching) when not requested.
+    const useCache = body.useCache === true;
+    const systemField = systemInstruction
+      ? (useCache
+          ? [{ type: 'text' as const, text: systemInstruction, cache_control: { type: 'ephemeral' as const } }]
+          : systemInstruction)
+      : undefined;
+
+    // Structured outputs: when the client passes a responseSchema, forward it as
+    // output_config.format json_schema. Constrained decoding guarantees valid
+    // JSON in content[0].text. The client keeps its defensive parsing as a
+    // fallback, so an older SDK/model that ignores this won't regress behavior.
+    const responseSchema = (cfg && typeof cfg === 'object') ? (cfg as Record<string, unknown>).responseSchema : undefined;
+    const outputConfig = responseSchema && typeof responseSchema === 'object'
+      ? { format: { type: 'json_schema' as const, schema: responseSchema } }
+      : undefined;
+
+    console.log('Calling Claude API with model:', model, 'max_tokens:', maxTokens, 'cache:', useCache, 'schema:', !!outputConfig);
+    const createParams: Record<string, unknown> = {
       model: model || 'claude-sonnet-4-6',
       max_tokens: maxTokens,
-      system: systemInstruction || undefined,
+      system: systemField,
       messages: messages,
-    });
+    };
+    if (outputConfig) createParams.output_config = outputConfig;
+    const response = await client.messages.create(createParams as any);
+
+    // Log cache effectiveness so we can confirm hits in Cloudflare logs.
+    const usage: any = (response as any).usage;
+    if (usage) {
+      console.log('Claude usage:', JSON.stringify({
+        input: usage.input_tokens,
+        cache_read: usage.cache_read_input_tokens,
+        cache_write: usage.cache_creation_input_tokens,
+        output: usage.output_tokens,
+      }));
+    }
 
     const text = response.content
       .filter((block: any) => block.type === 'text')
