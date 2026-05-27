@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { LaborRates } from '../types';
 import { GoldButton } from './GoldButton';
 import { Icons } from '../constants';
+import { getCaCounties, getCaBlendedRate, getCaZoneLabel, type WageType } from '../data/prevailingWages';
 
 interface LaborRateModalProps {
   onSave: (rates: LaborRates) => void;
@@ -22,6 +23,25 @@ export const LaborRateModal: React.FC<LaborRateModalProps> = ({ onSave, initialR
   const [customEmergency, setCustomEmergency] = useState<boolean>(
     !!initialRates && Math.abs(initialRates.emergency - initialRates.base * 2) > 0.01
   );
+
+  // Prevailing-wage mode (public works). When on, the base rate is computed
+  // from the county + wage-type blended IBEW/DIR rate instead of a shop rate.
+  const [pwOpen, setPwOpen] = useState(false);
+  const [pwCounty, setPwCounty] = useState('Sacramento');
+  const [pwType, setPwType] = useState<WageType>('dir');
+  const counties = React.useMemo(() => getCaCounties(), []);
+  const pwPreview = React.useMemo(() => getCaBlendedRate(pwCounty, pwType), [pwCounty, pwType]);
+
+  const applyPrevailingWage = () => {
+    const blended = getCaBlendedRate(pwCounty, pwType);
+    if (!blended) { alert('Could not resolve a prevailing wage for that county.'); return; }
+    const base = +blended.blended.toFixed(2);
+    setRates({
+      base,
+      afterHours: customAfterHours ? rates.afterHours : +(base * 1.5).toFixed(2),
+      emergency: customEmergency ? rates.emergency : +(base * 2).toFixed(2),
+    });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,6 +136,69 @@ export const LaborRateModal: React.FC<LaborRateModalProps> = ({ onSave, initialR
                 }}
               />
             </div>
+          </div>
+
+          {/* Prevailing wage (public works) — derives the base rate from the
+              county's IBEW/DIR blended rate instead of a flat shop rate. */}
+          <div className="border border-gray-800 bg-white/5">
+            <button
+              type="button"
+              onClick={() => setPwOpen(o => !o)}
+              className="w-full flex items-center justify-between px-4 py-3 text-left"
+            >
+              <span className="text-[10px] font-black text-[#008b8b] uppercase tracking-[0.3em]">
+                ⚖ Prevailing wage (public works)
+              </span>
+              <span className="text-gray-600 text-xs">{pwOpen ? '▲' : '▼'}</span>
+            </button>
+            {pwOpen && (
+              <div className="px-4 pb-4 space-y-3">
+                <p className="text-[10px] text-gray-600 leading-relaxed">
+                  For California public-works jobs, labor must be billed at the prevailing wage for the county.
+                  Pick the county and determination; the base rate is set from the blended IBEW crew rate
+                  (60% installer · 25% tech · 10% foreman · 5% apprentice).
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-600 uppercase mb-1 tracking-widest">County</label>
+                    <select
+                      value={pwCounty}
+                      onChange={(e) => setPwCounty(e.target.value)}
+                      className="w-full bg-gray-50 border border-gray-800 text-black p-2 text-sm focus:border-[#008b8b] outline-none"
+                    >
+                      {counties.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-600 uppercase mb-1 tracking-widest">Determination</label>
+                    <select
+                      value={pwType}
+                      onChange={(e) => setPwType(e.target.value as WageType)}
+                      className="w-full bg-gray-50 border border-gray-800 text-black p-2 text-sm focus:border-[#008b8b] outline-none"
+                    >
+                      <option value="dir">CA DIR (state)</option>
+                      <option value="davis-bacon">Davis-Bacon (federal)</option>
+                      <option value="pla">PLA (DIR + 8%)</option>
+                    </select>
+                  </div>
+                </div>
+                {pwPreview && (
+                  <div className="text-[11px] text-gray-700 bg-white/40 border border-gray-800 p-2 font-mono">
+                    <div className="text-[#008b8b] font-bold">{getCaZoneLabel(pwCounty)}</div>
+                    Blended ${pwPreview.blended.toFixed(2)}/hr
+                    <span className="text-gray-600"> (installer ${pwPreview.installer.toFixed(2)} · tech ${pwPreview.tech.toFixed(2)} · foreman ${pwPreview.foreman.toFixed(2)})</span>
+                    {pwPreview.fallback && <div className="text-amber-600">⚠ County not directly mapped — using nearest zone; verify against published DIR rates.</div>}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={applyPrevailingWage}
+                  className="w-full bg-[#008b8b] hover:bg-[#20b2aa] text-black text-xs font-black uppercase tracking-widest py-2 transition-all"
+                >
+                  Apply prevailing wage to base rate
+                </button>
+              </div>
+            )}
           </div>
 
           <GoldButton type="submit" className="w-full h-16 text-xl font-black tracking-widest shadow-2xl">
