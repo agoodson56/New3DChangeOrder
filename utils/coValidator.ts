@@ -590,6 +590,54 @@ export function validateChangeOrder(input: ChangeOrderData): ValidationOutput {
         }
     });
 
+    // =========================================================================
+    // RULE 10: Whole-bid sanity guardrails (ported from SmartPlan2)
+    //   (a) Quantity-explosion guard — a discrete 'ea' device with an absurd
+    //       quantity is almost always footage or a parse error mis-entered as a
+    //       device count (SmartPlan2 v6.0.2 corrupt-quantity guard). A single
+    //       bad qty silently inflates the bid by 10-100x.
+    //   (b) Single-line dominance — if one material line is the overwhelming
+    //       majority of the material subtotal, a qty/price typo there swings the
+    //       whole bid; flag it for a second look.
+    // =========================================================================
+    data.materials.forEach((item, idx) => {
+        const isDiscrete = item.unitOfMeasure !== 'ft';
+        if (isDiscrete && item.quantity > 1000) {
+            warnings.push({
+                type: 'schema',
+                severity: 'error',
+                message: `${item.manufacturer} ${item.model}: quantity ${item.quantity} for a per-each item is almost certainly a footage/parse error mis-entered as a device count. Verify before issuing — this can inflate the bid 10-100x.`,
+                itemIndex: idx,
+            });
+            deductions += 5;
+        } else if (isDiscrete && item.quantity > 500) {
+            warnings.push({
+                type: 'material',
+                severity: 'warning',
+                message: `${item.manufacturer} ${item.model}: quantity ${item.quantity} is unusually high for a per-each item — confirm it isn't cable footage entered on the wrong line.`,
+                itemIndex: idx,
+            });
+            deductions += 1;
+        }
+    });
+
+    // Single-line dominance: one material line >80% of the material subtotal.
+    const lineExtensions = data.materials
+        .filter(m => !m.isDeduct && m.quantity > 0 && m.msrp > 0)
+        .map(m => ({ label: `${m.manufacturer} ${m.model}`, ext: m.quantity * m.msrp }));
+    const materialSubtotal = lineExtensions.reduce((sum, l) => sum + l.ext, 0);
+    if (lineExtensions.length >= 3 && materialSubtotal > 0) {
+        const top = lineExtensions.reduce((a, b) => (b.ext > a.ext ? b : a), lineExtensions[0]!);
+        if (top.ext / materialSubtotal > 0.80) {
+            warnings.push({
+                type: 'pricing',
+                severity: 'warning',
+                message: `Single line "${top.label}" is ${Math.round((top.ext / materialSubtotal) * 100)}% of the material subtotal. A quantity or unit-price typo on this one line would swing the whole bid — double-check it.`,
+            });
+            deductions += 1;
+        }
+    }
+
     // Calculate final score
     const score = Math.max(0, Math.min(100, 100 - deductions));
 
