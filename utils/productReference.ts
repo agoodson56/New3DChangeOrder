@@ -159,6 +159,28 @@ export function buildProductReference(): string {
        Fire Alarm: Smoke Detector ${LABOR_STANDARDS.smokeDetector}hrs | Heat Detector ${LABOR_STANDARDS.heatDetector}hrs | Pull Station ${LABOR_STANDARDS.pullStation}hrs | Horn/Strobe ${LABOR_STANDARDS.hornStrobe}hrs | FACP ${LABOR_STANDARDS.firePanel}hrs
        Cabling: Per run ${LABOR_STANDARDS.cablePullPerRun}hrs + ${LABOR_STANDARDS.cablePullPer50Ft}hrs/50ft | Termination ${LABOR_STANDARDS.terminationPerEnd}hrs/end | 24-port panel ${LABOR_STANDARDS.patchPanelPer24}hrs
        Pathway: J-hook ${LABOR_STANDARDS.jHookInstall}hrs | Ladder rack ${LABOR_STANDARDS.ladderRackPer10Ft}hrs/10ft | Conduit ${LABOR_STANDARDS.conduitPer10Ft}hrs/10ft
+
+       --- ADDITIONAL DEVICE TIERS (field-verified production rates) ---
+       Use the higher tier when the install conditions warrant it:
+       - Camera, POLE-MOUNT (lift + ground + surge + terminate + test): ~20 hrs each — far above a standard dome. Use whenever a camera is on a pole/mast or requires a lift at height.
+       - Camera, COMPLEX (PTZ / multi-sensor / 360): ~8 hrs each (extra programming + setup) — more than a fixed dome.
+       - Access controller by door capacity: 2-door ~4 hrs | 4-door ~8 hrs | 8-door ~8 hrs (controller mount + power + head-end termination, separate from per-door reader/strike/REX/contact).
+       - Access control PROGRAMMING (head-end, cardholders, schedules, integration test): ~8 hrs per system, as its own line.
+       - Long-range / vehicle reader: ~1.5 hrs each.
+       Per-foot PATHWAY labor (bill pathway by the linear foot, not as 'each'):
+       - Conduit / EMT / PVC: ${LABOR_STANDARDS.conduitPer10Ft || 0.25}hrs/10ft ≈ 0.025 hrs/ft (15 min per 10-ft stick).
+       - Cable tray / ladder rack / runway: ~0.15 hrs/ft (≈9 min per LF).
+
+       --- OVERHEAD LOADERS (apply on top of field labor, as their own lines) ---
+       Field labor hours are DIRECT install only. A defensible bid adds these burdens:
+       - Misc labor: +5% of field hours (small unaccounted tasks — applied to every bid).
+       - Non-productive time (NPT): +8% of field hours (escort wait, breaks, travel-on-site, staging).
+       - Project management: +8% of field hours.
+       - Engineering / admin: +4% of field hours.
+       - Material support: +2% of material cost (3-system handling, staging) — 10% for pole-mount jobs.
+       - Shipping/freight: +1% of material cost — 3% for pole-mount jobs.
+       - Pre-construction / general conditions: ~3% where applicable; Warranty: ~2% of section total.
+       Surface PM, NPT, and engineering as explicit labor tasks so the total reflects true cost, not just install hours.
 `;
 
     // Expanded catalog summary (compact products from data/products/)
