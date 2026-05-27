@@ -18,6 +18,8 @@ import {
     PATHWAY_PRODUCTS,
     STANDARD_CONSUMABLES,
     CABLE_STANDARDS,
+    CABLE_RUN_MODEL,
+    CABLE_RUN_OVERHEAD_FT,
     LABOR_STANDARDS,
     AV_PRODUCTS,
     INTRUSION_PANELS,
@@ -122,15 +124,29 @@ export function buildProductReference(): string {
     }).join('\n');
 
     // Cable calculation standards
+    const ptd = CABLE_RUN_MODEL.projectTypeDefaults;
+    const ptLine = Object.entries(ptd)
+        .map(([k, v]) => `${k.replace(/_/g, ' ')} ~${v.horizontalFt}ft (×${v.routingFactor})`)
+        .join(', ');
     ref += `\n
-       === CABLE CALCULATION STANDARDS ===
+       === CABLE CALCULATION STANDARDS (BICSI run model) ===
        Default cable type: ${CABLE_STANDARDS.cableType}
-       Average per camera: ${CABLE_STANDARDS.perCameraFeet}ft
-       Average per door: ${CABLE_STANDARDS.perDoorFeet}ft
-       Average per data drop: ${CABLE_STANDARDS.perDropFeet}ft
-       J-hook spacing: 1 every ${CABLE_STANDARDS.jHookSpacingFeet}ft (3DTSI install standard). ${Math.round(CABLE_STANDARDS.bundledCableFraction * 100)}% of EACH run is bundled (one shared pathway, one set of hooks); the remaining ${Math.round((1 - CABLE_STANDARDS.bundledCableFraction) * 100)}% of each run is separate, summed across runs. Include 1 beam clamp per J-hook (1:1 ratio)
-       Pull box interval: Every ${CABLE_STANDARDS.pullBoxIntervalFeet}ft for long runs
-       Waste factor: ${CABLE_STANDARDS.wasteFactorPercent}% for terminations and pulls
+
+       A real horizontal run is NOT a straight line. Estimate each run's length as:
+         run_ft = (horizontal_pathway × routing_factor) + vertical_rise + service_slack
+       then apply the waste factor to the total.
+       - routing_factor: ${CABLE_RUN_MODEL.routingFactor} typical commercial (BICSI TDMM: 1.15-1.20 open plan, 1.25-1.35 standard, 1.35-1.50 complex medical/govt/school).
+       - vertical_rise: stub-up to plenum ${CABLE_RUN_MODEL.stubUpFt}ft + IDF/TR drop to patch panel ${CABLE_RUN_MODEL.idfDropFt}ft.
+       - service_slack: ${CABLE_RUN_MODEL.serviceLoopTrFt}ft loop at the telecom room + ${CABLE_RUN_MODEL.serviceLoopWaFt}ft at the work area + ${CABLE_RUN_MODEL.dressingFt}ft rack dressing (~${CABLE_RUN_OVERHEAD_FT}ft total vertical+slack added to EVERY run).
+       - Minimum run: ${CABLE_RUN_MODEL.minRunFt}ft (even the closest device has stub-up + loops + rack routing).
+       - TIA-568 cap: the HORIZONTAL portion must not exceed ${CABLE_RUN_MODEL.tiaMaxHorizontalFt}ft (90 m permanent link). Flag any run that does and note a different pathway/IDF is needed.
+       If the coordinator gives a measured distance, use it as the horizontal_pathway; otherwise use the project-type baseline:
+         ${ptLine}.
+       Fallback per-device totals when no project type is evident: camera ${CABLE_STANDARDS.perCameraFeet}ft, door ${CABLE_STANDARDS.perDoorFeet}ft, data drop ${CABLE_STANDARDS.perDropFeet}ft (these already roll in vertical+slack).
+
+       J-hook spacing: 1 every ${CABLE_STANDARDS.jHookSpacingFeet}ft (3DTSI install standard). ${Math.round(CABLE_STANDARDS.bundledCableFraction * 100)}% of EACH run is bundled (one shared pathway, one set of hooks); the remaining ${Math.round((1 - CABLE_STANDARDS.bundledCableFraction) * 100)}% of each run is separate, summed across runs. Include 1 beam clamp per J-hook (1:1 ratio).
+       Pull box interval: Every ${CABLE_STANDARDS.pullBoxIntervalFeet}ft for long runs.
+       Waste factor: ${CABLE_RUN_MODEL.wastePct}% for terminations, pulls, cut ends, and mistakes.
 `;
 
     // Labor standards (all 6 systems)

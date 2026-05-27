@@ -873,6 +873,46 @@ export function calculateJHooks(totalCableFeet: number, averageRunFeet?: number)
 }
 
 // =============================================================================
+// CABLE RUN MODEL (BICSI) — ported from SmartPlan2 cable-analyzer.js
+// A real horizontal run is NOT the straight-line distance. It is:
+//   (horizontal pathway × routing factor) + vertical rise + service slack,
+// then a waste factor on top. Flat "X ft per device" estimates under-count
+// footage ~25-40% because they ignore routing, vertical, and slack. This model
+// feeds the AI estimator's cable guidance so per-run footage is defensible.
+// =============================================================================
+export const CABLE_RUN_MODEL = {
+    routingFactor: 1.30,        // BICSI TDMM pathway multiplier (cables follow J-hook/tray/corridor paths, not straight lines)
+    stubUpFt: 10,               // device end: up the wall into ceiling plenum
+    idfDropFt: 20,              // IDF/TR end: down from plenum, through wall, down rack to patch panel
+    serviceLoopTrFt: 10,        // BICSI service loop at the telecom room (re-termination slack)
+    serviceLoopWaFt: 1,         // ~12" service loop at the work-area outlet
+    dressingFt: 5,              // patch-panel dressing / lacing within the rack
+    wastePct: 12,               // pull waste, cut ends, mistakes (supersedes the old 10%)
+    tiaMaxHorizontalFt: 295,    // TIA-568 horizontal permanent-link limit (90 m). Flag runs whose horizontal exceeds this.
+    minRunFt: 75,               // even the closest device has stub-up + loops + rack routing
+    // Per-project-type horizontal baseline + routing factor when no measured distance is given.
+    projectTypeDefaults: {
+        warehouse:    { horizontalFt: 220, routingFactor: 1.20 },
+        industrial:   { horizontalFt: 220, routingFactor: 1.20 },
+        small_office: { horizontalFt: 110, routingFactor: 1.20 },
+        office:       { horizontalFt: 175, routingFactor: 1.30 },
+        retail:       { horizontalFt: 160, routingFactor: 1.30 },
+        multi_family: { horizontalFt: 200, routingFactor: 1.35 },
+        education:    { horizontalFt: 190, routingFactor: 1.35 },
+        government:   { horizontalFt: 220, routingFactor: 1.35 },
+        healthcare:   { horizontalFt: 250, routingFactor: 1.40 },
+        transit:      { horizontalFt: 280, routingFactor: 1.45 },
+        prison:       { horizontalFt: 200, routingFactor: 1.45 },
+        data_center:  { horizontalFt: 150, routingFactor: 1.20 },
+    } as Record<string, { horizontalFt: number; routingFactor: number }>,
+} as const;
+
+/** Total vertical + service-slack overhead added to every run, before routing/waste. */
+export const CABLE_RUN_OVERHEAD_FT =
+    CABLE_RUN_MODEL.stubUpFt + CABLE_RUN_MODEL.idfDropFt +
+    CABLE_RUN_MODEL.serviceLoopTrFt + CABLE_RUN_MODEL.serviceLoopWaFt + CABLE_RUN_MODEL.dressingFt;
+
+// =============================================================================
 // LABOR HOUR CALCULATIONS
 // =============================================================================
 
