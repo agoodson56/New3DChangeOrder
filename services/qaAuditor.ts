@@ -192,7 +192,7 @@ If you have nothing to say in a category, use an empty array []. Do not omit any
     // (coValidator) and any pricing checks that did succeed.
     try {
         const response = await generateContent({
-            model: 'claude-haiku-4-5-20251001',
+            model: 'gemini-2.5-flash',
             nonEssential: true,
             contents: { parts: [{ text: prompt }] },
             config: {

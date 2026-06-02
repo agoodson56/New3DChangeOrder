@@ -8,11 +8,13 @@ import { generateContent, ApiKeyError, RateLimitError } from "./geminiClient";
 import type { Attachment } from "../utils/attachments";
 import { calculateJHooks, CABLE_STANDARDS } from "../data/productDatabase";
 
-const MODEL_NAME = 'claude-sonnet-4-6';
+const MODEL_NAME = 'gemini-2.5-pro';
 /** Fallback chain when primary model returns persistent UnavailableError.
  *  Different model versions live on different compute pools, so a 503 spike
- *  on one rarely correlates with another. Tried in order until one succeeds. */
-const FALLBACK_MODELS = ['claude-opus-4-7', 'claude-haiku-4-5-20251001'];
+ *  on one rarely correlates with another. Tried in order until one succeeds.
+ *  Flash is the lighter-weight last resort — lower quality but far more
+ *  available, used only after gemini-2.5-pro is exhausted by retries. */
+const FALLBACK_MODELS = ['gemini-2.5-flash'];
 
 /** Sanitize free-text user/AI strings before injection into prompts. */
 function sanitizeForPrompt(rawInput: string, maxLen = 8000): string {
@@ -1133,9 +1135,9 @@ ${buildProductReference()}
   return { data, jsonRepaired: jsonRepairApplied };
 }
 
-// Plain JSON Schema (not @google/genai Type.*) so the proxy can forward it as
-// output_config.format json_schema for guaranteed-valid output. All fields are
-// required and additionalProperties:false per Anthropic structured-output rules.
+// Plain JSON Schema (lowercase types) so the proxy can forward it to Gemini as
+// responseJsonSchema for guaranteed-valid output. All fields are required and
+// additionalProperties:false to keep the model from inventing extra keys.
 const PROPOSAL_SCHEMA = {
   type: "object",
   additionalProperties: false,
@@ -1364,7 +1366,7 @@ If something essential is missing, return sufficient=false with up to 5 SPECIFIC
 
   try {
     const response = await generateContent({
-      model: 'claude-haiku-4-5-20251001',
+      model: 'gemini-2.5-flash',
       nonEssential: true,
       contents: { parts: [{ text: prompt }] },
       config: {

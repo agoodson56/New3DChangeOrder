@@ -247,7 +247,7 @@ You MUST respond with ONLY a JSON object in this exact format (no markdown, no b
     let result: { validations?: any[] };
     try {
         const response = await generateContent({
-            model: 'claude-haiku-4-5-20251001',
+            model: 'gemini-2.5-flash',
             nonEssential: true,
             contents: { parts: [{ text: prompt }] },
             config: {
@@ -390,7 +390,7 @@ If fewer than 2 corroborating sources exist for an item, return sourcesFound:0 a
     let result: { verifications?: Array<{ itemIndex: number; medianPrice: number; sourcesFound: number }> };
     try {
         const response = await generateContent({
-            model: 'claude-haiku-4-5-20251001',
+            model: 'gemini-2.5-flash',
             nonEssential: true,
             contents: { parts: [{ text: prompt }] },
             config: {

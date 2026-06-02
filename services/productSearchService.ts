@@ -47,7 +47,7 @@ const PRODUCT_SEARCH_SCHEMA = {
  */
 export async function searchProducts(query: string): Promise<ProductSearchResult[]> {
   const safeQuery = (query || '').replace(/[\x00-\x1f\x7f<>{}]/g, '').slice(0, 500);
-  const model = 'claude-haiku-4-5-20251001';
+  const model = 'gemini-2.5-flash';
 
   const systemInstruction = `
     You are a professional low-voltage systems product research specialist working for a contractor that MUST WIN COMPETITIVE BIDS.
@@ -120,7 +120,7 @@ export async function searchProducts(query: string): Promise<ProductSearchResult
     const response = await Promise.race([
       generateContent({
         model,
-        fallbackModels: ['claude-sonnet-4-6'],
+        fallbackModels: ['gemini-2.5-pro'],
         contents: { parts: [{ text: prompt }] },
         config: {
           systemInstruction,
