@@ -31,8 +31,8 @@ async function hmacSha256(key: string, data: string): Promise<ArrayBuffer> {
 function arrayBufferToBase64Url(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
   let binary = '';
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
   }
   return base64UrlEncode(binary);
 }
@@ -61,6 +61,7 @@ export async function verifyToken(token: string, secret: string): Promise<JWTPay
   if (parts.length !== 3) return null;
 
   const [headerEncoded, payloadEncoded, signatureEncoded] = parts;
+  if (!headerEncoded || !payloadEncoded || !signatureEncoded) return null;
 
   try {
     const payload = JSON.parse(base64UrlDecode(payloadEncoded));

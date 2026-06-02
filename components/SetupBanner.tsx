@@ -50,7 +50,7 @@ export const SetupBanner: React.FC = () => {
     issues.push({
       severity: 'critical',
       message: 'AI API key not configured — change-order generation will fail',
-      hint: 'Set ANTHROPIC_API_KEY in Cloudflare Pages → Settings → Environment variables, then redeploy.',
+      hint: 'Set GEMINI_API_KEY in Cloudflare Pages → Settings → Environment variables, then redeploy.',
     });
   }
   if (cloudSync && !cloudSync.ready) {

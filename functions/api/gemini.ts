@@ -1,14 +1,18 @@
 /**
- * Cloudflare Pages Function — Claude API proxy using official Anthropic SDK.
+ * Cloudflare Pages Function — Gemini API proxy using the official @google/genai SDK.
  *
  * The browser POSTs { model, contents, config } to /api/gemini.
  * This function injects the secret key (server-side env var) and forwards
- * to Anthropic using the official SDK. The key is never exposed to the client.
+ * to Google's Generative Language API. The key is never exposed to the client.
  *
- * Required Pages env var: ANTHROPIC_API_KEY (no VITE_ prefix — server-only).
+ * Required Pages env var: GEMINI_API_KEY (no VITE_ prefix — server-only).
+ *
+ * `contents` and `config` are passed through to the SDK unchanged, so callers
+ * keep full control over systemInstruction, temperature, maxOutputTokens, and
+ * responseMimeType/responseSchema (structured JSON output).
  */
 
-import Anthropic from '@anthropic-ai/sdk';
+import { GoogleGenAI } from '@google/genai';
 
 type PagesContext<EnvT> = {
   request: Request;
@@ -16,7 +20,7 @@ type PagesContext<EnvT> = {
 };
 
 interface Env {
-  ANTHROPIC_API_KEY?: string;
+  GEMINI_API_KEY?: string;
   ALLOWED_ORIGINS?: string;
   MAX_REQUEST_BYTES?: string;
   RATE_LIMIT_PER_MINUTE?: string;
@@ -167,8 +171,8 @@ async function checkUserQuotaAndIncrement(
 }
 
 export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promise<Response> => {
-  if (!env.ANTHROPIC_API_KEY) {
-    console.warn('ANTHROPIC_API_KEY not configured on server');
+  if (!env.GEMINI_API_KEY) {
+    console.warn('GEMINI_API_KEY not configured on server');
     return json({ error: { code: 503, status: 'UNAVAILABLE', message: 'AI service is not currently available.' } }, 503);
   }
 
@@ -229,76 +233,35 @@ export const onRequestPost = async ({ request, env }: PagesContext<Env>): Promis
   if (!contents) {
     return json({ error: { code: 400, status: 'INVALID_REQUEST', message: 'contents is required' } }, 400);
   }
-  if (!/^(claude|gemini)-[a-z0-9.\-]+$/i.test(model)) {
-    return json({ error: { code: 400, status: 'INVALID_REQUEST', message: 'Unsupported model identifier' } }, 400);
+  if (!/^gemini-[a-z0-9.\-]+$/i.test(model)) {
+    return json({ error: { code: 400, status: 'INVALID_REQUEST', message: 'Unsupported Gemini model identifier' } }, 400);
   }
 
   try {
-    if (!env.ANTHROPIC_API_KEY) {
-      console.error('ANTHROPIC_API_KEY is empty or undefined');
-      return json({ error: { code: 503, status: 'UNAVAILABLE', message: 'API key not configured' } }, 503);
-    }
+    const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
 
-    const client = new Anthropic({ apiKey: env.ANTHROPIC_API_KEY });
-
-    // Convert contents to Claude message format
-    // Contents from frontend comes in Gemini format, need to convert to Claude format
-    let messages: any[] = Array.isArray(contents) ? contents : [contents];
-
-    // If messages are in Gemini format { role, parts }, convert to Claude format { role, content }
-    messages = messages.map((msg: any) => {
-      if (msg.parts && Array.isArray(msg.parts)) {
-        const content = msg.parts.map((part: any) => part.text || '').join('');
-        return { role: msg.role || 'user', content };
-      }
-      return msg;
+    console.log('Calling Gemini API with model:', model);
+    const response = await ai.models.generateContent({
+      model,
+      contents: contents as Parameters<typeof ai.models.generateContent>[0]['contents'],
+      config: (config || {}) as Parameters<typeof ai.models.generateContent>[0]['config'],
     });
 
-    // Extract system instruction from config if present
-    let systemInstruction = '';
-    if (config && typeof config === 'object') {
-      const cfg = config as Record<string, unknown>;
-      if (cfg.systemInstruction) {
-        systemInstruction = typeof cfg.systemInstruction === 'string'
-          ? cfg.systemInstruction
-          : JSON.stringify(cfg.systemInstruction);
-      }
-    }
-
-    // Read max_tokens from config if provided (frontend passes maxOutputTokens),
-    // otherwise default to a high value to avoid truncating large change orders.
-    const cfg = (config && typeof config === 'object') ? config as Record<string, unknown> : {};
-    const maxTokensFromConfig = typeof cfg.maxOutputTokens === 'number' ? cfg.maxOutputTokens : null;
-    const maxTokens = maxTokensFromConfig && maxTokensFromConfig > 0
-      ? Math.min(maxTokensFromConfig, 16384)
-      : 16384;
-
-    console.log('Calling Claude API with model:', model, 'max_tokens:', maxTokens);
-    const response = await client.messages.create({
-      model: model || 'claude-sonnet-4-6',
-      max_tokens: maxTokens,
-      system: systemInstruction || undefined,
-      messages: messages,
-    });
-
-    const text = response.content
-      .filter((block: any) => block.type === 'text')
-      .map((block: any) => block.text)
-      .join('');
+    const text = response.text || '';
 
     return json({ candidates: [{ content: { parts: [{ text }] } }] });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.error('Claude error:', message);
+    console.error('Gemini error:', message);
 
-    if (message.includes('API key') || message.includes('authentication')) {
+    if (/API key|authentication|unauthorized|PERMISSION_DENIED/i.test(message)) {
       return json({ error: { code: 401, status: 'UNAUTHENTICATED', message: 'API key is invalid or not authorized' } }, 401);
     }
-    if (message.includes('not found') || message.includes('not supported')) {
+    if (/not found|not supported|NOT_FOUND/i.test(message)) {
       return json({ error: { code: 404, status: 'NOT_FOUND', message: `Model or endpoint not found: ${message}` } }, 404);
     }
-    if (message.includes('quota') || message.includes('rate limit') || message.includes('overloaded')) {
-      return json({ error: { code: 429, status: 'RATE_LIMITED', message: message } }, 429);
+    if (/quota|rate limit|RESOURCE_EXHAUSTED|overloaded|UNAVAILABLE/i.test(message)) {
+      return json({ error: { code: 429, status: 'RATE_LIMITED', message } }, 429);
     }
 
     return json({ error: { code: 500, status: 'INTERNAL_ERROR', message: `AI service error: ${message.slice(0, 200)}` } }, 500);

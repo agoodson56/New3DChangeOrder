@@ -195,7 +195,7 @@ Return:
     // (coValidator) and any pricing checks that did succeed.
     try {
         const response = await generateContent({
-            model: 'gemini-1.5-flash',
+            model: 'gemini-2.5-flash',
             nonEssential: true,
             contents: { parts: [{ text: prompt }] },
             config: {

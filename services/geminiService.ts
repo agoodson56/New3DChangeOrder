@@ -8,11 +8,13 @@ import { auditChangeOrder } from "./qaAuditor";
 import { generateContent, ApiKeyError, RateLimitError } from "./geminiClient";
 import type { Attachment } from "../utils/attachments";
 
-const MODEL_NAME = 'claude-sonnet-4-6';
+const MODEL_NAME = 'gemini-2.5-pro';
 /** Fallback chain when primary model returns persistent UnavailableError.
  *  Different model versions live on different compute pools, so a 503 spike
- *  on one rarely correlates with another. Tried in order until one succeeds. */
-const FALLBACK_MODELS = ['claude-opus-4-7', 'claude-haiku-4-5-20251001'];
+ *  on one rarely correlates with another. Tried in order until one succeeds.
+ *  Flash is the lighter-weight last resort — lower quality but far more
+ *  available, used only after gemini-2.5-pro is exhausted by retries. */
+const FALLBACK_MODELS = ['gemini-2.5-flash'];
 
 /** Sanitize free-text user/AI strings before injection into prompts. */
 function sanitizeForPrompt(rawInput: string, maxLen = 8000): string {

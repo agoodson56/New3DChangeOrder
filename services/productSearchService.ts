@@ -119,7 +119,7 @@ export async function searchProducts(query: string): Promise<ProductSearchResult
     const response = await Promise.race([
       generateContent({
         model,
-        fallbackModels: ['gemini-1.5-pro', 'gemini-1.5-flash'],
+        fallbackModels: ['gemini-2.5-pro'],
         contents: { parts: [{ text: prompt }] },
         config: {
           systemInstruction,
