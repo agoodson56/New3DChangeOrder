@@ -644,41 +644,67 @@ export const ChangeOrderView: React.FC<ChangeOrderViewProps> = ({ data, rates, o
           </div>
         </div>
 
-        {/* Materials Table with Search Button */}
-        <div className="flex items-center justify-between bg-gray-200 px-2 py-1 border-b border-black print:hidden">
+        {/* Materials Table with Search Button + Labor-Only toggle */}
+        <div className="flex items-center justify-between gap-3 bg-gray-200 px-2 py-1 border-b border-black print:hidden">
           <span className="text-[10px] font-black uppercase tracking-widest text-gray-700">Materials & Equipment</span>
-          <button
-            onClick={() => openSearchModal()}
-            className="flex items-center gap-1 bg-[#008b8b] hover:bg-[#20b2aa] text-black text-[9px] font-bold uppercase tracking-wider px-3 py-1 transition-all"
-          >
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            Search Products
-          </button>
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 cursor-pointer" title="Hide materials and zero the materials subtotal. Useful for service/maintenance COs.">
+              <input
+                type="checkbox"
+                checked={data.laborOnly === true}
+                onChange={(e) => onDataChange({ ...data, laborOnly: e.target.checked })}
+                className="w-3.5 h-3.5 accent-[#008b8b]"
+              />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-700">Labor only</span>
+            </label>
+            <button
+              onClick={() => openSearchModal()}
+              disabled={data.laborOnly === true}
+              className="flex items-center gap-1 bg-[#008b8b] hover:bg-[#20b2aa] disabled:opacity-40 disabled:cursor-not-allowed text-black text-[9px] font-bold uppercase tracking-wider px-3 py-1 transition-all"
+            >
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              Search Products
+            </button>
+          </div>
         </div>
-        <div className="grid grid-cols-12 bg-gray-200 text-[10px] font-black border-b-2 border-black uppercase tracking-[0.15em]">
-          <div className="col-span-1 border-r border-black px-2 py-1 text-center">Qty</div>
-          <div className="col-span-5 border-r border-black px-2 py-1">Infrastructure, Hardware & Material Assets</div>
-          <div className="col-span-1 border-r border-black px-2 py-1 text-center print:hidden">+/−</div>
-          <div className="col-span-1 border-r border-black px-2 py-1 text-center print:hidden">Type</div>
-          <div className="col-span-2 border-r border-black px-2 py-1 text-right">Unit Price</div>
-          <div className="col-span-2 px-2 py-1 text-right">Total</div>
-        </div>
-        {allItems.map((item, i) => renderMaterialRow(item, i))}
+        {data.laborOnly === true ? (
+          <div className="bg-amber-50 border-b border-black px-3 py-3 text-center">
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">⚖ Labor-only change order</div>
+            <div className="text-[10px] text-amber-900 mt-1">No materials or equipment are included. The materials subtotal is $0 and sales tax does not apply.</div>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-12 bg-gray-200 text-[10px] font-black border-b-2 border-black uppercase tracking-[0.15em]">
+              <div className="col-span-1 border-r border-black px-2 py-1 text-center">Qty</div>
+              <div className="col-span-5 border-r border-black px-2 py-1">Infrastructure, Hardware & Material Assets</div>
+              <div className="col-span-1 border-r border-black px-2 py-1 text-center print:hidden">+/−</div>
+              <div className="col-span-1 border-r border-black px-2 py-1 text-center print:hidden">Type</div>
+              <div className="col-span-2 border-r border-black px-2 py-1 text-right">Unit Price</div>
+              <div className="col-span-2 px-2 py-1 text-right">Total</div>
+            </div>
+            {allItems.map((item, i) => renderMaterialRow(item, i))}
+          </>
+        )}
 
-        {/* Totals Recapitulation */}
+        {/* Totals Recapitulation — markup + sales tax lines suppressed on
+            labor-only COs since both are $0 by definition. */}
         <div className="bg-white">
-          <div className="grid grid-cols-12 text-[9px] border-b border-black font-bold">
-            <div className="col-span-8 border-r border-black px-2 py-0.5 text-right uppercase tracking-wider">Asset Inventory Markup:</div>
-            <div className="col-span-2 border-r border-black px-2 py-0.5 text-right">15.00%</div>
-            <div className="col-span-2 px-2 py-0.5 text-right font-mono font-bold text-[#008a8a]">{fmtUSD(materialMarkup + equipmentMarkup)}</div>
-          </div>
-          <div className="grid grid-cols-12 text-[9px] border-b border-black font-bold">
-            <div className="col-span-8 border-r border-black px-2 py-0.5 text-right uppercase tracking-wider">State & Local Sales Tax ({office.taxJurisdictionLabel}):</div>
-            <div className="col-span-2 border-r border-black px-2 py-0.5 text-right">{(office.salesTaxRate * 100).toFixed(3).replace(/\.?0+$/, '')}%</div>
-            <div className="col-span-2 px-2 py-0.5 text-right font-mono font-bold text-[#d4af37]">{fmtUSD(salesTax)}</div>
-          </div>
+          {data.laborOnly !== true && (
+            <div className="grid grid-cols-12 text-[9px] border-b border-black font-bold">
+              <div className="col-span-8 border-r border-black px-2 py-0.5 text-right uppercase tracking-wider">Asset Inventory Markup:</div>
+              <div className="col-span-2 border-r border-black px-2 py-0.5 text-right">15.00%</div>
+              <div className="col-span-2 px-2 py-0.5 text-right font-mono font-bold text-[#008a8a]">{fmtUSD(materialMarkup + equipmentMarkup)}</div>
+            </div>
+          )}
+          {data.laborOnly !== true && (
+            <div className="grid grid-cols-12 text-[9px] border-b border-black font-bold">
+              <div className="col-span-8 border-r border-black px-2 py-0.5 text-right uppercase tracking-wider">State & Local Sales Tax ({office.taxJurisdictionLabel}):</div>
+              <div className="col-span-2 border-r border-black px-2 py-0.5 text-right">{(office.salesTaxRate * 100).toFixed(3).replace(/\.?0+$/, '')}%</div>
+              <div className="col-span-2 px-2 py-0.5 text-right font-mono font-bold text-[#d4af37]">{fmtUSD(salesTax)}</div>
+            </div>
+          )}
           <div className="grid grid-cols-12 text-sm font-black bg-gray-100 py-1 border-b-4 border-black shadow-[inset_0_4px_6px_rgba(0,0,0,0.05)]">
             <div className="col-span-8 text-right px-2 uppercase italic tracking-[0.15em] self-center drop-shadow-sm">Grand Total Service Amount:</div>
             <div className="col-span-4 text-right px-2 self-center font-mono text-base font-black text-black">{fmtUSD(grandTotal)}</div>

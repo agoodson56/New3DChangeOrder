@@ -26,6 +26,10 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
   const [triage, setTriage] = useState<IntakeTriage | null>(null);
   const [triageAnswers, setTriageAnswers] = useState<string[]>([]);
   const [triaging, setTriaging] = useState(false);
+  /** Coordinator opted into a labor-only CO at intake — AI is told to skip
+   *  materials, and the result is forced to have no material lines and the
+   *  laborOnly flag set so downstream views/financials honor it. */
+  const [laborOnly, setLaborOnly] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
 
@@ -154,9 +158,15 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
     setLoading(true);
     setPipelineStatus('🧠 Initializing 3-Brain Pipeline...');
     setPipelinePercent(5);
+    // Labor-only mode: tell the estimator up front to skip materials, and
+    // force the result to have no material lines + the laborOnly flag set
+    // (defense in depth — the AI sometimes adds a line anyway).
+    const intentForAi = laborOnly
+      ? `${finalIntent}\n\n--- LABOR ONLY ---\nThis is a LABOR-ONLY change order. Generate labor tasks only. Do NOT add ANY material or equipment line items — the materials array must be empty. The customer is providing materials or they are billed separately.`
+      : finalIntent;
     try {
       const result = await generateValidatedChangeOrder(
-        finalIntent,
+        intentForAi,
         attachments,
         adminData,
         (stage, percent) => {
@@ -164,6 +174,10 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
           setPipelinePercent(percent);
         }
       );
+      if (laborOnly) {
+        result.materials = [];
+        result.laborOnly = true;
+      }
       // Remember this customer for future auto-fill (only if generation succeeded)
       if (adminData.customer.trim()) {
         rememberCustomer(adminData);
@@ -466,6 +480,23 @@ export const COGenerator: React.FC<COGeneratorProps> = ({ onResult }) => {
         {intentError && (
           <p className="text-red-400 text-sm font-bold uppercase tracking-wider">{intentError}</p>
         )}
+        {/* Labor-only intake toggle — for service/maintenance COs where the
+            customer provides materials or materials are billed separately. */}
+        <label className="flex items-start gap-3 p-3 bg-white/40 border border-gray-800 hover:border-[#008b8b]/60 cursor-pointer transition-all">
+          <input
+            type="checkbox"
+            checked={laborOnly}
+            onChange={(e) => setLaborOnly(e.target.checked)}
+            className="mt-0.5 w-4 h-4 accent-[#008b8b]"
+          />
+          <div className="flex-1">
+            <div className="text-xs font-black text-[#008b8b] uppercase tracking-widest">Labor only — no materials</div>
+            <div className="text-[11px] text-gray-700 mt-0.5 leading-relaxed">
+              Service or maintenance work where the customer supplies materials (or they're billed separately).
+              The estimator skips materials entirely; the proposal, totals, and PDF show labor only.
+            </div>
+          </div>
+        </label>
         <div className="space-y-2">
           <div className="flex items-center gap-3 flex-wrap">
             <label className={`cursor-pointer bg-white/5 hover:bg-white/10 border border-gray-800 px-3 py-1.5 text-xs uppercase font-bold tracking-wider text-gray-700 hover:text-[#008b8b] transition-all ${attachmentBusy ? 'opacity-50 cursor-wait' : ''}`}>

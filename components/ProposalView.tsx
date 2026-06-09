@@ -235,14 +235,18 @@ export const ProposalView: React.FC<ProposalViewProps> = ({ proposal, coData, on
                             <span className="text-gray-600 font-medium">Professional Labor & Installation</span>
                             <span className="font-bold font-mono">{fmtUSD(proposal.investmentSummary.laborTotal)}</span>
                         </div>
-                        <div className="flex justify-between items-center py-3 border-b border-gray-200">
-                            <span className="text-gray-600 font-medium">Equipment & Materials</span>
-                            <span className="font-bold font-mono">{fmtUSD(proposal.investmentSummary.materialsTotal)}</span>
-                        </div>
-                        <div className="flex justify-between items-center py-3 border-b border-gray-200">
-                            <span className="text-gray-600 font-medium">Applicable Taxes</span>
-                            <span className="font-bold font-mono">{fmtUSD(proposal.investmentSummary.taxTotal)}</span>
-                        </div>
+                        {coData.laborOnly !== true && (
+                          <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                              <span className="text-gray-600 font-medium">Equipment & Materials</span>
+                              <span className="font-bold font-mono">{fmtUSD(proposal.investmentSummary.materialsTotal)}</span>
+                          </div>
+                        )}
+                        {coData.laborOnly !== true && (
+                          <div className="flex justify-between items-center py-3 border-b border-gray-200">
+                              <span className="text-gray-600 font-medium">Applicable Taxes</span>
+                              <span className="font-bold font-mono">{fmtUSD(proposal.investmentSummary.taxTotal)}</span>
+                          </div>
+                        )}
                         {/* Total Investment - Teal Gradient (white text for contrast on dark teal) */}
                         <div className="flex justify-between items-center py-4 bg-gradient-to-r from-[#008a8a] to-[#006666] text-white px-4 -mx-4 mt-4 rounded-lg shadow-md">
                             <span className="font-black uppercase tracking-wider text-white">Total Investment</span>

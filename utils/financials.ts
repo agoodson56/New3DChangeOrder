@@ -82,8 +82,13 @@ export function calculateFinancials(
     const laborMarkup = round2(laborSubtotal * LABOR_MARKUP_RATE);
     const laborTotal = round2(laborSubtotal + laborMarkup);
 
+    // Labor-only CO: zero everything material-side (subtotal, markup, tax).
+    // We still compute the per-bucket numbers so the shape stays the same and
+    // downstream consumers (cost-side math, returned object) don't change.
+    const laborOnly = data.laborOnly === true;
+
     // Materials (passive infrastructure — deducts contribute negative values)
-    const materialSubtotal = round2((data.materials || [])
+    const materialSubtotal = laborOnly ? 0 : round2((data.materials || [])
         .filter(m => m.category === 'Material')
         .reduce((acc, item) => {
             const sign = item.isDeduct === true ? -1 : 1;
@@ -91,10 +96,10 @@ export function calculateFinancials(
             const msrp = Number.isFinite(item.msrp) ? item.msrp : 0;
             return acc + (sign * msrp * qty);
         }, 0));
-    const materialMarkup = round2(materialSubtotal * MATERIAL_MARKUP_RATE);
+    const materialMarkup = laborOnly ? 0 : round2(materialSubtotal * MATERIAL_MARKUP_RATE);
 
     // Equipment (active devices — deducts contribute negative values)
-    const equipmentSubtotal = round2((data.materials || [])
+    const equipmentSubtotal = laborOnly ? 0 : round2((data.materials || [])
         .filter(m => m.category === 'Equipment')
         .reduce((acc, item) => {
             const sign = item.isDeduct === true ? -1 : 1;
@@ -102,12 +107,13 @@ export function calculateFinancials(
             const msrp = Number.isFinite(item.msrp) ? item.msrp : 0;
             return acc + (sign * msrp * qty);
         }, 0));
-    const equipmentMarkup = round2(equipmentSubtotal * EQUIPMENT_MARKUP_RATE);
+    const equipmentMarkup = laborOnly ? 0 : round2(equipmentSubtotal * EQUIPMENT_MARKUP_RATE);
 
     const materialsTotal = round2(materialSubtotal + equipmentSubtotal + materialMarkup + equipmentMarkup);
 
-    // Tax base — pre or post markup depending on policy flag.
-    const taxBase = round2(
+    // Tax base — pre or post markup depending on policy flag. Labor-only =>
+    // no taxable material/equipment basis at all.
+    const taxBase = laborOnly ? 0 : round2(
       TAX_ON_MARKED_UP_PRICE
         ? materialSubtotal + materialMarkup + equipmentSubtotal + equipmentMarkup
         : materialSubtotal + equipmentSubtotal

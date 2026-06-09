@@ -86,6 +86,10 @@ export interface ChangeOrderData {
   confidenceScore: number;
   nextSteps: string[];
   validationResult?: ValidationResult;
+  /** Labor-only CO. When true, the materials section is hidden in the editor,
+   *  PDF, and proposal, and calculateFinancials zeroes materials/equipment +
+   *  sales tax. Coordinator can flip this at intake or on the change-order view. */
+  laborOnly?: boolean;
 }
 
 export interface ProposalData {
